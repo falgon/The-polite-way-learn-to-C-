@@ -4,17 +4,17 @@
 
 1. スコープ
 
-* if文
+2. if文
 
-* for,range-for文
+3. for,range-for文
 
-* while文
+4. while文
 
-* break,continue文
+5. break,continue文
 
-* switch文
+6. switch文
 
-* goto文
+7. goto文
 
 ## 5.1 スコープ
 
