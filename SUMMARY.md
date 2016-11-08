@@ -8,4 +8,5 @@
 * [Chapter 4:初期化と式、演算子](chapter_4.md)
 * [Chapter 5:スコープと制御文](chapter_5.md)
 * [Chapter 6:関数](chapter_6.md)
+* [Chapter 7:ポインターと参照](chapter_7.md)
 
