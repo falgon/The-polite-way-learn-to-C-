@@ -1,1 +1,1 @@
-# 第 13 章 Boost C++ Libraries
+# 第 12 章 イディオム
