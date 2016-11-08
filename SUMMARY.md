@@ -10,5 +10,6 @@
 * [Chapter 6:関数](chapter_6.md)
 * [Chapter 7:ポインターと参照](chapter_7.md)
 * [Chapter 8:構造体とクラス](chapter_8.md)
-* [Chapter 9:テンプレート](chapter_9.md)
+* [Chapter 9:例外処理](chapter-9例外処理.md)
+* [Chapter 10:テンプレート](chapter_9.md)
 
