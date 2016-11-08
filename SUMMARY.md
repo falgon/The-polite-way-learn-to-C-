@@ -13,4 +13,5 @@
 * [Chapter 9:例外処理](chapter_9.md)
 * [Chapter 10:テンプレート](chapter_10.md)
 * [Chapter 11:STL](chapter-11stl.md)
+* [Chapter 12:イディオム](chapter-12イディオム.md)
 
