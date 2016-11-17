@@ -402,3 +402,94 @@ int main()
 }
 ```
 これはコンパイルに成功するでしょうか。答えはNOです。何故ならば、ODRを違反しているからです。確かに、仮引数名の並びは`int x,int y`と、`int y,int x`で双方ともに異なります。しかし、コンパイラが識別に見ているのは仮引数名ではなく、仮引数の型です。そう見ると、どちらも`int`型のデータを2つ受け取る関数`plus`ですから、全く同じ定義となります。全く同じ定義はODRに違反しますので、コンパイルエラーとなるのです。
+どんどん行きましょう。以下の場合はどうなるでしょうか。
+```cpp
+a
+```
+残念ながら、戻り値型のみ違う関数もODR違反となります。別の関数として識別するのには関数名とそのシグネチャのみだからです。...しかし、実は戻り値だけが違う関数のオーバーロードをシミュレートできる機能がC++には備わっています。それについては第11章テンプレートにて説明しますので、楽しみにしていてください。
+
+### 関数とリテラル
+
+少しここで、リテラルという概念に触れておきます。以下のような場合、コンパイラはどのように動くでしょうか。
+```cpp
+#include<iostream>
+
+void func(unsigned int)
+{
+    std::cout<<"the argument type is unsigned int !"<<std::endl;
+}
+void func(int)
+{
+    std::cout<<"the argument type is signed int !"<<std::endl;
+}
+int main()
+{
+    func(10);
+}
+```
+実行結果は以下となります。
+```cpp
+the argument type is signed int !
+```
+`10`という数値は、`unsigned int`にも`signed int`にも互換性のある値です。しかし、しっかりと呼び分ける事ができています。これを感覚的に捉えるには、まず`10`という値は、要するに`+10`であるのだ、と捉えると良いでしょう。`+`というsignが付いているので、`signed int`を取る関数`func`が呼ばれるのです。では、`10`を`unsigned`な`int`として表記するにはどうすれば良いのでしょうか。それは、以下のように記述します。
+```cpp
+10u
+```
+では関数`func`の呼び出しに`10u`を渡して見ましょう。
+```cpp
+#include<iostream>
+void func(unsigned int)
+{
+    std::cout<<"the argument type is unsigned int !"<<std::endl;
+}
+
+void func(int)
+{
+    std::cout<<"the argument type is signed int !"<<std::endl;
+}
+int main()
+{
+    func(10u);
+}
+```
+実行結果は以下となります。
+```cpp
+the argument type is unsigned int !
+```
+`unsigned int`を受け取る関数`func`が無事呼び出されました。しかしまだ`signed`と`unsigned`以外にも、例えば`double`と`float`が同じ問題を抱えています。
+```cpp
+#include<iostream>
+void func(float)
+{
+    std::cout<<"the argument type is float !"<<std::endl;
+}
+void func(double)
+{
+    std::cout<<"the argument type is double !"<<std::endl;
+}
+int main()
+{
+    func(10.5);
+}
+```
+実行結果は以下となります。
+```cpp
+the argument type is double !
+```
+`10.5`を渡しています。しかし`double`型も`float`型もどちらも小数点を扱う事のできる型です。それでいて`double`型を受け取る関数`func`が呼び出されました。`float`としての数値を表したいのに！...ご安心ください。float用にも、その機能は備えられています。
+```cpp
+#include<iostream>
+void func(float)
+{
+    std::cout<<"the argument type is float !"<<std::endl;
+}
+void func(double)
+{
+    std::cout<<"the argument type is double !"<<std::endl;
+}
+int main()
+{
+    func(10.5f);
+}
+```
+このような`u`、`f`をリテラルと言います。リテラルはまだ少し奥深いところがありますので後ほどまた詳しく解説します。
