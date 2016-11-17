@@ -7,6 +7,7 @@
 * メンバクラス
 * explicit
 * Operator overload
+* ADL
 * Specialize member function / 
 * 継承
 * virtual
