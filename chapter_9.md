@@ -6,6 +6,7 @@
 * メンバ関数
 * メンバクラス
 * explicit
+* Operator overload
 * Specialize member function / 
 * 継承
 * virtual
