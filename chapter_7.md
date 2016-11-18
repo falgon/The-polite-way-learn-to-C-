@@ -5,3 +5,5 @@
     * lvalue reference
     * rvalue reference
 * ムーブセマンティックス
+    * glvalueとrvalue
+    * lvalue、xvalue、prvalue
