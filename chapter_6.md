@@ -531,7 +531,7 @@ int main()
 ```
 この場合、他のスコープからは`main`関数内の変数`x`を見つける事はできません。
 ```cpp
-void f();
+int f();
 int main()
 {
     int x=10;
@@ -543,13 +543,13 @@ int f()
 ```
 通常、別のスコープへ値を渡したい場合は、関数の引数として渡す事で実現できます。
 ```cpp
-void f(int);
+int f(int);
 int main()
 {
     int x=10;
     f(x);
 }
-void f(int x)
+int f(int x)
 {
     return x+1;
 }
