@@ -793,13 +793,16 @@ int main()
 ```cpp
 namespace Nm{
     void func(){}
+    void func1(){}
 }
 using Nm::func;
 int main()
 {
     func();
+    Nm::func1();
 }
 ```
+`using Nm::func;`とする事によって、`Nm`名前空間の`func`という関数だけを非修飾的に(名前空間を明示的に示さない事)呼べるようにしています。この時`func1`は`using`宣言されていないため、明示的に名前空間を修飾した記述が必要になります。
 
 
 ### 6.3.2 名付けてはならない名前空間名
