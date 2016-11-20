@@ -979,6 +979,7 @@ namespace{
 #include"test.hpp"
 int main()
 {
-    ::f(); // これは出来ない
+    f(); // 不可
+    ::f(); // 不可
 }
 ```
