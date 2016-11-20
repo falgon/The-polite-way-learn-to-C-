@@ -8,7 +8,7 @@
 * [Chapter 4:初期化と式、演算子](chapter_4.md)
 * [Chapter 5:スコープと制御文](chapter_5.md)
 * [Chapter 6:関数、制御区域、名前空間](chapter_6.md)
-* [Chapter 7:ポインターと参照](chapter_7.md)
+* [Chapter 7:ポインター、配列、参照](chapter_7.md)
 * [Chapter 8:定数](chapter_8.md)
 * [Chapter 9:構造体とクラス](chapter_9.md)
 * [Chapter 10:例外処理](chapter_10.md)
