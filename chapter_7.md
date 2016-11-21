@@ -422,8 +422,8 @@ int main()
     *a_pptr=&b;
 
     std::cout<< a <<std::endl<<
-        *a_ptr<<std::endl<<
-        **a_pptr<<std::endl;
+        *a_ptr <<std::endl<<
+        **a_pptr <<std::endl;
 }
 ```
 実行結果は以下となります。
