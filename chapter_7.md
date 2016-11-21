@@ -479,4 +479,18 @@ int main()
 0x7fff5cfbb59a
 0x7fff5cfbb59b
 ```
-末尾の数値を見てください。`char`型は1バイトの領域を使うためそれぞれの要素が1バイトずつ綺麗に並んでいる事が分かります。このように配列を宣言すると、論理的には、**その要素は必ず順序良く並んでメモリ上に置かれます**。
+末尾の数値を見てください。`char`型は1バイトの領域を使うためそれぞれの要素が1バイトずつ綺麗に並んでいる事が分かります。このように配列を宣言すると、論理的には、**その要素は必ず順序良く並んでメモリ上に置かれます**。では次に、以下のコードを見て見ましょう。
+```cpp
+#include<iostream>
+int main()
+{
+    int array[5];
+    for(unsigned int i=0; i<sizeof(array)/sizeof(array[0]); ++i)
+        std::cout<< &array[i] <<std::endl;
+
+    std::cout<<"----------------"<<std::endl;
+    
+    for(unsigned int i=0; i<sizeof(array)/sizeof(array[0]); ++i)
+        std::cout<< &array[0]+i << std::endl;
+}
+```
