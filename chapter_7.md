@@ -555,4 +555,36 @@ int main()
     std::cout<< *(ptr+1) << std::endl; // 2が出力される。
 }
 ```
+因みに以下のように記述すると何が出力されるでしょうか。
+```cpp
+#include<iostream>
+int main()
+{
+    int array[2];
+    std::cout << &array[0] << std::endl;
+    std::cout << array << std::endl;
+}
+```
+筆者の環境では以下のように出力されました。
+```cpp
+0x7fff5daba5a0
+0x7fff5daba5a0
+```
+同じ値が出力されていますね。そうです、実は宣言された配列名を添え字([])無しに使うと配列の先頭アドレスへを表すため、全く同じ数値が得られます。つまり、このように使うこともできますね。
+```cpp
+#include<iostream>
+int main()
+{
+    int array[]={10,20};
+    std::cout << *(&array[0]+1) << std::endl;
+    std::cout << *(array+1) << std::endl;
+}
+```
+実行結果は以下となります。
+```cpp
+20
+20
+```
 
+
+### 7.2.2 
