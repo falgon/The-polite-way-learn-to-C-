@@ -21,32 +21,18 @@
 本書では主に下記環境にてコンパイルの確認をしています。
 
 <dl>
-
 <dt>OS</dt>
-
 <dd><ul>
-
     <li>Windows 7,Windows 8,Windows 10</li>
-
     <li>Mac OS X 10.11.2</li>
-
     <li>Debian 8.0 GNU Linux</li>
-
     <li>Ubuntu 16.04 GNU Linux</li>
-
     <li>Fedora 24</li>
-
 </ul></dd>
-
 <dt>コンパイラ</dt>
-
 <dd><ul>
-
     <li>GNU C++ Compiler 6.1.0 / Cygwin</li>
-
     <li>LLVM Clang</li>
-
 </ul></dd></dd>
-
 </dl>
 
