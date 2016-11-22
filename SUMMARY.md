@@ -16,6 +16,7 @@
 * [Chapter 4:初期化と式、演算子](chapter_4.md)
     * [4.1 初期化と代入](41-初期化と代入.md)
     * [4.2 式](42-式.md)
+    * [4.3 演算子](43-演算子.md)
 * [Chapter 5:スコープと制御文](chapter_5.md)
 * [Chapter 6:関数、制御区域、名前空間](chapter_6.md)
 * [Chapter 7:ポインター、配列、参照](chapter_7.md)
