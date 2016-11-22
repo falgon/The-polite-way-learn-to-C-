@@ -8,9 +8,10 @@
 * explicit
 * Operator overload
 * ADL
-* Specialize member function / 
+* Specialize member function
 * 継承
 * virtual
 * final,overload
 * 継承パターン
 * ODR最適化
+* 関数オブジェクト、ラムダ式
