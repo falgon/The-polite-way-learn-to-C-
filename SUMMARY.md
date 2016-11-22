@@ -18,6 +18,7 @@
     * [4.2 式](Chap4/42-式.md)
     * [4.3 演算子](Chap4/43-演算子.md)
 * [Chapter 5:スコープと制御文](chapter_5.md)
+    * 5.1 スコープ
 * [Chapter 6:関数、制御区域、名前空間](chapter_6.md)
 * [Chapter 7:ポインター、配列、参照](chapter_7.md)
 * [Chapter 8:定数](chapter_8.md)
