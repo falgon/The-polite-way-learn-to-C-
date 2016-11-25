@@ -13,5 +13,6 @@
 * virtual
 * final,overload
 * 継承パターン
+* 構造化束縛
 * ODR最適化
 * 関数オブジェクト、ラムダ式
