@@ -11,7 +11,7 @@
 * Specialize member function
 * 継承
 * virtual
-* final,overload
+* final,override
 * 継承パターン
 * 構造化束縛
 * ODR最適化
