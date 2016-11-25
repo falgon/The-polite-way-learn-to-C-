@@ -1,77 +1,41 @@
 ## 5.6 switch文
 
-if文の拡張的な文法としてswitch文という文法があります。
-
-
+`if`文の拡張的な文法として`switch`文があります。
 
 ```cpp
-
 #include<iostream>
-
 int main()
-
 {
-
- int a[4]={};
-
- for(unsigned int i=0; i<sizeof(a)/sizeof(a[0]); ++i)
-
- std::cin>>a[i];
-
-
-
- for(int value:a){
-
- switch(value){
-
- case 1:
-
- std::cout<<"1です"<<std::endl;
-
- break;
-
- case 2:
-
- std::cout<<"2です"<<std::endl;
-
- break;
-
- case 3:
-
- std::cout<<"3です"<<std::endl;
-
- break;
-
- default:
-
- std::cout<<"それ以外です"<<std::endl;
-
- break;
-
- }
-
- }
-
+    int a[4]={};
+    for(unsigned int i=0; i<sizeof(a)/sizeof(a[0]); ++i)
+        std::cin>>a[i];
+    for(int value:a){
+        switch(value){
+            case 1:
+                std::cout<<"1です"<<std::endl;
+                break;
+            case 2:
+                std::cout<<"2です"<<std::endl;
+                break;
+            case 3:
+                std::cout<<"3です"<<std::endl;
+                break;
+            default:
+                std::cout<<"それ以外です"<<std::endl;
+                break;
+        }
+    }
 }
-
 ```
-
 実行結果は以下となります。
 
 ```cpp
-
 1 2 3 50
-
 1です
-
 2です
-
 3です
-
 それ以外です
-
 ```
-
 1 2 3 50という入力に対してそれぞれの結果が上から出力されています。文法を以下に示します。
 
 ```cpp
