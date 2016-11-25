@@ -26,6 +26,7 @@
     * [5.6 switch文](Chap5/56-switch文.md)
     * [5.7 goto文](Chap5/57-goto文.md)
 * [Chapter 6:関数、制御区域、名前空間](chapter_6.md)
+    * [6.1 関数](61-関数.md)
 * [Chapter 7:ポインター、配列、参照](chapter_7.md)
 * [Chapter 8:定数](chapter_8.md)
 * [Chapter 9:構造体とクラス](chapter_9.md)
