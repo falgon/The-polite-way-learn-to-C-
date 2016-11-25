@@ -21,6 +21,7 @@
     * [5.1 スコープ](Chap5/51-スコープ.md)
     * [5.2 if](Chap5/52-if.md)
     * [5.3 for,range-for文](Chap5/53-forrange-for文.md)
+    * [5.4 while文](54-while文.md)
 * [Chapter 6:関数、制御区域、名前空間](chapter_6.md)
 * [Chapter 7:ポインター、配列、参照](chapter_7.md)
 * [Chapter 8:定数](chapter_8.md)
