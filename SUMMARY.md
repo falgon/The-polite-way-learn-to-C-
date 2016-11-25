@@ -24,6 +24,7 @@
     * [5.4 while文](Chap5/54-while文.md)
     * [5.5 break,continue文](Chap5/55-breakcontinue文.md)
     * [5.6 switch文](Chap5/56-switch文.md)
+    * [5.7 goto文](57-goto文.md)
 * [Chapter 6:関数、制御区域、名前空間](chapter_6.md)
 * [Chapter 7:ポインター、配列、参照](chapter_7.md)
 * [Chapter 8:定数](chapter_8.md)
