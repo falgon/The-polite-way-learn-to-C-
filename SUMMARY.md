@@ -30,7 +30,7 @@
     * [6.2 グローバルスコープとローカルスコープ、static変数](Chap6/62-グローバルスコープとローカルスコープ、static変数.md)
     * [6.3 Namespace](Chap6/63-namespace.md)
 * [Chapter 7:ポインター、配列、参照](chapter_7.md)
-    * 7.1 ポインター
+    * [7.1 ポインター](71-ポインター.md)
 * [Chapter 8:定数](chapter_8.md)
 * [Chapter 9:構造体とクラス](chapter_9.md)
 * [Chapter 10:例外処理](chapter_10.md)
