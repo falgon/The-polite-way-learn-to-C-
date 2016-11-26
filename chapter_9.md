@@ -7,6 +7,10 @@
 * メンバクラス
 * explicit
 * Operator overload
+* リテラル
+    * 数値リテラル
+    * 文字列リテラル
+    * 生文字リテラル(->改行などはそのまま'¥n')
 * ADL
 * Specialize member function
 * 継承
