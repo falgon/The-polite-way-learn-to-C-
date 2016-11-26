@@ -16,6 +16,7 @@
 * 継承
 * virtual
 * final,override
+* キャスト
 * 継承パターン
 * 構造化束縛
 * ODR最適化
