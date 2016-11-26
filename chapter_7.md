@@ -10,3 +10,4 @@
 * ムーブセマンティックス
     * glvalueとrvalue
     * lvalue、xvalue、prvalue
+    * 暗黙の変換と最適化(RVO)
