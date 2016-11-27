@@ -8,6 +8,8 @@
     * lvalue reference
     * rvalue reference
 * ムーブセマンティックス
-    * glvalueとrvalue
-    * lvalue、xvalue、prvalue
+    * glvalue
+        * lvalue、xvalue
+    * rvalue
+        * prvalue、xvalue
     * 暗黙の変換と最適化(RVO)

@@ -32,6 +32,8 @@
 * [Chapter 7:ポインター、配列、参照](chapter_7.md)
     * [7.1 ポインター](Chap7/71-ポインター.md)
     * [7.2 配列](Chap7/72-配列.md)
+    * [7.3 参照](73-参照.md)
+    * [7.4 ムーブセマンティックス](74-ムーブセマンティックス.md)
 * [Chapter 8:定数](chapter_8.md)
 * [Chapter 9:構造体とクラス](chapter_9.md)
 * [Chapter 10:例外処理](chapter_10.md)
