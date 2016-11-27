@@ -6,6 +6,8 @@
 * メンバ関数
 * メンバクラス
 * explicit
+* thisポインタ
+    * メンバ関数内でのthisポインタはnullでない
 * Operator overload
 * リテラル
     * 数値リテラル
