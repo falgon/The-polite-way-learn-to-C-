@@ -43,4 +43,5 @@
 * [Chapter 13:イディオム](chapter_13.md)
 * [Chapter 14:マルチスレッド](chapter_14.md)
 * [Chapter 15:Boost C++ Libraries](chapter_15.md)
+* [Chapter 16:コラム](chapter-16コラム.md)
 
