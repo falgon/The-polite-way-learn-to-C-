@@ -90,7 +90,7 @@ int f(double* ptr)
 ```
 これを、例えばGCC 4.3.6を使い、以下のコマンドでコンパイルします。
 ```cpp
-$ g++ prog.cc -O2 -march=native -std=c++98 -Wstrict-aliasing
+g++ prog.cc -O2 -march=native -std=c++98 -Wstrict-aliasing
 ```
 すると以下のような警告が出力されます。
 ```cpp
