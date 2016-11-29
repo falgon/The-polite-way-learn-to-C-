@@ -1,4 +1,4 @@
-## strict aliasing rule
+## 16.1 strict aliasing rule
 
 C/C++言語には、strict aliasing ruleと言われるルールが存在します。
 
