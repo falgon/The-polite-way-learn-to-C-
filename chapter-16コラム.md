@@ -80,7 +80,33 @@ int f(double* ptr)
 
 よって総括すると、全てのプログラマーは極力strict aliasing ruleに完璧に従うべきです。従わなかった場合、コンパイラ製作者はそれに従って(SOHUD)最適化を実装する可能性があるため、プログラマーの期待通りに動かない可能性を孕むかもしれません。例えば、以下はstrict aliasing ruleに背いたコードです。
 ```cpp
-
+// prog.cc
+#include<cstdio>int main()
+{
+    int x=0;
+    short* ptr=reinterpret_cast<short*>(&x); // strict aliasing ruleに反したコード
+    *ptr=42;
+    std::printf("%d\n",x);
+}
 ```
-これに対して例えばGCCで最適化オプションを付与した場合、以下のように最適化されます。
-これは、プログラマの意図した動きではありませんね。しかし、もちろんコンパイラのバグではありません。strict aliasing ruleに背いたプログラマーに全ての責任は帰結するのです。
+これを、例えばGCC 4.3.6を使い、以下のコマンドでコンパイルします。
+```cpp
+$ g++ prog.cc -O2 -march=native -std=c++98 -Wstrict-aliasing
+```
+すると以下のような警告が出力されます。
+```cpp
+prog.cc: In function 'int main()': prog.cc:5: warning: likely type-punning may break strict-aliasing rules: object '*ptr' of main type 'short int' is referenced at or around prog.cc:6 and may be aliased to object 'x' of main type 'int' which is referenced at or around prog.cc:4.
+```
+実行してみると...
+```cpp
+0
+```
+`ptr`を通じて`x`の場所に対して`42`を代入しているように思えますが、`0`のままです。これは、プログラマの意図した動きではありませんね。しかし、もちろんコンパイラのバグではありません。全ての責任は、strict aliasing ruleに背いたプログラマーに帰結するのです。これは、strict aliasing ruleに基づき、`short*`が`int`のaliasとなる事は無いという規則が適用された結果ですから当然の報いと言えます。例えばここでstrict-aliasingを無効にすると動くかもしれません。GCCでは`-fno-strict-aliasing`オプションを使う事で無効にする事ができます。
+```cpp
+$ g++ prog.cc -O2 -march=native -std=c++98 -fno-strict-aliasing
+```
+実行すると
+```cpp
+42
+```
+上手くいきました。しかし、標準規格に従わないコードである事は確かですし、それによってコンパイラによる最適化を抑止してしまいますので、上記のようなコードを記述するべきではありません。また、極力コンパイルオプションは規則を緩めるのではなく厳しくするべきです。それが、解明できないレガシーな壊れたコード記述してしまわないための1つの助けとなります。
