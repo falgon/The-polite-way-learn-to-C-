@@ -45,5 +45,5 @@
 * [Chapter 15:Boost C++ Libraries](chapter_15.md)
 * [Chapter 16:コラム](chapter_16.md)
     * [16.1 strict alias rule](Chap16/161-strict-alias-rule.md)
-    * [16.2 何故main関数からプログラムが開始されるのか](Chap16/162-何故main関数からプログラムが開始されるのか.md)
+    * [16.2 エントリポイント](Chap16/162-エントリポイント.md)
 
