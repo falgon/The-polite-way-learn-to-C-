@@ -46,4 +46,5 @@
 * [Chapter 16:コラム](chapter_16.md)
     * [16.1 strict alias rule](Chap16/161-strict-alias-rule.md)
     * [16.2 エントリポイント](Chap16/162-エントリポイント.md)
+    * [16.3 マングリング](163-マングリング.md)
 
