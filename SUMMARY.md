@@ -37,7 +37,7 @@
     * [7.5 ムーブセマンティックス](Chap7/74-ムーブセマンティックス.md)
 * [Chapter 8:定数](chapter_8.md)
 * [Chapter 9:構造体とクラス](chapter_9.md)
-* [Chapter 10:例外処理](chapter_10.md)
+* [Chapter 10:例外処理とAttribute](chapter_10.md)
 * [Chapter 11:テンプレート](chapter_11.md)
 * [Chapter 12:STLと標準ライブラリ](chapter_12.md)
 * [Chapter 13:イディオム](chapter_13.md)
