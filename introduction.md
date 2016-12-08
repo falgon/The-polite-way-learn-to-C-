@@ -33,9 +33,9 @@
 <dt>OS</dt>
 <dd><ul>
     <li>Windows 7,Windows 8,Windows 10</li>
-    <li>Mac OS X 10.11.2</li>
+    <li>Mac OS X 10.11.2,Mac OS Sierra 10.12.1</li>
     <li>Debian 8.0 GNU Linux</li>
-    <li>Ubuntu 16.04 GNU Linux</li>
+    <li>Ubuntu 16.04 LTS GNU Linux,Ubuntu 16.10 GNU Linux</li>
     <li>Fedora 24</li>
 </ul></dd>
 <dt>コンパイラ</dt>
