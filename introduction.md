@@ -41,6 +41,6 @@
 <dt>コンパイラ</dt>
 <dd><ul>
     <li>GNU C++ Compiler 6.1.0 / Cygwin</li>
-    <li>LLVM Clang</li>
+    <li>LLVM Clang HEAD 4.0.0</li>
 </ul></dd></dd>
 </dl>
