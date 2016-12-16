@@ -32,7 +32,7 @@
     * [6.3 Namespace](Chap6/63-namespace.md)
 * [Chapter 7:ポインター、配列、参照](chapter_7.md)
     * [7.1 ポインター](Chap7/71-ポインター.md)
-    * [7.2 配列とconst](Chap7/72-配列.md)
+    * [7.2 配列](Chap7/72-配列.md)
     * [7.3 文字配列、文字列操作、文字列定数](73-文字配列、文字列操作、文字列定数.md)
     * [7.4 const](74-const.md)
     * [7.5 参照](Chap7/73-参照.md)

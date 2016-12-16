@@ -3,7 +3,8 @@
 この章では以下の様な流れで説明していきます。
 
 1. [ポインター](/Chap7/71-ポインター.md)
-2. [配列とconst](/Chap7/72-配列.md)
+2. [配列](/Chap7/72-配列.md)
+3. 
 3. [参照](/Chap7/73-参照.md)
     * lvalue reference
     * rvalue reference
