@@ -9,7 +9,7 @@
 5. [参照](/Chap7/73-参照.md)
     * lvalue reference
     * rvalue reference
-6. [動的な領域確保](/Chap7/74-動的な領域確保.md)
+6. [動的な領域管理](/Chap7/74-動的な領域確保.md)
 7. [ムーブセマンティックス](/Chap7/74-ムーブセマンティックス.md)
     * glvalue
         * lvalue、xvalue
