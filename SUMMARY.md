@@ -39,6 +39,7 @@
     * [7.6 動的な領域確保](Chap7/74-動的な領域確保.md)
     * [7.7 ムーブセマンティックス](Chap7/74-ムーブセマンティックス.md)
 * [Chapter 8:定数](chapter_8.md)
+    * [8.x constexpr if](Chap8/8x-constexpr-if.md)
 * [Chapter 9:構造体とクラス](chapter_9.md)
 * [Chapter 10:例外処理とAttribute](chapter_10.md)
 * [Chapter 11:テンプレート](chapter_11.md)
