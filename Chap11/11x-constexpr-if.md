@@ -1,6 +1,6 @@
 # 11.x constexpr if
 
-`constexpr if`文はコンパイル時の条件分岐を行う事のできる文法です。構文は以下の通りです。
+`constexpr if`文はコンパイル時の条件分岐を行う事ができる文法です。構文は以下の通りです。
 ```cpp
 if constexpr(条件式)
 // ...
