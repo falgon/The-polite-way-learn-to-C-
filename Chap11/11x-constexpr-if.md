@@ -59,4 +59,9 @@ int main()
 ```
 実行結果は同じです。
 
+`constexpr if`は通常の動的な`if`文と同じくスコープの概念を持ちます。
+```cpp
+
+```
+
 See also:http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2016/p0292r2.html
