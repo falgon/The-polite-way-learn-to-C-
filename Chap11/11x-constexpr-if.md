@@ -40,7 +40,20 @@ int main()
 ```
 しかし、上記の通り再起を用いた分岐は、視覚的にとても直感的とは言えません。これを、`constexpr if`文で実現すると以下のように記述できます。
 ```cpp
-code
+#include<iostream>
+
+template<class T,class... Rest>
+void g(T&& p,Rest&&... rs)
+{
+	std::cout<<std::forward<T>(p)<<std::endl;
+	if constexpr(sizeof...(rs)>0)
+		g(std::forward<Rest>(rs)...);
+}
+
+int main()
+{
+	g(42,42,42,42,42,42);
+}
 ```
 `constexpr if`文は直感的な記述ができるだけでなく、例えばSFINAEであればオーバーロードするもう一つの関数、つまりElseの役割となるものが必要となります。
 ```cpp
