@@ -11,3 +11,4 @@
 * メタプログラミング、静的再帰
 * Fold expression
 * SFINAE
+* constexpr if
