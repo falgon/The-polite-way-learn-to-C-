@@ -13,9 +13,38 @@ else
 
 これはどのように使えるかというと、例えば、variadic templateの引数の数で分岐したければ、今までの方法では、前述したSFINAEを用いて同じような事を実現していました。
 ```cpp
-code
+#include<type_traits>
+#include<iostream>
+
+template<class T,class... Rest>
+auto g(T&& p,Rest&&... rs)
+-> std::enable_if_t<(sizeof...(rs)>0)>
+{
+	// then sizeof...(rs)>0 == true
+	std::cout<<sizeof...(rs)<<std::endl;
+}
+
+template<class T,class... Rest>
+auto g(T&& p,Rest&&... rs)
+-> std::enable_if_t<(sizeof...(rs)<=0)>
+{
+	// otherwise...
+	std::cout<<sizeof...(rs)<<std::endl;
+}
+
+int main()
+{
+	int a=42;
+	g(std::move(a));
+	g(std::move(a),a,a,a,a);
+}
 ```
-しかし、SFINAEを用いた条件分岐は、視覚的にとても直感的とは言えません。これを、constexpr if文で実現すると以下のように記述できます。
+実行結果は以下となります。
+```cpp
+0
+4
+```
+しかし、SFINAEを用いた条件分岐は、上記の通り、視覚的にとても直感的とは言えません。これを、constexpr if文で実現すると以下のように記述できます。
 ```cpp
 code
 ```
