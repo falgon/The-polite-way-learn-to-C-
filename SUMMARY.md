@@ -42,8 +42,8 @@
 * [Chapter 9:構造体とクラス](chapter_9.md)
 * [Chapter 10:例外処理とAttribute](chapter_10.md)
 * [Chapter 11:テンプレート](chapter_11.md)
+    * [11.1 関数テンプレート](Chap11/111-関数テンプレート.md)
     * [11.x constexpr if](Chap11/11x-constexpr-if.md)
-    * 11.1 関数テンプレート
 * [Chapter 12:STLと標準ライブラリ](chapter_12.md)
 * [Chapter 13:イディオム](chapter_13.md)
 * [Chapter 14:マルチスレッド](chapter_14.md)
