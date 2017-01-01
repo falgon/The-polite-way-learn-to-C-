@@ -278,7 +278,7 @@ enum class Param:unsigned int; // 前方宣言
 
 void print(Param p)
 {
-	std::cout<<static_cast<unsigned int>(p)<<std::endl;
+	std::cout<<static_cast<unsigned int>(p)<<std::endl; // 整数型への暗黙変換は効かないため明示的にキャストする
 }
 
 enum class Param:unsigned int{
