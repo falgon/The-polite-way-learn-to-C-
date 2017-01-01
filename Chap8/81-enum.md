@@ -5,7 +5,10 @@ enum 識別子名 スコープ{
     enumerator-list
 }オブジェクト識別子;
 ```
-このように記述する事で、その識別子名のenum型を作る事ができます。まあまあ取り敢えず、以下のコードを見てみましょう。
+このように記述する事で、その識別子名のenum型を作る事ができます。
+
+## 8.1.1 enumの基本概念
+まあまあ取り敢えず、以下のコードを見てみましょう。
 ```cpp
 enum Color{
     Red,
@@ -31,7 +34,7 @@ int main()
 1
 2
 ```
-`Color`という名前の`enum`型を定義し、そのenumerator-listに`Red`、`Green`、`Blue`と定義しています。この時、enumerator-listに定義した順に、0 1 2 3 4...と各enumeratorに定義されます。よって、`Red`は`0`、`Green`は`1`、`Blue`は`2`となります。そして関数`print`の引数型には、`Color`というenum型を指定しています。よってこの関数に渡せるデータは、`Color`型のオブジェクトのみとなります。
+`Color`という名前の`enum`を定義し、そのenumerator-listに`Red`、`Green`、`Blue`と定義しています。この時、enumerator-listに定義した順に、0 1 2 3 4...と各enumeratorに定義されます。よって、`Red`は`0`、`Green`は`1`、`Blue`は`2`となります。そして関数`print`の引数型には、`Color`というenum型を指定しています。よってこの関数に渡せるデータは、`Color`型のオブジェクトのみとなります。
 以下のように、`Color`型以外の値は、渡す事ができません。
 ```cpp
 enum Color{
@@ -85,3 +88,62 @@ enumerator-listの中で`=1`だとか`=2`だとか指定されています。実
 
 さてさてどんどん行きましょう。次のサンプルコードを見てください。
 ```cpp
+#include<iostream>
+enum Param{
+	A=1,B,C
+}par; // #1
+
+void print(const Param& cl) // 勿論const参照にする事もできる。
+{
+	std::cout<<cl<<std::endl;
+}
+
+int main()
+{
+	par=A; print(par);
+	par=B; print(par);
+	par=C; print(par);
+	//par=42; は42がParam型でないため代入できない。エラーとなる。
+	
+	Param par1=A; print(par1); // #2
+	// par1=B; print(par1); ... 略
+	
+	enum Param1{ // #3
+		D,E,F
+	};
+}
+```
+実行結果は以下となります。
+```cpp
+1
+2
+3
+1
+```
+注視してほしいところに、それぞれマークをつけました。まず　#1についてですが、`enum Param`と定義した`;`の前に、`par`という記述がありますね。ここに識別子を記述すると、その`enum`のオブジェクトをその場で定義する事ができます。この時`par`は、グローバルスコープに定義されます。その`par`に対して`main`関数で`Param`のenumerator-listを順次代入して出力させています。
+
+次に#2ですが、このように`型 識別子;`というような今までの書き慣れた方式で勿論`enum`のオブジェクトを定義する事が可能です。それをenumerator-listにある`A`で初期化し出力させています。
+
+最後に#3です。なんと、関数内で`enum`を定義しています。これも、正しいコードです。このように関数内で`enum`を定義した場合、その`enum`はその関数内でしか使う事ができません。「第5章 スコープと制御文」でも述べた、スコープの概念を基に考えると、自然に思える挙動です。
+
+## 8.1.2 スコープ付きenum
+enumは以下のように使えると述べました。
+```cpp
+#include<iostream>
+enum Param{
+	A,B,C
+};
+int main()
+{
+	std::cout<< A <<" "<< B <<" "<< C <<std::endl; // 0 1 2
+}
+```
+ここまでで、既にお気づきになったかもしれませんが、グローバル領域に定義された`enum`はそのenumerator-listもグローバル領域となります。よって、違う識別子の`enum`だけどもenumerator-listは異なるといった実装は、不可能になってしまうのです。
+```cpp
+enum Param{
+	A,B,C
+};
+enum Param1{ // Param1というようにenumの識別子は異なるが...
+	A,B,C // enumerator-listは同名なため判別出来ずエラー
+};
+```
