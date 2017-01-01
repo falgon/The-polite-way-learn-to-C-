@@ -138,7 +138,7 @@ int main()
 	std::cout<< A <<" "<< B <<" "<< C <<std::endl; // 0 1 2
 }
 ```
-ここまでで、既にお気づきになったかもしれませんが、グローバル領域に定義された`enum`はそのenumerator-listもグローバル領域となります。よって、違う識別子の`enum`だけどもenumerator-listは異なるといった実装は、不可能になってしまうのです。
+ここまでで、既にお気づきになったかもしれませんが、グローバル領域に定義された`enum`はそのenumerator-listもグローバル領域となります。`enum`自体が異なる識別子だとしてもenumerator-listが同名だった場合、ODRに違反してしまうのです。
 ```cpp
 enum Param{
 	A,B,C
