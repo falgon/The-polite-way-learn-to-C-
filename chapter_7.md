@@ -7,12 +7,6 @@
 3. [文字配列、文字列操作、文字列定数](/Chap7/73-文字配列、文字列操作、文字列定数.md)
 4. [const](/Chap7/74-const.md)
 5. [参照](/Chap7/73-参照.md)
-    * lvalue reference
-    * rvalue reference
 6. [動的な領域管理](/Chap7/74-動的な領域確保.md)
 7. [ムーブセマンティックス](/Chap7/74-ムーブセマンティックス.md)
-    * glvalue
-        * lvalue、xvalue
-    * rvalue
-        * prvalue、xvalue
     * 暗黙の変換と最適化(RVO)
