@@ -198,4 +198,75 @@ int main()
 	nm1::Param1 pm1=nm1::A; // 名前空間で完全修飾
 }
 ```
-しかし、この方法は
+しかし、この方法は代替的な案であり、根本的な解決とはなっていません。私たちが示したいのはどの名前空間のenumerator-listかではなく、どの`enum`のenumerator-listかなのです。つまり、以下のように記述したいわけです。
+```cpp
+enum Param{
+	A,B,C
+};
+enum Param1{
+	A,B,C
+};
+int main()
+{
+	Param::A; // ParamのA
+	Param1::A; // Param1のA
+}
+```
+これを実現させるのはとても簡単です。以下のように記述します。
+```cpp
+enum class Param{
+	A,B,C
+};
+enum struct Param1{
+	A,B,C
+};
+int main()
+{
+	Param::A;
+	Param1::A;
+}
+```
+このように、`enum`の後に`class`、もしくは`struct`キーワードを付与する事で、その`enum`がスコープを持つ`enum`として定義されます。`class`と`struct`、どちらのキーワードを使っても差異はありません。
+このようにスコープを持つ`enum`のことをscoped enumeration type、スコープを持たない`enum`のことをunscoped enumeration typeと言います。そのままですね。
+
+スコープを持つ`enum`、scoped enumeration typeにはいくつか特徴があります。例えば、先ほどまで述べていたunscoped enumeration typeでは整数型への暗黙の変換が許されていました。
+```cpp
+enum Param{
+	A
+};
+int main()
+{
+	int a=A; // OK
+}
+```
+しかし、scoped enumeration typeでは、このような暗黙の変換は許されません。
+```cpp
+enum class Param{
+	A
+};
+int main()
+{
+	int a=Param::A; // Bad. エラー
+}
+```
+また、unscoped enumeration typeでは、enumerator-listに明示された識別子に対して定義される値の型を明示する事はできませんでした。scoped enumeration typeではその基底型を指定する事ができます。
+```cpp
+#include<iostream>
+
+enum class Param:unsigned int{ // 基底型をunsigned intにする
+	A=-1,B,C // エラー！Aがunsignedではない。
+};
+
+void print(Param p)
+{
+	std::cout<<static_cast<unsigned int>(p)<<std::endl;
+}
+
+int main()
+{
+	print(Param::A);
+	print(Param::B);
+	print(Param::C);
+}
+```
+このように基底型を指定できる事で、誤った値を設定してしまう事を防ぐ事ができる他に、どのような値を扱うのか型を明記する事でその明示的にする事ができるのです。
