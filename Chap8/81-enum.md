@@ -270,3 +270,53 @@ int main()
 }
 ```
 このように基底型を指定できる事で、誤った値を設定してしまう事を防ぐ事ができる他に、どのような値を扱うのか型を明記する事でその明示的にする事ができるのです。
+
+scoped enumeration typeの最後の特徴としては、前方宣言ができる事です。unscoped enumeration typeでは、前方宣言をする事ができません。
+```cpp
+#include<iostream>
+enum class Param:unsigned int; // 前方宣言
+
+void print(Param p)
+{
+	std::cout<<static_cast<unsigned int>(p)<<std::endl;
+}
+
+enum class Param:unsigned int{
+	A,B,C
+};
+
+int main()
+{
+	print(Param::A);
+	print(Param::B);
+	print(Param::C);
+}
+```
+実行結果は以下となります。
+```cpp
+0
+1
+2
+```
+このように、scoped enumeration typeはunscoped enumeration typeに比べて出来ることが多いですし、型についての厳格性や意味論を深めるだけでなく、名前衝突が回避できたりと、とても優れた面が多いです。可能な限り、scopedなenumerationを用いることをお勧めします。
+
+## 8.1.3 無名enum
+無名な`enum`を定義する事も勿論可能です。
+```cpp
+enum{value}; // 無名enum
+
+int main()
+{
+	value; // 0
+}
+```
+無名`enum`はunscoped enumeration typeの特性に加えて型情報も一切含まない形態です。一般的に無名`enum`は、値が定数である事を強調したい時に用いられるシーンが多いです。例えば、以下のように。
+```cpp
+enum{size=42};
+
+int main()
+{
+	int ar[size];
+}
+```
+配列の定義時、指定する要素数は定数でなければなりませんが、`enum`はまさに定数ですので、この要件を満たしています。
