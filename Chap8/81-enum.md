@@ -312,10 +312,9 @@ int main()
 ```
 無名`enum`はunscoped enumeration typeの特性に加えて型情報も一切含まない形態です。一般的に無名`enum`は、値が定数である事を強調したい時に用いられるシーンが多いです。例えば、以下のように。
 ```cpp
-enum{size=42};
-
 int main()
 {
+	enum{size=42;}
 	int ar[size];
 }
 ```
