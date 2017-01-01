@@ -4,6 +4,6 @@
 
 ----------
 
-* enum
+1. [enum](/Chap8/81-enum.md)
 * constexpr
 * constexpr if 文
