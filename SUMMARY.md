@@ -40,6 +40,7 @@
     * [7.7 ムーブセマンティックス](Chap7/74-ムーブセマンティックス.md)
 * [Chapter 8:定数](chapter_8.md)
     * [8.1 enum](Chap8/81-enum.md)
+    * [8.2 constexpr](Chap8/82-constexpr.md)
 * [Chapter 9:構造体とクラス](chapter_9.md)
 * [Chapter 10:例外処理とAttribute](chapter_10.md)
 * [Chapter 11:テンプレート](chapter_11.md)

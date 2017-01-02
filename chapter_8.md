@@ -5,5 +5,5 @@
 ----------
 
 1. [enum](/Chap8/81-enum.md)
-* constexpr
-* constexpr if 文
+2. constexpr
+3. constexpr if 文
