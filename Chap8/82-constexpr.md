@@ -53,3 +53,16 @@ int main()
 ```
 あれ？`const`は実行時定数を指定するキーワードであって、それをコンパイル時定数である`constexpr`変数の初期値として与える事は出来ないのでは？と思うかもしれません。
 そうです、途中までは合っています。実は、`const`というキーワードはコンパイル時定数(`constexpr`)にも、実行時定数にもなれるのです。`const`キーワードがコンパイル時定数になる条件は単純です。**`const`な変数の初期化時に与えた値が定数だった場合は、コンパイル時定数として扱え、そうでない場合は実行時定数として扱う**というものです。
+```cpp
+int main()
+{
+	const int a=10;
+	const int result1=a*10;
+
+	int c=20;
+	const int result2=a*c;
+
+	constexpr int resultexpr1=result1; // 演算結果はコンパイル時に得られる。OK
+	constexpr int resultexpr2=result2; // result2の演算結果を得るのに定数と断定できない変数cを使っている。それをコンパイル時に得る事はできない。エラー！
+}
+```
