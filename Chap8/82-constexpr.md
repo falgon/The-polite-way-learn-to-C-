@@ -9,7 +9,7 @@ constexpr type identifier = initialize value;
 constexpr type identifier ( initialize value );
 constexpr type identifier { initialize value };
 ```
-`constexpr`は`const`と同じように、定義時になんらかの値で初期化しなければなりません。`constexpr`は定数という性質上、なんらかの値で初期化しなければ意味がないため、この挙動は自然と言えます。ここまで見ると、`const`との違いがあんまり分からないかもしれませんが、`const`と`constexpr`、両者の最たる相違点は**コンパイル時**定数であるか否かという点です。
+`constexpr`は`const`と同じように、定義時になんらかの値で初期化しなければなりません。`constexpr`は定数という性質上、なんらかの値で初期化しなければ意味がないため、この挙動は自然と言えます。ところで、`const`との違いはなんなんだ？！と思うかもしれません。`const`と`constexpr`、両者の最たる相違点は**コンパイル時**定数であるか否かという点です。
 
 例えば、以下のコードを見て見ましょう。
 ```cpp
@@ -127,4 +127,6 @@ int main()
 ```cpp
 constexpr void f()
 {
-	constexpr 
+	int a=10; // constexprとしなくても良い
+}
+```
