@@ -143,6 +143,27 @@ x=i; // 除去されない。
 当然ですが、`std::atomic`も`volatile`修飾する事が可能です。このようにした場合、排他制御をしつつ、コンパイラによるデータへの見かけ上の冗長なアクセスの排除(最適化)を抑制する事ができます。
 ```cpp
 std::atomic<int> i(0);
-volatile std::atomic<int> x=i;
-x=i; // 除去されない。
+volatile std::atomic<int> x(i.load());
+x.store(i.load()); // 除去されない。
 ```
+
+最後に、`volatile`を型推論するとどのように推論されるのか、考えて見ましょう。
+```cpp
+#include<boost/type_index.hpp>
+#include<iostream>
+
+int main()
+{
+	using namespace boost::typeindex;
+	
+	volatile int x=0;
+	auto deducter_1=x;
+
+	std::cout<< type_id<decltype(deducter_1)>().pretty_name() <<std::endl;
+}
+```
+実行結果は以下となります。
+```cpp
+int
+```
+`const`の時と同じく、このような修飾子は、型推論時、その推論型から排除されます。
