@@ -4,6 +4,7 @@
     * std::thread
     * std::mutex
     * std::atomic
+        * 一般的に専用のマシン命令を基に実装しているためmutexで保護するよりも効率性に優れる
     * std::future
     * std::promise
     * std::acync
