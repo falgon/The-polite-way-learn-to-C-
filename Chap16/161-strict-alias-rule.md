@@ -144,7 +144,7 @@ x=i; // 除去されない。
 ```cpp
 std::atomic<int> i(0);
 volatile std::atomic<int> x(i.load());
-x.store(i.load()); // 除去されない。
+x.store(i.load()); // 冗長なアクセスに見えるが、除去されない。
 ```
 
 最後に、`volatile`を型推論するとどのように推論されるのか、考えて見ましょう。
