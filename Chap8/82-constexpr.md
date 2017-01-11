@@ -121,12 +121,40 @@ int main()
 
 1. `constexpr`関数内で変数宣言を行う場合、必ず初期化しなければならない。ただし、変数宣言時、`constexpr`キーワードを付与しなくても良い。
 2. `constexpr`関数内で変数を書き換えても良い
-3. 
 
-まず、`constexpr`内で変数を宣言した場合、必ず初期化しなければなりません。また、`constexpr`関数内の変数は、`constexpr`キーワードを付与しなくても良いこととなっています。
+まず、`constexpr`内で変数を宣言した場合、必ず初期化しなければなりません。またその宣言は`static`や`thread_local`の記憶域の変数宣言は許可されていません。`thread_local`については、「第14章 マルチスレッド」で説明する内容のため、現時点では分からなくても構いません。
+また、`constexpr`関数内の変数は、`constexpr`キーワードを付与しなくても良いこととなっています。
 ```cpp
 constexpr void f()
 {
 	int a=10; // constexprとしなくても良い
+}
+```
+それに因んで、`constexpr`関数内の変更操作は許可されています。
+```cpp
+constexpr void f()
+{
+	int a=10;
+	a=20; // ok
+}
+```
+以上が少々の決まりごとです。その他は通常の動的な関数通り、`constexpr`関数は、通常通り、条件文や繰り返し文を記述する事ができます。
+```cpp
+constexpr void f()
+{
+	int x=0;
+	for(unsigned int i=0; i<5; ++i)x+=i; // for expression
+
+	int ar[]={1,2,3};
+	for(const unsigned int& i:ar)x+=i; // range for expression
+
+	while(true){ // while expression
+		x+=42;
+		break;
+	}
+
+	do{ // do-while expression
+		x+=42;
+	}while(false); 
 }
 ```
