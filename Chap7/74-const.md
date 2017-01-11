@@ -156,7 +156,7 @@ const int a; // エラー！初期化値が指定されていない
 
 int main()
 {
-	const int x=10;
+	const int x=0;
 	const int* const a=&x; // ポイントする先も変更しないし、ポイント先の値も変更しない
 	
 	std::cout<<*a<<std::endl;
@@ -168,7 +168,7 @@ int main()
 ```
 実行結果は以下となります。
 ```cpp
-10
+0
 30
 ```
 ポインター、`a`はポイント先も、ポイント先の値も`const`と指定していますが`const_cast`によって変更できてしまいました。
