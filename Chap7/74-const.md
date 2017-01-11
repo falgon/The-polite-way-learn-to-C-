@@ -156,12 +156,21 @@ const int a; // エラー！初期化値が指定されていない
 
 int main()
 {
-	const int x=10; // xは変更されない。
-	const int* const a=&x;
-	int* const b=const_cast<int* const>(a);
+	const int x=10;
+	const int* const a=&x; // ポイントする先も変更しないし、ポイント先の値も変更しない
+	
+	std::cout<<*a<<std::endl;
+	int* const b=const_cast<int* const>(a); // ポイントする先は変更しないが、ポイントする先の値は変更する
 
 	*b=30;
-	std::cout<<x<<std::endl;
+	std::cout<<*a<<std::endl;
 }
 ```
-このキャストは、`const`なオブジェクトという、変更がされないという決まりごとを強引に排除してしまうキャストです。よって、特別必要がない限り、`const_cast`によって`const`を排除するべきではありません。上記の場合であれば`const_cast`を使うのではなく、初めから`const`なオブジェクトとして定義しなければ良いのです。
+実行結果は以下となります。
+```cpp
+10
+30
+```
+ポインター、`a`はポイント先も、ポイント先の値も`const`と指定していますが`const_cast`によって変更できてしまいました。
+
+このように、`const_cast`は、`const`なオブジェクトという、変更がされないという決まりごとを強引に排除してしまうキャストです。よって、特別必要がない限り、`const_cast`によって`const`を排除するべきではありません。上記の場合であれば`const_cast`を使うのではなく、初めから`const`なオブジェクトとして定義しなければ良いのです。
