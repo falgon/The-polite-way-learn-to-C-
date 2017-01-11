@@ -5,3 +5,5 @@
 このチャプターではちょっとした小ネタを紹介します。
 
 1. [strict aliasing rule](/Chap16/161-strict-alias-rule.md)
+2. [エントリポイント](/Chap16/162-エントリポイント.md)
+3. [マングリング](/Chap16/163-マングリング.md)
