@@ -151,5 +151,17 @@ const int a; // エラー！初期化値が指定されていない
 
 ## 7.4.2 const_cast
 「2.1.9 キャスト」でキャストについて述べた際、`const_cast`について述べていませんでした。`const_cast`は、`const`指定されたオブジェクトの`const`性を排除するキャストです。
+```cpp
+#include<iostream>
 
+int main()
+{
+	const int x=10; // xは変更されない。
+	const int* const a=&x;
+	int* const b=const_cast<int* const>(a);
+
+	*b=30;
+	std::cout<<x<<std::endl;
+}
+```
 このキャストは、`const`なオブジェクトという、変更がされないという決まりごとを強引に排除してしまうキャストです。よって、特別必要がない限り、`const_cast`によって`const`を排除するべきではありません。上記の場合であれば`const_cast`を使うのではなく、初めから`const`なオブジェクトとして定義しなければ良いのです。
