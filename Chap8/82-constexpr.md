@@ -158,9 +158,3 @@ constexpr void f()
 	}while(false); 
 }
 ```
-
-## 8.2.3 定数とキャスト
-
-まず、結論から。
-
-`constexpr`なオブジェクト、または`constexpr`な関数内でオブジェクトの型をキャストをしたいという場合、`dynamic_cast`を用いる事はできません。また、`dynamic_cast`
