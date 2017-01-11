@@ -24,6 +24,7 @@
 12. Specialize member function
 13. 継承
 14. virtual
+    * dynamic_cast
 15. final,override
 16. キャスト
 17. 継承パターン
