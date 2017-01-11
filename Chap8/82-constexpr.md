@@ -163,4 +163,4 @@ constexpr void f()
 
 まず、結論から。
 
-`constexpr`なオブジェクト、または`constexpr`な関数内でオブジェクトの型をキャストをしたいという場合、`dynamic_cast`を用いる事はできません。　
+`constexpr`なオブジェクト、または`constexpr`な関数内でオブジェクトの型をキャストをしたいという場合、`dynamic_cast`を用いる事はできません。また、`dynamic_cast`
