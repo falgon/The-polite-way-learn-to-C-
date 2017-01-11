@@ -1,28 +1,30 @@
 # 第 9 章 構造体とクラス
 
-* 構造体、クラスの概念
-* アクセス領域
-* メンバ変数
-* メンバ関数
+-------------
+
+1. 構造体、クラスの概念
+2. アクセス領域
+3. メンバ変数
+4. メンバ関数
     * constexpr非静的メンバ関数の、暗黙のconst修飾を削除
-* 参照修飾子
-* メンバクラス
-* explicit
-* thisポインタ
+5. 参照修飾子
+6. メンバクラス
+7. explicit
+8. thisポインタ
     * メンバ関数内でのthisポインタはnullでない
-* Operator overload
-* リテラル
+9. Operator overload
+10. リテラル
     * 数値リテラル
     * 文字列リテラル
     * 生文字リテラル(->改行などはそのまま'¥n')
     * ユーザー定義リテラル
-* ADL
-* Specialize member function
-* 継承
-* virtual
-* final,override
-* キャスト
-* 継承パターン
-* 構造化束縛
-* RVO最適化
-* 関数オブジェクト、ラムダ式
+11. ADL
+12. Specialize member function
+13. 継承
+14. virtual
+15. final,override
+16. キャスト
+17. 継承パターン
+18. 構造化束縛
+19. RVO最適化
+20. 関数オブジェクト、ラムダ式
