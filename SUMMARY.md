@@ -41,6 +41,7 @@
 * [Chapter 8:定数](chapter_8.md)
     * [8.1 enum](Chap8/81-enum.md)
     * [8.2 constexpr](Chap8/82-constexpr.md)
+    * [8.3 constexpr if](Chap8/83-constexpr-if.md)
 * [Chapter 9:構造体とクラス](chapter_9.md)
     * [9.1 構造体、クラスの概念](Chap9/91-構造体、クラスの概念.md)
 * [Chapter 10:例外処理とAttribute](chapter_10.md)
