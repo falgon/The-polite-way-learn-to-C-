@@ -1,6 +1,5 @@
 # 8.3 constexpr if文
 
-## 8.3.1 constexpr if文の基礎
 `constexpr`なif文を記述する事ができます。例えば、以下のような場合にこの構文は有効です。
 ```cpp
 #include<iostream>
