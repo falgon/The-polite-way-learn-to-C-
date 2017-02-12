@@ -57,3 +57,51 @@ int main()
 	}
 }
 ```
+コードを見てお気づきになったかもしれませんが、`if constexpr`の後の`else`では、`constexpr`キーワードを付与する必要はありません。しかし、`else if`節では、以下のように`else constexpr if`とする必要があります。
+```cpp
+#include<iostream>
+
+constexpr int plus(const int x,const int y){return x+y;}
+
+int main()
+{
+	constexpr int a=10,b=30;
+	
+	if constexpr(plus(a,b)==30){
+		std::cout<<"thirty!"<<std::endl;
+	}else if constexpr(plus(a,b)==40){
+		std::cout<<"fourty!"<<std::endl;
+	}else{
+        std::cout<<"other"<<std::endl;
+    }
+}
+```
+実行結果は以下となります。
+```cpp
+fourty!
+```
+ここで、動的な`if`文との違いを明示しておきましょう。まず第一には、条件式がコンパイル時に実行できるものでなければならないというものでした。もう一つあります。それは、短略、連続的な条件式の評価のされ方の違いです。以下のコードを見て見ましょう。
+```cpp
+#include<iostream>
+
+int main()
+{
+	int a=10;
+
+	if(a || ++a){
+		std::cout<<a<<std::endl;
+	}
+}
+```
+実行結果は以下となります。
+```cpp
+10
+```
+これは通常のif文です。しかし、結果として`11`になりそうなところが、少し予想外の動きになったかもしれません。まず、`if`文では`a`の値を`bool`値に変換した値が評価されます。0以外の値は全て`true`に変換されますから、`if`文の条件式を通過する事は目に見えています(`||`演算子によって)。この時、`if`文は、目に見えた結果を検知した瞬間、次の条件式について全く評価せずに、内部の処理内容へと進むのです。よって、`a`はインクリメントされず、出力は`10`という結果になりました。
+
+一方`constexpr if`文では、このような事はなく、全ての条件式が必ず評価されます。
+
+因みに以下のように、`else if`節で`constexpr`を省くと、それ以降の処理は動的処理となります。
+```cpp
+a
+```
