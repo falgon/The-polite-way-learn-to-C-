@@ -1,5 +1,6 @@
 # 8.3 constexpr if文
 
+## 8.3.1 constexpr if文の基礎
 `constexpr`なif文を記述する事ができます。例えば、以下のような場合にこの構文は有効です。
 ```cpp
 #include<iostream>
@@ -80,28 +81,49 @@ int main()
 ```cpp
 fourty!
 ```
-ここで、動的な`if`文との違いを明示しておきましょう。まず第一には、条件式がコンパイル時に実行できるものでなければならないというものでした。もう一つあります。それは、短略、連続的な条件式の評価のされ方の違いです。以下のコードを見て見ましょう。
+因みに以下のように、`else if`節で`constexpr`を省くと、それ以降の処理は動的処理となります。
 ```cpp
 #include<iostream>
 
 int main()
 {
-	int a=10;
-
-	if(a || ++a){
-		std::cout<<a<<std::endl;
-	}
+	constexpr bool a=false;
+    int b=20;
+    
+	if constexpr(a){
+		std::cout<<"selected a"<<std::endl;
+	}else if(b==20){
+        std::cout<<"selected b"<<std::endl;
+    }else{
+        std::cout<<"selected other"<<std::endl;
+    }
 }
 ```
 実行結果は以下となります。
 ```cpp
-10
+selected b
 ```
-これは通常のif文です。しかし、結果として`11`になりそうなところが、少し予想外の動きになったかもしれません。まず、`if`文では`a`の値を`bool`値に変換した値が評価されます。0以外の値は全て`true`に変換されますから、`if`文の条件式を通過する事は目に見えています(`||`演算子によって)。この時、`if`文は、目に見えた結果を検知した瞬間、次の条件式について全く評価せずに、内部の処理内容へと進むのです。よって、`a`はインクリメントされず、出力は`10`という結果になりました。
-
-一方`constexpr if`文では、このような事はなく、全ての条件式が必ず評価されます。
-
-因みに以下のように、`else if`節で`constexpr`を省くと、それ以降の処理は動的処理となります。
+bは動的な変数ですが、`else if`節で`constexpr`キーワードが付与されていないため、動的に評価されます。動的な`else if`の後に再度`else constexpr if`を記述した場合、再度それ以降の処理はコンパイル時となります。
 ```cpp
-a
+#include<iostream>
+
+
+int main()
+{
+	constexpr bool a=false;
+    constexpr int b=30; // # 1
+
+	if constexpr(a){
+		std::cout<<"selected a"<<std::endl;
+	}else if(b==20){
+        std::cout<<"selected b"<<std::endl;
+    }else if constexpr(b==30){
+        std::cout<<"selected other"<<std::endl;
+    }
+}
 ```
+実行結果は以下となります。
+```cpp
+selected other
+```
+上記のコードの`#1`部分を`constexpr`でなくすとどうなるでしょうか。それは、エラーとなります。あくまで、一連の`constexpr if`文の中で`b`をコンパイル時に評価しなければならない条件式が含まれていた場合は、その一部が動的に変数を評価する条件式だとしても、コンパイル時定数である必要があります。
