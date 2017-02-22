@@ -374,12 +374,18 @@ enum X{
 スコープ付き`enum`も同様です。
 
 ### enumを関数内に定義する
-`enum`は、関数内に定義することもできます。
+`enum`を関数内に定義することもできます。
 ```cpp
-int main()
+void f()
 {
     enum X{A,B,C};
     enum Y{D,E,F}y=F;
     X x=C;
 }
+
+int main()
+{
+	f();
+}
 ```
+この場合、関数`f`の処理後、コクェpフォp
