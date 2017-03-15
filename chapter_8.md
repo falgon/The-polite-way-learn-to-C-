@@ -6,7 +6,7 @@
 
 1. [enum](/Chap8/81-enum.md)
 2. [constexpr](/Chap8/82-constexpr.md)
-3. constexpr if 文
+3. [constexpr if 文](/Chap8/83-constexpr-if.md)
 
 
 
