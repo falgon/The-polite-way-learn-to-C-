@@ -4,41 +4,41 @@
 
 ---
 
-1. 構造体、クラスの概念
+1. [構造体、クラスの概念](/Chap9/91-構造体、クラスの概念.md)
 2. 非POD型を含む構造体、クラスの機能と概念
-
-
 
 アクセス領域
 
 1. メンバ変数
 2. メンバ関数
+
    * constexpr非静的メンバ関数の、暗黙のconst修飾を削除
 
-1. 参照修飾子
-2. staticメンバ
+3. 参照修飾子
+
+4. staticメンバ
    1. 名前解決の際の注意
-3. メンバクラス
-4. explicit
-5. thisポインタ
+5. メンバクラス
+6. explicit
+7. thisポインタ
    * メンバ関数内でのthisポインタはnullでない
-6. Operator overload
-7. リテラル
+8. Operator overload
+9. リテラル
    * 数値リテラル
    * 文字列リテラル
    * 生文字リテラル\(-&gt;改行などはそのまま'¥n'\)
    * ユーザー定義リテラル
-8. ADL
-9. Specialize member function
-10. 継承
-11. virtual
+10. ADL
+11. Specialize member function
+12. 継承
+13. virtual
     * dynamic\_cast
-12. final,override
-13. キャスト
-14. 継承パターン
-15. 構造化束縛
-16. RVO最適化
-17. 関数オブジェクト、ラムダ式
+14. final,override
+15. キャスト
+16. 継承パターン
+17. 構造化束縛
+18. RVO最適化
+19. 関数オブジェクト、ラムダ式
 
 
 
