@@ -44,6 +44,7 @@
   * [8.3 constexpr if](Chap8/83-constexpr-if.md)
 * [Chapter 9:構造体とクラス](chapter_9.md)
   * [9.1 構造体、クラスの概念](Chap9/91-構造体、クラスの概念.md)
+  * [9.2 非POD型を含む構造体、クラスの機能と概念](Chap9/92-fei-pod-xing-3092-han-3080-gou-zao-ti-3001-30af-30e9-30b9-306e-ji-neng-3068-gai-nian.md)
   * [9.x staticメンバー](Chap9/9.x-static.md)
   * [9.x 演算子のオーバーロード](Chap9/9.x.md)
 * [Chapter 10:例外処理とAttribute](chapter_10.md)
