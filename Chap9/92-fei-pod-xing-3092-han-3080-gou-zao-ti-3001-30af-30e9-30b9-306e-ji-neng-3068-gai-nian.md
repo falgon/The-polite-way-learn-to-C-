@@ -939,52 +939,52 @@ struct X{
 例えば、デフォルトコンストラクタを定義した場合、コピーコンストラクタとコピー代入演算子が暗黙定義されます。
 しかし事例として、そのクラスから生成されたインスタンスのコピーを禁止したいといった場合、コピーとコピー代入操作は禁止されなければなりません。デフォルトコンストラクタを定義してしまったら、コピーコンストラクタとコピー代入演算子が暗黙的に定義されるせいで、それらの操作が許可されてしまうのです。
 ```cpp
-struct Unique{
-    Unique()=default; // explicity-defaulted definition
+struct NoCopyable{
+    NoCopyable()=default; // explicity-defaulted definition
     // デフォルトコンストラクタによってコピーコンストラクタとコピー代入演算子が暗黙宣言される
 };
 
 int main()
 {
-    Unique uq1;
-    Unique uq2=uq1; // この操作を禁止にしたい
+    NoCopyable uq1;
+    NoCopyable uq2=uq1; // この操作を禁止にしたい
 }
 ```
 さて、一体どうしましょうか。
 ここで一つ考えられるのが、コピーコンストラクタとコピー代入演算子を、`private`アクセスレベル空間に宣言してしまうというものです。
 ```cpp
-struct Unique{
-    Unique()=default; // explicity-defaulted definition
+struct NoCopyable{
+    NoCopyable()=default; // explicity-defaulted definition
 private:
-    Unique(const Unique&);
-    Unique& operator=(const Unique&);
+    NoCopyable(const NoCopyable&);
+    NoCopyable& operator=(const NoCopyable&);
 };
 
 int main()
 {
-    Unique uq1;
-    Unique uq2=uq1; // エラー！ 
+    NoCopyable uq1;
+    NoCopyable uq2=uq1; // エラー！ 
 }
 ```
 プライベートアクセスレベルにあるメンバは、外部から呼び出すことはできない上、内部からも宣言のみで実態がないので、どこからも呼び出すことは不可能です。確かに、これで一件落着といったところでしょうか。
 しかし、これはあまり明確なコードではないのです。何故ならば、上記のコードであれば、呼び出したくないコピーコンストラクタとコピー代入演算子の宣言のみですが、実際にはよりたくさんの他のメンバの宣言/定義がクラス内に含まれる場合も勿論あります。そのような場合に、果たしてこのコピーコンストラクタやコピー代入演算子が`private`アクセスレベル空間に宣言されているのは、意図してのことなのか、それとも何かの間違いなのかと、コードだけでは疑うことができてしまいます。確かにコメントなどを付与すればそれは伝わるかもしれませんが、コメントなどで補足しなくとも、文法的に意味を明快に示す事ができるのであれば、コンパイルのエラーメッセージの最適化にも役立つことから、それに越したことはないのです。
 そこで、`delete`キーワードを使います。`delete`は動的に領域を確保する、`new`/`delete`の`delete`と全く同じキーワードですが、特定の構文上で使用することで、関数に対する`delete`指定であると認識されます。関数に対する`delete`指定は以下のように行います。
 ```cpp
-struct Unique{
-    Unique()=default;
+struct NoCopyable{
+    NoCopyable()=default;
 
-    Unique(const Unique&)=delete;
-    Unique& operator=(const Unique&)=delete;
+    NoCopyable(const NoCopyable&)=delete;
+    NoCopyable& operator=(const NoCopyable&)=delete;
 };
 
 int main()
 {
-    Unique uq1;
-    Unique uq2=uq1; // エラー！    
+    NoCopyable uq1;
+    NoCopyable uq2=uq1; // エラー！    
     uq2=uq1; // エラー！
 }
 ```
-コード中のコメントでエラー！とある部分で、必ずコンパイルに失敗します。これは、`Unique`クラスのコピーコンストラクタとコピー代入演算子を`delete`指定しているため、該当部分の呼び出しで削除された関数を呼び出そうとしているという旨のエラー文が出力されるはずです。
+コード中のコメントでエラー！とある部分で、必ずコンパイルに失敗します。これは、`NoCopyable`クラスのコピーコンストラクタとコピー代入演算子を`delete`指定しているため、該当部分の呼び出しで削除された関数を呼び出そうとしているという旨のエラー文が出力されるはずです。
 この方が`private`アクセスレベルに配置するよりも、ずっと意味合いが明確ですね。
 
 尚、この関数にたいする`delete`指定は、上記のように特殊メンバ関数に対して用いる事が多いかもしれませんが、通常の関数に同じように指定ができます。
