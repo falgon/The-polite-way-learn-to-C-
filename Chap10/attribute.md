@@ -222,6 +222,6 @@ int main()
     f(42);
 }
 ```
-これらは、クラスの、typedef、変数、非静的メンバ変数、関数、enum、enumeratorの宣言時に使用する事ができます。
+これらは、クラスの、共有体、typedef、変数、非静的メンバ変数、関数、enum、enumeratorの宣言時に使用する事ができます。それぞれに対する記述場所は、`[[deprecated]]`属性と同じ箇所です。
 尚、GCC 7.0.1では規格とは異なりますが、`[[maybe_unused]]`の代替として`[[gnu::unused]]`を使います。
 また、`__has_cpp_attribute(maybe_unused)`が定義される場合の値は201603で、`__has_cpp_attribute([[gnu::unused]])`が定義される場合の値は1です。

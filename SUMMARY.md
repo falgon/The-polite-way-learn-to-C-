@@ -48,6 +48,8 @@
   * [9.x staticメンバー](Chap9/9.x-static.md)
   * [9.x 演算子のオーバーロード](Chap9/9.x.md)
 * [Chapter 10:例外処理とAttribute](chapter_10.md)
+  * [10.1 例外](Chap10/exception.md)
+  * [10.2 Attribute](Chap10/attribute.md)
 * [Chapter 11:テンプレート](chapter_11.md)
   * [11.1 関数テンプレート](Chap11/111-関数テンプレート.md)
   * [11.x constexpr if](Chap11/11x-constexpr-if.md)
