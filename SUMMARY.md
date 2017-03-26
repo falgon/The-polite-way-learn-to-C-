@@ -53,6 +53,7 @@
   * [11.x constexpr if](Chap11/11x-constexpr-if.md)
 * [Chapter 12:STLと標準ライブラリ](chapter_12.md)
 * [Chapter 13:イディオム](chapter_13.md)
+  * [13.x Singleton](Chap13/singleton.md)
 * [Chapter 14:マルチスレッド](chapter_14.md)
 * [Chapter 15:Boost C++ Libraries](chapter_15.md)
 * [Chapter 16:コラム](chapter_16.md)

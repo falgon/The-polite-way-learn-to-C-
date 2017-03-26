@@ -9,3 +9,4 @@
 * Type Erasure
 * Pimpl
 * Overload Priority
+* Singleton
