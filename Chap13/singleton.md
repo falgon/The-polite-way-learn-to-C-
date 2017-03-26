@@ -6,7 +6,7 @@ Singletonデザインパターンとは、**そのクラスからインスタン
 Singletonデザインパターンが取り上げられるのは、C++言語だけでなく、様々な実現方法が考案されていますが、主にC++でのSingletonデザインは二種類に分類する事ができます。
 まずは、二つのSingletonデザインパターンのコードを見ていただきましょう。
 ```cpp
-truct single{
+struct single{
     single(const single&)=delete;
     single&& operator=(const single&)=delete;
 
