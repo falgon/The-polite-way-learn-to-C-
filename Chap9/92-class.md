@@ -1352,4 +1352,256 @@ struct X{
 
 ## 9.2.18 メンバ関数のCV、lvalue/rvalue修飾
 
+メンバ関数に対して、CV修飾(`const`/`volatile`)、lvalue/rvalueの修飾を付与する事ができます。どういう事かというと、まず以下のコードを見て見ましょう。
+```cpp
+struct X{
+    void f()const{}
+    void f()volatile{}
+    void g()&{}
+    void g()&&{}
+};
+```
+上記のように、関数の引数の`()`の前に`const`、`volatile`、lvauleを表す`&`、rvalue`を表す`&&`を付与します。これらを付与する事によって、それぞれどのような効果があるのか、それぞれ説明していきます。
 
+### const修飾
+メンバ関数に`const`修飾をする事によって、そのメンバ関数呼び出しによって呼び出し元のオブジェクトのデータが変更されない事を明示します。
+```cpp
+#include<iostream>
+
+struct X{
+    explicit constexpr X(int x):a(x){}
+    void disp_a()const{std::cout<<a<<std::endl;} // disp_aはメンバ変数のデータを変更しない
+private:
+    int a;
+};
+
+int main()
+{
+    X x(42);
+    x.disp_a();
+}
+```
+`const`修飾されたメンバ関数は、メンバのデータを変更する操作行う事はできません。
+よって、以下のコードは正しくありません。
+```cpp
+struct X{
+    explicit constexpr X(int x):a(x){}
+    void f(int x)const{a=x;} // constメンバ関数で内部のデータメンバのデータを変更できない
+private:
+    int a;
+};
+
+int main()
+{
+    X x(42);
+    x.f(50);
+}
+```
+また、`const`修飾されたメンバ関数と、`const`修飾されていないメンバ関数はオーバーロードする事ができます。これらは、呼び出したオブジェクトそのものが`const`であるか否かで呼び分けられます。```cpp
+#include<iostream>
+
+struct X{
+    void f()const{std::cout<<"const "<<__func__<<std::endl;}
+    void f(){std::cout<<"non-const "<<__func__<<std::endl;}
+};
+
+int main()
+{
+    X x1;
+    x1.f();
+
+    const X x2{};
+    x2.f();
+}
+```
+実行結果は以下となります。
+```cpp
+non-const f
+const f
+```
+現時点ではまだ気にする必要はありませんが、`const`修飾されたメンバ関数に対して理想的な動作とは、該当メンバ関数の呼び出しを行っても**スレッドセーフ**であるという事です。(スレッドセーフである事とは、大まかに言えば競合が発生しないという要件であるため、`disp_a`は確かにスレッドセーフな関数です。しかし、`std::cout`への出力はスレッドセーフであるものの、大抵の場合その出力したい変数一つ一つを正しく出力したいのでしょうから、その要件を満たせてはいない点を考慮すると、別途適切な排他制御が必要でしょう。)
+
+### volatile修飾
+ここまでで、まず`volatile`について説明していませんでした。`volatile`は主にコンパイラの最適化を抑止するキーワードです。
+最適化は、例えば以下のようなコードで行われる場合があります。
+```cpp
+int i=42;
+
+i=52;
+i=62;
+i=72;
+```
+この処理を終えた後、最終的な`i`の値は72です。しかし、他のスレッドとの何らかの関係性があった場合、このコードに値が代入されていく過程は、そのまま忠実に再現されていなければならない場合もあるのです。
+しかし、コンパイラは、最適化の結果によっては、最後の`i=72`という文のみを残してそれ以外の代入文を排除したアセンブリコードを生成する事があります。前述した通り、この過程が忠実に実行されなければならない場合において、このような最適化が行われてしまって困ります。
+このような場合に、`volatile`キーワードを使う事で最適化を抑止します。
+```cpp
+volatile int i=42;
+
+// iへの操作...
+```
+もう一つ最適化の可能性が考えられる例を挙げておきましょう。
+以下のコードは、最適化される可能性があります。
+```cpp
+int d=0;
+
+for(int i=0; i<1000; ++i)
+    d=++i;
+// 以降dを一切しようしない
+```
+最終的な結果として、`d`の値を一切使わないのであれば、`d`に関する操作は全くの無駄であると考えられるため、最適化によってはこの`for`ループごと削除してしまうかもしれません。しかし、この`for`ループはwaitやsleepのような一時的に処理を停止させるためのループかもしれません。そういった用途として必要である場合、削除されてしまうと困ります。この場合、以下のように`volatile`を付与する事で最適化を抑止します。
+```cpp
+volatile int d=0;
+
+// forループ...
+```
+`volatile`に関する最適化の概念の一つとしてstrict aliasルールというものがあります。strict aliasルールについては、コラムで取り上げています。
+
+
+さて、`volatile`修飾されたメンバ関数の話に戻ります。`volatile`修飾されたメンバ関数は、`const｀の場合と同じく、関数全体に影響を与え、呼び出し元とのオーバーロードを実現します。具体的には、`volatile`修飾されたメンバ関数はその関数が丸ごと最適化処理の抑制が指定でき、`volatile`なオブジェクトとそうでないオブジェクトの呼び分けが可能だという事です。
+```cpp
+#include<iostream>
+
+struct X{
+    void f()volatile{std::cout<<"volatile "<<__func__<<std::endl;}
+    void f(){std::cout<<"non-volatile "<<__func__<<std::endl;}
+};
+
+int main()
+{
+    X x1;
+    x1.f();
+
+    volatile X x2;
+    x2.f();
+}
+```
+実行結果は以下の通りです。
+```cpp
+non-volatile f
+volatile f
+```
+
+### lvalue修飾
+lvalue修飾は、オブジェクトがlvalueである場合に呼び出される修飾です。
+```cpp
+#include<iostream>
+
+struct X{
+    void f()&{std::cout<<"lvalue "<<__func__<<std::endl;}
+};
+
+int main()
+{
+    X x1;
+    x1.f();
+}
+```
+実行結果は以下の通りです。
+```cpp
+lvalue f
+```
+この時、上記のメンバ関数`X::f`をrvalueのオブジェクトから呼び出す事はできません。
+```cpp
+#include<iostream>
+
+struct X{
+    void f()&{std::cout<<"lvalue "<<__func__<<std::endl;}
+};
+
+int main()
+{
+    X().f(); // エラー！rvalueからlvalue修飾されたメンバ関数を呼び出す事はできない
+}
+```
+また、lvalue修飾されたメンバ関数と、何も修飾していないメンバ関数は、オーバーロード解決が曖昧になるため、呼び分ける事はできません。
+```cpp
+#include<iostream>
+
+struct X{
+    void f()&{std::cout<<"lvalue "<<__func__<<std::endl;}
+    void f(){std::cout<<"simply "<<__func__<<std::endl;}
+};
+
+int main()
+{
+    X x;
+    x.f(); // エラー！どちらも呼ぶ事ができるためオーバーロード解決が曖昧
+}
+```
+
+### rvalue修飾
+rvalue修飾は、オブジェクトがrvalueである場合に呼び出される修飾です。
+```cpp
+#include<iostream>
+
+struct X{
+    void f()&&{std::cout<<"rvalue "<<__func__<<std::endl;}
+};
+
+int main()
+{
+    X().f();
+}
+```
+実行結果は以下の通りです。
+```cpp
+rvalue f
+```
+この時、上記のメンバ関数`X::f`をlvalueのオブジェクトから呼び出す事はできません。
+```cpp
+#include<iostream>
+
+struct X{
+    void f()&&{std::cout<<"rvalue "<<__func__<<std::endl;}
+};
+
+int main()
+{
+    X x;
+    x.f(); // エラー！lvalueからrvalue修飾されたメンバ関数を呼び出す事はできない
+}
+```
+また、rvalue修飾されたメンバ関数と、何も修飾していないメンバ関数は、オーバーロード解決が曖昧になるため、呼び分ける事はできません。
+```cpp
+#include<iostream>
+
+struct X{
+    void f()&&{std::cout<<"rvalue "<<__func__<<std::endl;}
+    void f(){std::cout<<"simply "<<__func__<<std::endl;
+};
+
+int main()
+{
+    X().f(); // エラー！どちらも呼び出す事ができるためオーバーロード解決が曖昧
+}
+```
+
+### 修飾の組み合わせ
+尚、これらの修飾は組み合わせる事ができます。
+```cpp
+#include<iostream>
+
+struct X{
+    void f()const &
+    {
+        std::cout<<"const lvalue "<<__func__<<std::endl;
+    }
+    void f()const volatile &&
+    {
+        std::cout<<"const volatile rvalue "<<__func__<<std::endl;
+    }
+};
+
+int main()
+{
+    X x;
+    x.f(); // const lvalueなメンバ関数fを呼び出す。constではないがlvalueとrvalueで呼び出し可能なメンバ関数から呼び分けられる。
+    X().f(); // const volatile rvalueなメンバ関数fを呼び出す。volatileではないが、lvalueとrvalueではないが、lvalueとrvalueで呼び分けられる。
+}
+```
+実行結果は以下の通りです。
+```cpp
+const lvalue f
+const volatile rvalue f
+```
+呼び出している両者はそれぞれ`const`なオブジェクトでも、`volatile`なオブジェクトでもありませんが、このように呼び出しが可能なメンバ関数が呼び出されます。
