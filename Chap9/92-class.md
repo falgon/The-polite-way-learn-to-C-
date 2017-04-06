@@ -1606,3 +1606,46 @@ const lvalue f
 const volatile rvalue f
 ```
 呼び出している両者はそれぞれ`const`なオブジェクトでも、`volatile`なオブジェクトでもありませんが、このように呼び出しが可能なメンバ関数が呼び出されます。
+
+## 9.2.19 内部クラス
+クラス内にクラスを定義する事も可能です。
+```cpp
+struct X{
+    struct Y{}; // 内部クラス
+};
+```
+内包されたクラス`Y`をインスタンス化する場合、以下のように名前解決を行います。
+```cpp
+X::Y y;
+```
+ただ、内部クラスは、殆どの場合、自身を内包する外側のクラスと動作の中で密接な関係がある場合に用いる事が多いです。
+また、内部クラスは自身を内包する外側のクラスの`private`アクセスレベルのデータメンバにアクセスする事ができます。
+```cpp
+#include<iostream>
+
+struct X{
+    X(int a=42):a_(std::move(a)){} 
+    struct Y{
+        void assign_a(X& x,int as)
+        {
+            x.a_=as; // Xのプライベートメンバ変数a_にアクセス
+        }
+    }y;
+
+    constexpr int get()const noexcept{return a_;}
+private:
+    int a_;
+};
+
+int main()
+{
+    X x;
+    x.y.assign_a(x,52);
+    std::cout<<x.get()<<std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+52
+```
+なお、内部クラスは、宣言と定義を分離することはできません。
