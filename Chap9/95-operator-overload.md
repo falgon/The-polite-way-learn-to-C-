@@ -3,8 +3,119 @@
 第6章で、関数をオーバーロードできる事を学びましたが、なんと演算子すらもオーバーロードを行う事ができるのです。演算子のオーバーロードを適切に活用する事で、ソースコードに高いセマンティックを与える事ができます。順に学んでいきましょう。
 
 
-## 9.4.1 operator+
-まず、
+## 9.4.1 二項算術演算子(operator+,-,*,/,%)のオーバーロード
+まずは最も単純な、`+`演算子からオーバーロードを行なっていきます。`+`演算子は、通常加算を表す演算子ですね。演算子のオーバーロードはクラス内でも、グローバル領域でも行う事が可能です。
+まずは、クラス内で`+`演算子を定義してみましょう。
+```cpp
+#include<iostream>
+
+struct X{
+    constexpr X(int a,int b):a_(std::move(a)),b_(std::move(b)){}
+    void print()const{std::cout<<"a: "<<a_<<"\nb: "<<b_<<std::endl;}
+
+    X operator+(const X& other)const
+    {
+        return X(a_+other.a_,b_+other.b_);
+    }
+private:
+    int a_,b_;
+};
+
+int main()
+{
+    X x1(10,20),x2(30,40);
+    X x3=x1+x2; // X::operator+を使用
+    x3.print();
+}
+
+```
+実行結果は以下の通りです。
+```cpp
+a: 40
+b: 60
+```
+このように、オーバーロードしたい演算子の手前に`operator`というキーワードを付与する必要があります。単に、`X& +(const X&) ....`というようには書けません。この理由は、単にコンパイラの構文解析を容易にするためです。
+
+さて、このコードの中で少し疑問に思える点があるかもしれません。
+例えば、オーバーロードされたoperator+の引数が、一つである点です。`+`演算子は上記コードでもあるように、二つの引数があってそれらの加算結果を戻すはずですが、受け取る引数は一つとなっています。
+何故この記述で正しく動作するのかは、メンバ関数の動作を思い出せば容易に理解できるはずです。全ての`static`でないメンバ関数は、**呼び出し時に`this`ポインターが暗黙的に渡される**と前述しました。`this`ポインターは自身のメンバーを指し示しますので、引数が二つなくとも、自身のメンバーに正しくアクセスする事ができるのです。よって、引数は1つだけで済みます。
+
+尚、今までのメンバ関数と同じような様々な修飾や指定が可能です。以下は一例です。
+```cpp
+#include<iostream>
+
+struct X{
+    constexpr X(int a,int b):a_(std::move(a)),b_(std::move(b)){}
+    void print()const{std::cout<<"a: "<<a_<<"\nb: "<<b_<<std::endl;}
+
+    X operator+(const X& other)const & // lvalue修飾
+    {
+        std::cout<<"lvalue plus"<<std::endl;
+        return X(a_+other.a_,b_+other.b_);
+    }
+
+    X operator+(const X& other)const && // rvalue修飾
+    {
+        std::cout<<"rvalue plus"<<std::endl;
+        return X(a_+other.a_,b_+other.b_);
+    }
+private:
+    int a_,b_;
+};
+
+int main()
+{
+    X x1(10,20),x2(30,40);
+    X x3=x1+x2; // lvalue版のX::operator+を呼び出す
+    x3.print();
+
+    X x4=X(10,20)+x2; // rvalue版のX::operator+を呼び出す
+    x4.print();
+}
+```
+実行結果は以下の通りです。
+```cpp
+a: 40
+b: 60
+rvalue plus
+a: 40
+b: 60
+```
+ここまで見てきてお気づきになったかもしれませんが、演算子のオーバーロードは、完全にプログラマ側によって演算子の意味を変えてしまう事ができます。よって、例えば極端な例で言えば、加算を表す`operator+`の動作を、減算にしてしまう事だって出来てしまうのです。
+```cpp
+#include<iostream>
+
+struct X{
+    X(int a,int b):a_(std::move(a)),b_(std::move(b)){}
+    void print()const
+    {
+        std::cout<<"a: "<<a_<<"\nb: "<<b_<<std::endl;
+    }
+
+    X operator+(const X& other)const
+    {
+        return X(a_-other.a_,b_-other.b_); // operator+の実際の処理が減算...
+    }
+private:
+    int a_,b_;
+};
+
+int main()
+{
+    X x1(10,20),x2(30,40);
+    X x3=x2+x1;
+    x3.print();
+}
+
+```
+実行結果は以下の通りです。
+```cpp
+a: 20
+b: 20
+```
+しかし、このような本質的な意味を損なうオーバーロードは、ただ厄介になるだけです。後々自分が困りたくないのであれば、このような事はしない方が身のためでしょう。減算がしたいのであれば、`-`演算子をオーバーロードすれば良いだけです。
+
+
 
 ## 9.4.2 new/delete\(usual new/delete\)
 
