@@ -75,6 +75,7 @@ int main()
 ```
 実行結果は以下の通りです。
 ```cpp
+lvalue plus
 a: 40
 b: 60
 rvalue plus
@@ -114,8 +115,348 @@ a: 20
 b: 20
 ```
 しかし、このような本質的な意味を損なうオーバーロードは、ただ厄介になるだけです。後々自分が困りたくないのであれば、このような事はしない方が身のためでしょう。減算がしたいのであれば、`-`演算子をオーバーロードすれば良いだけです。
+```cpp
+#include<iostream>
+
+struct X{
+    X(int a,int b):a_(std::move(a)),b_(std::move(b)){}
+    void print()const
+    {
+        std::cout<<"a: "<<a_<<"\nb: "<<b_<<std::endl;
+    }
+    X operator-(const X& other)const
+    {
+        return X(a_-other.a_,b_-other.b_);
+    }
+private:
+    int a_,b_;
+};
+
+int main()
+{
+    X x1(10,20),x2(30,40);
+    X x3=x2-x1;
+    x3.print();
+}
+```
+実行結果は以下の通りです。
+```cpp
+a: 20
+b: 20
+```
+乗算や除算、剰余算も同じように実装しましょう。
+```cpp
+#include<iostream>
+
+struct X{
+    constexpr X(int a,int b):a_(std::move(a)),b_(std::move(b)){}
+    
+    void print()const
+    {
+        std::cout<<"a: "<<a_<<"\nb: "<<b_<<std::endl;
+    }
+    constexpr X operator+(const X& other)const noexcept
+    {
+        return X(a_+other.a_,b_+other.b_);
+    }
+    constexpr X operator-(const X& other)const noexcept
+    {
+        return X(a_-other.a_,b_-other.b_);
+    }
+    constexpr X operator*(const X& other)const noexcept
+    {
+        return X(a_*other.a_,b_*other.b_);
+    }
+    constexpr X operator/(const X& other)const noexcept(false)
+    {
+        return X(a_/other.a_,b_/other.b_);
+    }
+    constexpr X operator%(const X& other)const noexcept(false)
+    {
+        return X(a_%other.a_,b_%other.b_);
+    }
+private:
+    int a_,b_;
+};
+
+int main()
+{
+    X x1(10,20),x2(30,40);
+    (x1+x2).print();
+    (x2-x1).print();
+    (x1+x2).print();
+    (x2/x1).print();    
+    (x2%x1).print();
+}
+```
+実行結果は以下の通りです。
+```cpp
+a: 40
+b: 60
+a: 20
+b: 20
+a: 40
+b: 60
+a: 3
+b: 2
+a: 0
+b: 0
+```
+除算のみ例外指定が`noexcept(false)`となっており、例外を送出する可能性がある事を明記していますが、その理由は0除算が起こり得るためです。0除算が発生した場合、例外を送出する可能性があります(実装依存)。
 
 
+ところで、以上の算術演算子は、フレンド指定を行なった非メンバ関数として定義する事もできます。
+```cpp
+#include<iostream>
+
+struct X{
+    constexpr X(int a,int b):a_(std::move(a)),b_(std::move(b)){}
+    
+    void print()const
+    {
+        std::cout<<"a: "<<a_<<"\nb: "<<b_<<std::endl;
+    }
+private:
+    int a_,b_;
+
+    friend constexpr X operator+(const X& l,const X& r)noexcept
+    {
+        return X(l.a_+r.a_,l.b_+r.b_);
+    }
+    friend constexpr X operator-(const X& l,const X& r)noexcept
+    {
+        return X(l.a_-r.a_,l.b_-r.b_);
+    }
+    friend constexpr X operator*(const X& l,const X& r)noexcept
+    {
+        return X(l.a_*r.a_,l.b_*r.b_);
+    }
+    friend constexpr X operator/(const X& l,const X& r)noexcept(false)
+    {
+        return X(l.a_/r.a_,l.b_/r.b_);
+    }
+    friend constexpr X operator%(const X& l,const X& r)noexcept(false)
+    {
+        return X(l.a_%r.a_,l.b_%r.b_);
+    }
+};
+
+int main()
+{
+    X x1(10,20),x2(30,40);
+    (x1+x2).print();
+    (x2-x1).print();
+    (x1+x2).print();
+    (x2/x1).print();    
+    (x2%x1).print();
+}
+```
+実行結果は前述した結果と同様です。フレンド関数の項で、クラス内にフレンド関数を定義した場合はADLでのみ呼び出す事ができると前述しましたが、演算子のオーバーロードにとってはまさに持って来いの機能です。グローバル空間からこれらの関数を呼び出す事はできないので、グローバル名前空間の汚染の防止に役立ちます。
+
+フレンド関数版の方では、引数が二つになっている事にお気づきになったかと思いますが、これはこの関数自体はメンバ関数ではなく、通常の関数であるため、`this`ポインタが渡される事もありません。よって、引数には自分自身の型のオブジェクトを二つ受け取るようにします。
+
+さて、フレンド関数は、二項演算子のオーバーロードにおいて、メンバ関数にてオーバーロードするよりも有効的であるシーンが多いです。例えば、以下のようなクラスがあったとします。
+```cpp
+struct X{
+    constexpr X(int a):a_(std::move(a)){}
+    void print(){std::cout<<a_<<std::endl;}
+private:
+    int a_;
+};
+```
+このクラスに対して、演算子のオーバーロードを用いて、`X`クラス同士の加算と`int`型の値を受け取る加算をサポートしたいとします。この時、メンバ関数として二項算術演算子を定義してみます。
+```cpp
+#include<iostream>
+
+struct X{
+    constexpr X(int a):a_(std::move(a)){}
+    void print(){std::cout<<a_<<std::endl;}
+
+    constexpr X operator+(const X& other)noexcept
+    {
+        return X(a_+other.a_);
+    }
+    constexpr X operator-(const X& other)noexcept
+    {
+        return X(a_-other.a_);
+    }
+    constexpr X operator*(const X& other)noexcept
+    {
+        return X(a_*other.a_);
+    }
+    constexpr X operator/(const X& other)noexcept(false)
+    {
+        return X(a_/other.a_);
+    }
+    constexpr X operator%(const X& other)noexcept(false)
+    {
+        return X(a_%other.a_);
+    }
+
+    constexpr X operator+(int other)noexcept
+    {
+        return X(a_+other);
+    }
+    constexpr X operator-(int other)noexcept
+    {
+        return X(a_-other);
+    }
+    constexpr X operator*(int other)noexcept
+    {
+        return X(a_*other);
+    }
+    constexpr X operator/(int other)noexcept(false)
+    {
+        return X(a_/other);
+    }
+    constexpr X operator%(int other)noexcept(false)
+    {
+        return X(a_%other);
+    }
+private:
+    int a_;
+};
+
+int main()
+{
+    X x1=10,x2=20;
+
+    (x1+x2).print();
+    (x2-x1).print();
+    (x1*x2).print();
+    (x2/x1).print();
+    (x2%x1).print();
+
+    (x1+10).print();
+    (x1-10).print();
+    (x1*10).print();
+    (x2/10).print();
+    (x2%10).print();
+    
+}
+```
+実行結果は以下となります。
+```cpp
+30
+10
+200
+2
+0
+20
+0
+100
+2
+0
+```
+正しく実行できました。しかし、この実装は、ある一部の式の記述方式をサポートできていません。以下のように記述した場合、コンパイルは通らないのです。
+```cpp
+// Xの定義...
+
+int main()
+{
+    X x1=10,x2=20;
+
+    (10+x1).print(); // 左辺にint型の値を受け付ける事ができない
+    (10-x1).print();
+    (10*x1).print();
+    (10/x1).print();
+}
+```
+考えてみれば当然な事が分かると思います。メンバ関数版の二項演算子のオーバーロードでは、左辺は自分自身の型のみと決まっているので、`int`型の値を受け取る事はできないのです。
+これを解決するには、オーバーロードした演算子をフレンド関数にします。
+```cpp
+#include<iostream>
+
+struct X{
+    constexpr X(int a):a_(std::move(a)){}
+    void print(){std::cout<<a_<<std::endl;}
+
+    constexpr X operator+(const X& other)noexcept
+    {
+        return X(a_+other.a_);
+    }
+    constexpr X operator-(const X& other)noexcept
+    {
+        return X(a_-other.a_);
+    }
+    constexpr X operator*(const X& other)noexcept
+    {
+        return X(a_*other.a_);
+    }
+    constexpr X operator/(const X& other)noexcept(false)
+    {
+        return X(a_/other.a_);
+    }
+    constexpr X operator%(const X& other)noexcept
+    {
+        return X(a_%other.a_);
+    }
+
+    constexpr X operator+(int other)noexcept
+    {
+        return X(a_+other);
+    }
+    constexpr X operator-(int other)noexcept
+    {
+        return X(a_-other);
+    }
+    constexpr X operator*(int other)noexcept
+    {
+        return X(a_*other);
+    }
+    constexpr X operator/(int other)noexcept(false)
+    {
+        return X(a_/other);
+    }
+    constexpr X operator%(int other)noexcept(false)
+    {
+        return X(a_%other);
+    }
+private:
+    int a_;
+
+    friend constexpr X operator+(int l,const X& r)noexcept
+    {
+        return X(l+r.a_);
+    }
+    friend constexpr X operator-(int l,const X& r)noexcept
+    {
+        return X(l-r.a_);
+    }
+    friend constexpr X operator*(int l,const X& r)noexcept
+    {
+        return X(l*r.a_);
+    }
+    friend constexpr X operator/(int l,const X& r)noexcept(false)
+    {
+        return X(l/r.a_);
+    }
+    friend constexpr X operator%(int l,const X& r)noexcept(false)
+    {
+        return X(l%r.a_);
+    }
+};
+
+int main()
+{
+    X x1=10;
+
+    (10+x1).print();
+    (10-x1).print();
+    (10*x1).print();
+    (10/x1).print();
+    (10%x1).print();
+}
+```
+実行結果は以下の通りです。
+```cpp
+20
+0
+100
+1
+0
+```
+このように、二項算術演算子に対してオーバーロードする際に自身の型以外のオブジェクトを受け取りたい場合は、必ずフレンド指定された非メンバ関数版の演算子オーバーロードを記述するべきとなりますので、一括して管理するために、全ての二項演算子のオーバーロードをフレンド指定された非メンバ関数で定義する事が多いです。
 
 ## 9.4.2 new/delete\(usual new/delete\)
 
