@@ -166,6 +166,7 @@ t.cpp:3:21: note: declared here
  [[nodiscard]] void* mallocer(std::size_t size)
                      ^~~~~~~~
 ```
+尚、`__has_cpp_attribute(nodiscard)`が定義された場合、その値は201603です。
 
 ## 10.2.5 noreturn属性
 noreturn属性は、関数が決して返らないことを示すための属性です。
