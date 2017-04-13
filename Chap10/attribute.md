@@ -131,7 +131,41 @@ int main()
 尚、`__has_cpp_attribute(fallthrough)`が定義される場合、その値は201603です。
 
 ## 10.2.4 nodiscard属性
+nodiscard属性は、関数の戻り値を捨ててはならない事を指定する属性です。
+例えば関数の戻り値にエラーコードの意味合いを含めていた場合、その戻り値を受け取り、エラーチェックをしなかった場合のプログラムは、危険性を孕む可能性があります。
+また、戻り値を受け取らなければ意味のない関数も存在します。そのような関数の戻り値をプログラマーに必ず使わせるように促す事ができます。nodiscard属性が付与された関数の戻り値を利用しなかった場合、コンパイラはその旨を警告します。
+```cpp
+#include<cstdlib>
 
+[[nodiscard]] void* mallocer(std::size_t size) // 関数の戻り値を利用しなければならない事を指定する
+{
+    return std::malloc(size);
+}
+
+int main()
+{
+    int* ptr=static_cast<int*>(mallocer(sizeof(int)));
+    std::free(ptr);
+}
+```
+GCC 7.0.1では上記の関数に対して以下のように戻り値を使わなかった場合、
+```cpp
+// t.cpp
+int main()
+{
+    mallocer(sizeof(int));
+}
+```
+以下のような警告文を出力します。
+```cpp
+t.cpp: In function ‘int main()’:
+t.cpp:10:10: warning: ignoring return value of ‘void* mallocer(std::size_t)’, declared with attribute nodiscard [-Wunused-result]
+  mallocer(sizeof(int));
+  ~~~~~~~~^~~~~~~~~~~~~
+t.cpp:3:21: note: declared here
+ [[nodiscard]] void* mallocer(std::size_t size)
+                     ^~~~~~~~
+```
 
 ## 10.2.5 noreturn属性
 noreturn属性は、関数が決して返らないことを示すための属性です。
