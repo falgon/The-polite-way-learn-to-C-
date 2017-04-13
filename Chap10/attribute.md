@@ -70,7 +70,7 @@ namespace [[deprecated]]{} // 無視される
 ```
 尚、`__has_cpp_attribute(deprecated)`が定義された場合、その値は201309です。
 
-### 10.2.3 fallthrough属性
+## 10.2.3 fallthrough属性
 fallthrough属性はswitch文中の`case`内で`break`が行われなかったとしても、それは意図しているものであるという旨をコンパイラや他のプログラマに伝え、警告を抑止するための属性です。
 例えば、`switch`文を以下のように記述したとします。
 ```cpp
