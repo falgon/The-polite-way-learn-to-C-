@@ -730,8 +730,251 @@ int main()
 ```
 
 ## 9.4.6 シフト演算子
+シフト演算子`<<`もオーバーロードする事ができます。まずは以下のコードを見てください。
+```cpp
+#include<iostream>
+#include<bitset>
+#include<limits>
+
+struct X{
+    constexpr X(unsigned char x=0):data_(std::move(x)){}
+
+    X operator<<(std::size_t n)const noexcept
+    {
+        X tmp=*this;
+        tmp.data_<<=n;
+        return tmp;
+    }
+    X operator>>(std::size_t n)const noexcept
+    {
+        X tmp=*this;
+        tmp.data_>>=n;
+        return tmp;
+    }
+    
+    unsigned char data_;
+};
+
+int main()
+{
+    X x=UCHAR_MAX;
+    X result1=x<<1;
+    X result2=x>>1;
+
+    std::cout<<std::bitset<CHAR_BIT>(result1.data_)<<std::endl;
+    std::cout<<std::bitset<CHAR_BIT>(result2.data_)<<std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+11111110
+01111111
+```
+上記のように、単純にビット演算のセマンティックを表すように実装します。シフト演算子は非メンバ関数として定義する事もできます。
+```cpp
+#include<iostream>
+#include<bitset>
+#include<limits>
+
+struct X{
+    constexpr X(unsigned char x=0):data_(std::move(x)){}
+    unsigned char data_;
+
+    friend X operator<<(const X& x,std::size_t n)noexcept
+    {
+        X tmp=x;
+        tmp.data_<<=n;
+        return tmp;
+    }
+    friend X operator>>(const X& x,std::size_t n)noexcept
+    {
+        X tmp=x;
+        tmp.data_>>=n;
+        return tmp;
+    }
+};
+
+int main()
+{
+    X x=UCHAR_MAX;
+    X result1=x<<1;
+    X result2=x>>1;
+
+    std::cout<<std::bitset<CHAR_BIT>(result1.data_)<<std::endl;
+    std::cout<<std::bitset<CHAR_BIT>(result2.data_)<<std::endl;
+}
+```
+実行結果は先ほどを変わりません。実際は、シフト演算子を定義する際は非メンバ関数として定義する事の方が多いです。因みにこれは余談ですが、標準出力オブジェクト、`std::cout`は、このシフト演算子の本来の意味を無視して標準出力に出力させるといった動作を実装しています(本来は、演算子のそのものの意味を無視してオーバーロードするのは好ましくありません)。つまり、例えば自身の作ったオリジナルの型を`<<`を用いて`std::cout`に流したい場合、独自に`<<`演算子をオーバーロードする事で実現できます。`std::cout`は`std::ostream`のオブジェクトなので、引数には`std::ostream`を受け付けるようにしてあげれば良いことになります。
+```cpp
+#include<iostream>
+
+struct X{ // オリジナルの型
+    constexpr X(int x=0):x_(std::move(x)){}
+private:
+    int x_;
+
+    friend std::ostream& operator<<(std::ostream& os,const X& x) // std::coutはstd::ostream型なのでstd::ostream型で、またストリームの内容を変更するため、参照で受け取る。
+    {
+        return os<<x.x_;
+    }
+};
+
+int main()
+{
+    X x=42;
+    std::cout<<x<<std::endl; // 上記のoperator<<が呼び出される
+}
+```
+実行結果は以下の通りです。
+```cpp
+42
+```
 
 ## 9.4.7 ビット演算子
+ビット演算し(`&`、`^`、`|`)もオーバーロードをすることができます。まずは以下のコードを見てください。
+```cpp
+#include<iostream>
+#include<bitset>
+#include<limits>
+
+struct X{
+    constexpr X(unsigned char x=0):data_(std::move(x)){}
+
+    X operator&(const X& other)const noexcept
+    {
+        return X(data_&other.data_);
+    }
+    X operator^(const X& other)const noexcept
+    {
+        return X(data_^other.data_);
+    }
+    X operator|(const X& other)const noexcept
+    {
+        return X(data_|other.data_);
+    }
+private:
+    friend std::ostream& operator<<(std::ostream& os,const X& x)
+    {
+        return os<<std::bitset<CHAR_BIT>(x.data_);
+    }
+    
+    unsigned char data_;
+};
+
+int main()
+{
+    X x1=UCHAR_MAX,x2=UCHAR_MAX<<CHAR_BIT/2;
+
+    X result1=x1&x2;
+    X result2=x1^x2;
+    X result3=x1|x2;
+
+    std::cout<<result1<<std::endl;
+    std::cout<<result2<<std::endl;
+    std::cout<<result3<<std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+11110000
+00001111
+11111111
+```
+単純に、それぞれの演算子に期待される動作を実装します。ビット演算子は非メンバ関数としても定義することができます。大抵の場合、アドレス取得演算子と競合してしまう可能性も踏まえて非メンバ関数として定義する事が望ましいでしょう。
+```cpp
+#include<iostream>
+#include<bitset>
+#include<limits>
+
+struct X{
+    constexpr X(unsigned char x=0):data_(std::move(x)){}
+private:
+    friend X operator&(const X& l,const X& r)noexcept
+    {
+        return X(l.data_&r.data_);
+    }
+    friend X operator^(const X& l,const X& r)noexcept
+    {
+        return X(l.data_^r.data_);
+    }
+    friend X operator|(const X& l,const X& r)noexcept
+    {
+        return X(l.data_|r.data_);
+    }
+
+    friend std::ostream& operator<<(std::ostream& os,const X& x)
+    {
+        return os<<std::bitset<CHAR_BIT>(x.data_);
+    }
+    
+    unsigned char data_;
+};
+
+int main()
+{
+    X x1=UCHAR_MAX,x2=UCHAR_MAX<<CHAR_BIT/2;
+
+    X result1=x1&x2;
+    X result2=x1^x2;
+    X result3=x1|x2;
+
+    std::cout<<result1<<std::endl;
+    std::cout<<result2<<std::endl;
+    std::cout<<result3<<std::endl;
+}
+```
+実行結果は先ほどと変わりません。尚、`&`と`^`は、`|`と`~`が定義されていれば、それらを用いてその動作を定義する事が可能です。
+```cpp
+#include<iostream>
+#include<bitset>
+#include<limits>
+
+struct X{
+    constexpr X(unsigned char x=0):data_(std::move(x)){}
+
+    constexpr X operator~()const noexcept
+    {
+        return X(~data_);
+    }
+
+private:
+    friend constexpr X operator|(const X& l,const X& r)noexcept
+    {
+        return X(l.data_|r.data_);
+    }
+
+    friend constexpr X operator&(const X& l,const X& r)noexcept
+    {
+        return ~(~l|r); // ~と|を利用して実装
+    }
+
+    friend constexpr X operator^(const X& l,const X& r)noexcept
+    {
+        return (l&~r)|(~l)&r; // ~と|と&を利用して実装
+    }
+
+    friend std::ostream& operator<<(std::ostream& os,const X& x)
+    {
+        return os<<std::bitset<CHAR_BIT>(x.data_);
+    }
+    
+    unsigned char data_;
+};
+
+int main()
+{
+    X x1=UCHAR_MAX,x2=UCHAR_MAX<<CHAR_BIT/2;
+
+    X result1=x1&x2;
+    X result2=x1^x2;
+    X result3=x1|x2;
+
+    std::cout<<result1<<std::endl;
+    std::cout<<result2<<std::endl;
+    std::cout<<result3<<std::endl;
+}
+```
+実行結果は変わりません。
 
 ## 9.4.8 ビット否定演算子のオーバーロード
 ビット否定演算子`~`もオーバーロードする事ができます。まずは以下のコードを見てください。
@@ -765,7 +1008,7 @@ int main()
 11111111111111111111111111111111
 ```
 環境によってビット列の長さは異なりますが、必ず全てのビットが反転します。ビット否定演算子のオーバーロードは、`X operator~()const`の部分で定義されています。この演算子は、非メンバ関数として定義する事が可能ですが、多くの場合メンバ関数であるべきです。
-ビット否定演算子のオーバーロードでは、`+`、`-`、`*`、`/`、`%`などの演算子と同じように、演算子の適用元は値が変化してはなりませんので、まず自身を複製してそこにビット反転した値を格納し、複製したオブジェクトを返します。尚、ビット否定演算子のオーバーロードそのものとは無関係ですが、`main`関数で利用している`bitset`へのキャストは、データを二進数表記で出力させるためのものです。
+ビット否定演算子のオーバーロードでは、`+`、`-`、`*`、`/`、`%`などの演算子と同じように、演算子の適用元は値が変化してはなりませんので、まず自身を複製してそこにビット反転した値を格納し、複製したオブジェクトを返します。
 
 ## 9.4.9 キャスト演算子のオーバーロード
 キャスト演算子って何だ？！と思うかもしれませんが、まずは以下のコードを見てください。
@@ -1058,6 +1301,8 @@ int main()
 ```
 
 ## 9.4.14 比較演算子
+比較演算子(`<`、`>`、`<=`、`>=`)もオーバーロードする事ができます。まずは以下のコードを見てください。
+
 
 ## 9.4.15 等価比較演算子
 
