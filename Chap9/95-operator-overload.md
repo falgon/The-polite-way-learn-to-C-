@@ -483,7 +483,7 @@ struct unique_smart_ptr{
     unique_smart_ptr(const unique_smart_ptr&)=delete;
     unique_smart_ptr& operator=(const unique_smart_ptr&)=delete;
 
-    X* operator->()const noexcept{return ptr;} // メンバ選択演算子
+    X* operator->()const noexcept{return ptr;} // メンバ選択演算子のオーバーロード
 
     ~unique_smart_ptr()noexcept{if(ptr)delete ptr;}
 private:
@@ -527,9 +527,9 @@ struct X{
     {
         for(int& i:ar)i=42;
     }
-    const int& operator[](const std::size_t x)const& noexcept{return ar[x];}
-    int& operator[](const std::size_t x)&{return ar[x];}
-    int operator[](const std::size_t x)&&{return ar[x];}
+    const int& operator[](const std::size_t x)const& noexcept{return ar[x];} // 添え字演算子のオーバーロード
+    int& operator[](const std::size_t x)&{return ar[x];} // これも
+    int operator[](const std::size_t x)&&{return ar[x];} // そしてこれも
 
     constexpr std::size_t size()const noexcept{return sizeof(ar)/sizeof(ar[0]);}
 private:
@@ -560,7 +560,7 @@ int main()
 #include<iostream>
 
 struct X{
-        void operator()()const{std::cout<<__func__<<std::endl;}
+        void operator()()const{std::cout<<__func__<<std::endl;} // 関数呼び出し演算子のオーバーロード
 };
 
 int main()
@@ -641,23 +641,23 @@ functor is true
 struct X{
     constexpr X(int a):a_(std::move(a)){}
 
-    X& operator++()noexcept
+    X& operator++()noexcept // 前置インクリメント演算子のオーバーロード
     {
         ++a_;
         return *this;
     }
-    X operator++(int)noexcept
+    X operator++(int)noexcept // 後置インクリメント演算子のオーバーロード
     {
         X tmp=*this;
         ++a_;
         return tmp;
     }
-    X& operator--()noexcept
+    X& operator--()noexcept // 前置デクリメント演算子のオーバーロード
     {
         --a_;
         return *this;
     }
-    X operator--(int)noexcept
+    X operator--(int)noexcept // 後置デクリメント演算子のオーバーロード
     {
         X tmp=*this;
         --a_;
@@ -695,17 +695,54 @@ X operator++(int);
 X operator--(int);
 ```
 によってオーバーロードしています。前置はとても直感的ですね。単に内部のメンバをインクリメントして、自身を返しています。後置は、その性質上、インクリメント/デクリメントを行なった直後の評価では、インクリメント/デクリメントの結果が反映される前の値を返す必要があります。よって、一時的に内部でオブジェクトを保存しておいてからインクリメント/デクリメントを適用し、適用される前のオブジェクトを返す事で実現しているのです。後置のインクリメント/デクリメントの返却型が参照ではない事に注意してください。ここで参照を返してしまうと、`tmp`という内部オブジェクトの参照を返す事となり、関数の終了後には`tmp`破棄されてしまうので、その破棄された参照を返す事となり、これを使うと不正アクセスとなってしまうため、参照ではなく、コピーを返す必要があります。また、インクリメント/デクリメント演算子のオーバーロードは非メンバ関数としても行う事ができますが、殆どの場合メンバ関数として定義します。
+```cpp
+#include<iostream>
 
-## 9.4.6 ビット否定演算子のオーバーロード
+struct X{
+    constexpr X():a(0){}
+    void print()const{std::cout<<a<<std::endl;}
+    int a;
+};
+
+X& operator++(X& x)noexcept // 前置
+{
+    ++x.a;
+    return x;
+}
+
+X operator++(X& x,int)noexcept // 後置
+{
+    X tmp=x;
+    ++x.a;
+    return tmp;
+}
+
+int main()
+{
+    X x;
+    
+    X a=++x;
+    a.print();
+    
+    X b=x++;
+    b.print();
+}
+```
+
+## 9.4.6 シフト演算子
+
+## 9.4.7 ビット演算子
+
+## 9.4.8 ビット否定演算子のオーバーロード
 ビット否定演算子`~`もオーバーロードする事ができます。まずは以下のコードを見てください。
 ```cpp
-nclude<iostream>
+#include<iostream>
 #include<bitset>
 #include<limits>
 
 struct X{
     constexpr X(int x=0):data_(std::move(x)){}
-    X operator~()const
+    X operator~()const // ビット否定演算子のオーバーロード
     {
         X tmp=*this;
         tmp.data_=~data_;
@@ -730,15 +767,129 @@ int main()
 環境によってビット列の長さは異なりますが、必ず全てのビットが反転します。ビット否定演算子のオーバーロードは、`X operator~()const`の部分で定義されています。この演算子は、非メンバ関数として定義する事が可能ですが、多くの場合メンバ関数であるべきです。
 ビット否定演算子のオーバーロードでは、`+`、`-`、`*`、`/`、`%`などの演算子と同じように、演算子の適用元は値が変化してはなりませんので、まず自身を複製してそこにビット反転した値を格納し、複製したオブジェクトを返します。尚、ビット否定演算子のオーバーロードそのものとは無関係ですが、`main`関数で利用している`bitset`へのキャストは、データを二進数表記で出力させるためのものです。
 
-## 9.4.7 論理否定演算子のオーバーロード
+## 9.4.9 キャスト演算子のオーバーロード
+キャスト演算子って何だ？！と思うかもしれませんが、まずは以下のコードを見てください。
+```cpp
+#include<iostream>
+
+struct Integer{
+    constexpr Integer():x_(0){}
+    constexpr Integer(const int& x):x_(std::move(x)){}
+    constexpr Integer(const Integer&)=default;
+    constexpr Integer(Integer&&)=default;
+    constexpr Integer(int&& other):x_(std::move(other)){}
+    constexpr Integer& operator=(const Integer&)=default;
+    constexpr Integer& operator=(const int& other)
+    {
+        x_=other;
+        return *this;
+    }
+    constexpr Integer& operator=(Integer&&)=default;
+    constexpr Integer& operator=(int&& other)
+    {
+        x_=std::move(other);
+        return *this;
+    }
+
+    operator int()const noexcept // キャスト演算子のオーバーロード
+    {
+        return x_;
+    }
+private:
+    int x_;
+};
+
+int main()
+{
+    Integer a(42);
+    int b=a;
+
+    std::cout<<b<<std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+42
+```
+まず、クラス`Integer`は簡易的に整数型をシミュレートしたクラスです。上記の通り、整数型をシミュレートするために、デフォルトコンストラクタからコピー、ムーブまで定義を揃えてあります。ここで一つ機能として欲しいのが、通常の整数型、例えば`int`型との互換性です。自身で作ったクラス`Integer`の値をプリミティブな型の`int`に直接代入したいとします。そう言った場合、上記のようなキャスト演算子のオーバーロードを用います。シグネチャを見れば分かる通り、戻り型の記述は必要ありません。`operator`の後に、自身の型から変換したい型を続けて記述します。上記の場合、`int`型に変換させるために`operator int()`というようになっています。その後の`const`や`noexcept`の記述があるように、通常のメンバ関数同様、これらのキーワードなどで修飾する事が可能です。`inline`や、`constexpr`指定する事もできます。
+```cpp
+struct Integer{
+// ...
+    constexpr operator int() // constexpr指定されたキャスト演算子
+    {
+        // ...
+    }
+};
+```
+また、キャスト演算子は、`explicit`を付与する事ができます。
+```cpp
+struct Integer{
+// ....
+
+    explicit operator int()
+    {
+        // ...
+    }
+};
+```
+`explicit`を付与する事でどのような効果があるかというと、暗黙の型変換の防止です。例えば、上記のサンプルコードでは以下のようなコードもコンパイルが通ってしまいます。
+```cpp
+struct Integer{
+// 上記と同様 ...
+
+    operator int()const noexcept
+    {
+        return x_;
+    }
+private:
+    int x_;
+};
+
+int main()
+{
+    Integer a(42);
+    bool b=a; // bool型の初期値にできる
+}
+```
+キャスト演算子で定義しているのは`int`型へのキャストのみですが、`bool`型にまで代入できてしまいました。これが、意図せぬ動作であるならばとても厄介な事となるでしょう。これは何が起きているのかというと、単純にキャスト演算子によって返された`int`型の値が、`bool`型と暗黙変換が可能であるという面で互換性を持っているために起きてしまっているのです。このような暗黙変換を行わせないためには、`explicit`を付与します。
+```cpp
+struct Integer{
+// 上記と同様 ...
+
+    explicit operator int()const noexcept
+    {
+        return x_;
+    }
+private:
+    int x_;
+};
+
+int main()
+{
+    Integer a(42);
+    int b(a); // int型への初期化/代入/キャストはOK
+    bool c(a); // int型以外への初期化/代入/キャストはNG
+}
+```
+`explicit`を付与する事で、意図せぬ暗黙変換を防止する事ができます。尚、上記のように、`int`型へのキャストであっても、例えば初期化する際には初期化側の記述として`=`を使う事ができなくなります。
+```cpp
+int main()
+{
+    Integer a(42);
+    int b=a; // NG. ()か{}ならOK
+}
+```
+キャスト演算子は、非メンバ関数として定義する事はできません。
+
+## 9.4.10 論理否定演算子のオーバーロード
 論理否定演算子`!`もオーバーロードする事ができます。まずは以下のコードを見てください。
 ```cpp
 #include<iostream>
 
 struct X{
     constexpr X(int x=0):a(std::move(x)){}
-    constexpr operator bool()const noexcept{return static_cast<bool>(a);}
-    constexpr bool operator!()const noexcept{return !static_cast<bool>(*this);}    
+    constexpr explicit operator bool()const noexcept{return static_cast<bool>(a);}
+    constexpr bool operator!()const noexcept{return !static_cast<bool>(*this);} // 論理否定演算子のオーバーロード
     int a;
 };
 
@@ -755,15 +906,15 @@ int main()
 true
 false
 ```
-論理否定演算子のオーバーロードは`constexpr bool operator!()const noexcept`の部分で行われています。内部では、自身を`bool`型に変換した値を返しています。しかし、その変換部分でエラーになるのでは？と思うかもしれませんが、その部分では論理否定演算子のオーバーロードが定義された上に記述されている、`constexpr operator bool()`が呼び出されます。ここで`bool`型への変換動作が定義しているためエラーにならないのです。これは、型変換を定義している関数で、実はまだ説明していない内容なので理解する必要はありませんが、論理否定演算子は上記のように、大抵は自身を`bool`型に変換可能な型に定義する事で効果を発揮するのです。論理否定演算子は非メンバ関数として定義する事が可能ですが、大抵の場合メンバ関数として定義する事が望ましいです。
+論理否定演算子のオーバーロードは`constexpr bool operator!()const noexcept`の部分で行われています。内部では、自身を`bool`型に変換した値を返しています。しかし、その変換部分でエラーになるのでは？と思うかもしれませんが、その部分では論理否定演算子のオーバーロードが定義された上に記述されている、`constexpr operator bool()`が呼び出されます。ここで前述した`bool`型へのキャスト演算子が定義しているためエラーにはなりません。この論理否定演算子は上記のように、大抵は自身の型が`bool`型に変換可能な型で定義しなければ意味を成しません。。論理否定演算子は非メンバ関数として定義する事が可能ですが、大抵の場合メンバ関数として定義する事が望ましいです。
 
-## 9.4.8 アドレス取得演算子のオーバーロード
+## 9.4.11 アドレス取得演算子のオーバーロード
 アドレス取得演算子`&`もオーバーロードする事ができます。まずは以下のコードを見てください。
 ```cpp
 #include<iostream>
 
 struct X{
-    X* operator&(){return this;}
+    X* operator&(){return this;} // アドレス取得演算子のオーバーロード
 };
 
 int main()
@@ -773,13 +924,148 @@ int main()
     std::cout<<address<<std::endl;
 }
 ```
-単純に、自身のアドレスを返しています。と、ここまで言っておいてなのですが、アドレス取得演算子はオーバーロードすべきではないのです。何故ならば上記のように、アドレスを取得しようとした時、端的に自身のアドレスを返すという意味論の守られた動作を行うのであれば問題ありませんが、意図せず全く異なるアドレスを返してしまったら完全に意図と異なりますし、例えばこの演算子を`private`メンバに宣言したり`delete`指定されたりしてしまったらアドレスを取得する事が不可能になってしまうためです。しかし、逆を言えば、アドレスの取得を禁止したければそのように実装すれば良い事となります。ただ、それでも`std::addressof`といったような関数を用いれば取得する事ができたりするので、実質的に意味はなしません。`std::addressof`については、「STLと標準ライブラリ」の章で紹介しています。
+単純に、自身のアドレスを返しています。と、ここまで言っておいてなのですが、アドレス取得演算子はオーバーロードすべきではないのです。何故ならば上記のように、アドレスを取得しようとした時、端的に自身のアドレスを返すというアドレス取得演算子そのものの意味が守られた動作を行うのであれば問題ありませんが、意図せず全く異なるアドレスを返せば、その動作は完全に期待の動作と異なってしまいます。また、例えばこの演算子を`private`メンバに宣言したり`delete`指定したりしてしまったらアドレスを取得する事が不可能になってしまいます。しかし、逆を言えば、アドレスの取得を禁止したければそのように実装すれば良い事となります。ただ、それでも`std::addressof`といったような関数を用いれば取得する事ができたりするので、実質的に無意味なのです。`std::addressof`については、「STLと標準ライブラリ」の章で紹介しています。
+尚、アドレス取得演算子は非メンバ関数として定義することもできますが、その場合ビット演算子とセマンティックが競合してしまうため、推奨されません。
 
-## 9.4.9 関節参照演算子
+## 9.4.12 関節参照演算子のオーバーロード
 関節参照演算子`*`もオーバーロードする事ができます。乗算を表す`*`との違いは、二項演算子であるか単項演算子であるかで判別する事ができます。
 ```cpp
+#include<iostream>
 
+struct X{
+    constexpr X(int a):a_(std::move(a)){}
+    void print()const{std::cout<<a_<<std::endl;}
+private:
+    int a_;
+};
+
+struct unique_smart_ptr{
+    unique_smart_ptr():ptr(nullptr){}
+    unique_smart_ptr(X* x):ptr(x){}
+
+    unique_smart_ptr(unique_smart_ptr&& other)noexcept:ptr(other.ptr)
+    {
+        other.ptr=nullptr;
+    }
+    unique_smart_ptr(const unique_smart_ptr&)=delete;
+    unique_smart_ptr& operator=(const unique_smart_ptr&)=delete;
+    ~unique_smart_ptr()noexcept{if(ptr)delete ptr;}
+
+    X& operator*()const noexcept{return *ptr;} // 関節参照演算子のオーバーロード
+    X& operator*(){return *ptr;} // 関節参照演算子のオーバーロード
+private:
+    X* ptr;
+};
+
+int main()
+{
+    unique_smart_ptr x(new X(42));
+    (*x).print();
+}
 ```
+実行結果は以下の通りです。
+```cpp
+42
+```
+関節参照演算子のオーバーロードでもアロー演算子の時と同じように、簡易的にポインタをシミュレートしたクラス`unique_smart_ptr`を例として使います。通常ポインタには`*`演算子を使う事ができますね。その動作は、ポイント先の値を関節参照します。上記のオーバーロードでは、この動作をシミュレートしています。関節参照演算子は非メンバ関数として定義する事はできますが、用途としては推奨されないでしょう。
+```cpp
+#include<iostream>
+
+struct X{
+    void f(){std::cout<<__func__<<std::endl;}
+};
+
+void operator*(X& x)
+{
+    x.f();
+}
+
+int main()
+{
+    X x;
+    *x;
+}
+```
+
+
+## 9.4.13 Pointer to Member演算子
+Pointer to Member演算子とは`->*`の事です。まず、`->*`をどのようなシーンで使うのか思い出しましょう。
+```cpp
+#include<iostream>
+
+struct X{
+    void f(){std::cout<<__func__<<std::endl;};
+};
+
+int main()
+{
+    void (X::*f_ptr)()=&X::f;
+    
+    X* x=new X();
+    (x->*f_ptr)();
+    delete x;
+}
+```
+実行結果は以下となります。
+```cpp
+f
+```
+`->*`は上記のように、メンバ関数のアドレスを保持しているポインタに対して、オブジェクトを示すポインタ(上記の場合`x`)を利用して呼び出す場合に使います。この演算子もオーバーロードが可能です。
+
+```cpp
+#include<iostream>
+
+struct X{
+    void f(){std::cout<<__func__<<std::endl;}
+
+    void operator->*(void (X::*mem_ptr)())
+    {
+        (this->*mem_ptr)();
+    }
+};
+
+int main()
+{
+    void (X::*f_ptr)()=&X::f;
+
+    X x;
+    x->*f_ptr;
+}
+```
+実行結果は以下の通りです。
+```cpp
+f
+```
+とここまで取り上げておいてなのですが、一般的に、このPointer to Member演算子をオーバーロードする機会はあまり多くありません。尚、Pointer to Member演算子は非メンバ関数として定義することもできますが、用途としては推奨されないでしょう。
+```cpp
+#include<iostream>
+
+struct X{
+    void f(){std::cout<<__func__<<std::endl;}
+};
+
+void operator->*(X& t,void (X::*mem_ptr)())
+{
+    return (t.*mem_ptr)();
+}
+
+int main()
+{
+    void (X::*f_ptr)()=&X::f;
+    X x;
+    x->*f_ptr;    
+}
+```
+
+## 9.4.14 比較演算子
+
+## 9.4.15 等価比較演算子
+
+## 9.4.16 論理演算子
+
+## 9.4.17 複合代入演算子
+
+## 9.4.18 コンマ演算子
 
 
 ## 9.4.x new/delete\(usual new/delete\)
