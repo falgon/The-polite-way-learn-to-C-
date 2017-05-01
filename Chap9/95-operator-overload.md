@@ -2321,7 +2321,7 @@ struct X{
 	void operator delete(void*,std::size_t)noexcept; // placement delete ...ではない
 };
 ```
-さて、上記のplacement new/deleteはこのようなシグネチャで宣言されていますが、operator deleteに注目してください。実は、このdelete、コメントにもあるようにplacement deleteではなく、usual deleteとして定義されてしまうのです。その理由は、usual new/deleteの項で取り上げたように、`void operator delete(void*,std::size_t)noexcept;`というシグネチャは、usual deleteにもなりうるといった事に関連しています。**このような定義のみの`X`は`void operator delete\(void*\)`を持ちません。そういった場合、`void operator delete(void*,std::size_t)noexcept;`といったシグネチャのoperator deleteは、placement deleteではなく、usual deleteとして定義されてしまうのです。`void operator delete(void*,std::size_t)noexcept;`をplacement deleteとして定義したい場合、`void operator delete(void*)`といったシグネチャのoperator usual delete\(通常とは異なるアライメントに対応させるoperator new/deleteのusualなoperator deleteはvoid operator delete\(void*,std::align_val_t\)noexcept;となる\)が定義されなければなりません**。
+さて、上記のplacement new/deleteはこのようなシグネチャで宣言されていますが、operator deleteに注目してください。実は、このdelete、コメントにもあるようにplacement deleteではなく、usual deleteとして定義されてしまうのです。その理由は、usual new/deleteの項で取り上げたように、`void operator delete(void*,std::size_t)noexcept;`というシグネチャは、usual deleteにもなりうるといった事に関連しています。このような定義のみの`X`は`void operator delete\(void*\)`を持ちません。そういった場合、`void operator delete(void*,std::size_t)noexcept;`といったシグネチャのoperator deleteは、placement deleteではなく、usual deleteとして定義されてしまうのです。`void operator delete(void*,std::size_t)noexcept;`をplacement deleteとして定義したい場合、`void operator delete(void*)`といったシグネチャのoperator usual delete\(通常とは異なるアライメントに対応させるoperator new/deleteのusualなoperator deleteはvoid operator delete\(void\*,std::align\_val\_t\)noexcept;となる\)が定義されなければなりません。
 よって、下記のように追加する必要があります。
 ```cpp
 struct X{
