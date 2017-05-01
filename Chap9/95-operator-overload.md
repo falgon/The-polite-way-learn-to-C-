@@ -1583,15 +1583,191 @@ int main()
 ```
 実行結果は変わりません。尚、`&&は`!`と`||`が定義されていた場合それらを用いて実装する事ができます。
 ```cpp
+#include<iostream>
 
+struct X{
+    constexpr X(int a):a_(std::move(a)){}
+
+    constexpr explicit operator bool()const noexcept
+    {
+        return a_;
+    }
+    constexpr bool operator!()const noexcept
+    {
+        return !bool(*this);
+    }
+private:
+    friend constexpr bool operator||(const X& l,const X& r)noexcept
+    {
+        return l.a_||r.a_;
+    }
+
+    friend constexpr bool operator&&(const X& l,const X& r)noexcept
+    {
+        return !(!l||!r);
+    }
+
+    bool a_;
+};
+
+int main()
+{
+    X x1=true;
+    X x2=false;
+
+    std::cout<<std::boolalpha<<(x1&&x2)<<std::endl;
+    std::cout<<(x1||x2)<<std::endl;
+}
 ```
+実行結果は変わりません。
 
 ## 9.4.17 複合代入演算子
+複合代入演算子(`+=`、`-=`、`\*=`、`/=`、`%=`、`<<=`、`>>=`、`&=`、`|=`、`^=`)もオーバーロードする事ができます。
+```cpp
+#include<iostream>
+#include<limits>
+
+struct X{
+    constexpr X(int a):a_(std::move(a)){}
+    constexpr X& operator+=(const X& other)noexcept
+    {
+        a_+=other.a_;
+        return *this;
+    }
+    constexpr X& operator-=(const X& other)noexcept
+    {
+        a_-=other.a_;
+        return *this;
+    }
+    constexpr X& operator*=(const X& other)noexcept
+    {
+        a_*=other.a_;
+        return *this;
+    }
+    constexpr X& operator/=(const X& other)noexcept
+    {
+        a_/=other.a_;
+        return *this;
+    }
+    constexpr X& operator<<=(const X& other)noexcept
+    {
+        a_<<=other.a_;
+        return *this;
+    }
+    constexpr X& operator>>=(const X& other)noexcept
+    {
+        a_>>=other.a_;
+        return *this;
+    }
+    constexpr X& operator%=(const X& other)noexcept
+    {
+        a_%=other.a_;
+        return *this;
+    }
+    constexpr X& operator&=(const X& other)noexcept
+    {
+        a_&=other.a_;
+        return *this;
+    }
+    constexpr X& operator|=(const X& other)noexcept
+    {
+        a_|=other.a_;
+        return *this;
+    }
+    constexpr X& operator^=(const X& other)noexcept
+    {
+        a_^=other.a_;
+        return *this;
+    }
+private:
+    friend std::ostream& operator<<(std::ostream& os,const X& x)
+    {
+        return os<<x.a_;
+    }
+
+    int a_;
+};
+
+int main()
+{
+    X x1=42;
+    X x2=INT_MAX;
+    X x3=1;
+
+    std::cout<<(x1+=x3)<<std::endl;
+    std::cout<<(x1-=x3)<<std::endl;
+    std::cout<<(x1*=x3)<<std::endl;
+    std::cout<<(x1/=x3)<<std::endl;
+    std::cout<<(x1%=x3)<<std::endl;
+    std::cout<<(x2<<=x3)<<std::endl;
+    std::cout<<(x2>>=x3)<<std::endl;
+    std::cout<<(x2&=x3)<<std::endl;
+    std::cout<<(x2|=x3)<<std::endl;
+    std::cout<<(x2^=x3)<<std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+43
+42
+42
+42
+0
+-2
+-1
+1
+1
+0
+```
+単純に実際の演算子に期待される動作を実装します。複合代入演算子は非メンバ関数として定義する事も可能ですが、一般的にはメンバ関数として定義する事が推奨されます。
+
 
 ## 9.4.18 コンマ演算子
+コンマ演算子`,`をオーバーロードする事もできます。しかしこの演算子が利用される用途は少ないため、本来オーバーロードするべきではありません。尚メンバ関数としても非メンバ関数としても定義できます。以下は、コンマ演算子のオーバーロードの一例ですが、推奨されるものではありません。
+```cpp
+#include<iostream>
+
+struct Functor{
+    void operator()(int x)const{std::cout<<x<<std::endl;}
+};
+
+struct X{
+    constexpr X(int a):a_(std::move(a)){}
+    void operator,(const Functor& f){f(a_);}
+private:
+    int a_;
+};
+
+struct Y{
+    constexpr Y(int a):a_(std::move(a)){}
+private:
+    int a_;
+
+    friend void operator,(const Y&,const Functor&);
+};
+
+void operator,(const Y& y,const Functor& f)
+{
+    f(y.a_);
+}
+
+int main()
+{
+    X x(10);
+    x,Functor();
+
+    Y y(20);
+    y,Functor();
+}
+```
+実行結果は以下の通りです。
+```cpp
+10
+20
+```
 
 
-## 9.4.x new/delete\(usual new/delete\)
+## 9.4.19 new/delete\(usual new/delete\)
 
 new/delete演算子すらも、なんとオーバーロードすることができるのです。まず本稿では、より一般的なusual new/deleteのオーバーロードについて説明します。
 
@@ -2058,7 +2234,7 @@ operator new/deleteは、usualなnewであればusualなdeleteを、placementな
 
 ...とここまでは全てのパターンのusualなoperator new/deleteをオーバーロードしてきましたが、文法的には全てのパターンを網羅せずとも違法なプログラムとはなりません。しかし、汎用性を考えると、operator new/deleteをオーバーロードするのであれば網羅するのが好ましいです。
 
-## 9.x.x Placement new / delete\(placement/Non-allocating forms new/delete \)
+## 9.4.15 Placement new / delete\(placement/Non-allocating forms new/delete \)
 
 本項ではこれまでで説明してきたusual new/deleteとは少し異なる領域の確保/活用方法を説明します。
 
