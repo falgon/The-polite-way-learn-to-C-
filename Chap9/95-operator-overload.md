@@ -2321,7 +2321,7 @@ struct X{
 	void operator delete(void*,std::size_t)noexcept; // placement delete ...ではない
 };
 ```
-さて、上記のplacement new/deleteはこのようなシグネチャで宣言されていますが、operator deleteに注目してください。実は、このdelete、コメントにもあるようにplacement deleteではなく、usual deleteとして定義されてしまうのです。その理由は、usual new/deleteの項で取り上げたように、`void operator delete(void*,std::size_t)noexcept;`というシグネチャは、usual deleteにもなりうるといった事に関連しています。このような定義のみの`X`は`void operator delete\(void*\)`を持ちません。そういった場合、`void operator delete(void*,std::size_t)noexcept;`といったシグネチャのoperator deleteは、placement deleteではなく、usual deleteとして定義されてしまうのです。`void operator delete(void*,std::size_t)noexcept;`をplacement deleteとして定義したい場合、`void operator delete(void*)`といったシグネチャのoperator usual delete\(通常とは異なるアライメントに対応させるoperator new/deleteのusualなoperator deleteはvoid operator delete\(void\*,std::align\_val\_t\)noexcept;となる\)が定義されなければなりません。
+さて、上記のplacement new/deleteはこのようなシグネチャで宣言されていますが、operator deleteに注目してください。実は、このdelete、コメントにもあるようにplacement deleteではなく、usual deleteとして定義されてしまうのです。その理由は、usual new/deleteの項で取り上げたように、`void operator delete(void*,std::size_t)noexcept;`というシグネチャは、usual deleteにもなりうるといった事に関連しています。このような定義のみの`X`は`void operator delete(void*)`を持ちません。そういった場合、`void operator delete(void*,std::size_t)noexcept;`といったシグネチャのoperator deleteは、placement deleteではなく、usual deleteとして定義されてしまうのです。`void operator delete(void*,std::size_t)noexcept;`をplacement deleteとして定義したい場合、`void operator delete(void*)`といったシグネチャのoperator usual delete\(通常とは異なるアライメントに対応させるoperator new/deleteのusualなoperator deleteは`void operator delete(void*,std::align\_val\_t\)noexcept;`となる\)が定義されなければなりません。
 よって、下記のように追加する必要があります。
 ```cpp
 struct X{
@@ -2340,7 +2340,7 @@ struct X{
 };
 ```
 さて、少しややこしいところを終えたところで、引き続きプログラムの流れを追って見ましょう。
-`main`関数内のplacement newを見てください。この部分で、型`X`で独自に定義した引数らにデータを与えています。`\_\_LINE\_\_`と`\_\_FILE\_\_`は、予め標準で定義されてあるマクロであり、それぞれ該当する行数と、自身のファイル名が格納されており、それらの情報を転送する事で、このようなカスタマイズを達成しています。ただ今回は簡略化するために、領域確保に失敗した場合に単に文字列を出力するようにしていますが、本来であれば例外を投げるのが適切でしょう。例外についての詳細は後術しています。
+`main`関数内のplacement newを見てください。この部分で、型`X`で独自に定義した引数らにデータを与えています。`__LINE__`と`__FILE__`は、予め標準で定義されてあるマクロであり、それぞれ該当する行数と、自身のファイル名が格納されており、それらの情報を転送する事で、このようなカスタマイズを達成しています。ただ今回は簡略化するために、領域確保に失敗した場合に単に文字列を出力するようにしていますが、本来であれば例外を投げるのが適切でしょう。例外についての詳細は後術しています。
 
 ### Non-allocating forms
 
