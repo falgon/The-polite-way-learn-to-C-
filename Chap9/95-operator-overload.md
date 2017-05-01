@@ -2234,11 +2234,11 @@ operator new/deleteは、usualなnewであればusualなdeleteを、placementな
 
 ...とここまでは全てのパターンのusualなoperator new/deleteをオーバーロードしてきましたが、文法的には全てのパターンを網羅せずとも違法なプログラムとはなりません。しかし、汎用性を考えると、operator new/deleteをオーバーロードするのであれば網羅するのが好ましいです。
 
-## 9.4.15 Placement new / delete\(placement/Non-allocating forms new/delete \)
+## 9.4.20 Placement new / delete\(placement/Non-allocating forms new/delete \)
 
 本項ではこれまでで説明してきたusual new/deleteとは少し異なる領域の確保/活用方法を説明します。
 
-まず、`new`演算子には、「7.6 動的な領域確保」で述べたような使い方に加えて、情報を付加するような構文があり、標準で定義されたものは大きく二種類に分類することができます。これらは**placement new\(しばしば配置new\)**と呼ばれます。
+まず、`new`演算子には、「7.6 動的な領域確保」で述べたような使い方に加えて、情報を付加するような構文があり、標準で定義されたものは大きく二種類に分類することができます。これらは**placement new(しばしば配置new)**と呼ばれます。
 
 ### placement-newによる情報負荷
 
