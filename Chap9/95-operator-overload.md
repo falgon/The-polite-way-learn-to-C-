@@ -3,7 +3,7 @@
 第6章で、関数をオーバーロードできる事を学びましたが、なんと演算子すらもオーバーロードを行う事ができるのです。演算子のオーバーロードを適切に活用する事で、ソースコードに高いセマンティックを与える事ができます。順に学んでいきましょう。
 
 
-## 9.4.1 二項算術演算子(operator+,-,*,/,%)のオーバーロード
+## 9.4.1 二項算術演算子のオーバーロード
 まずは最も単純な、`+`演算子からオーバーロードを行なっていきます。`+`演算子は、通常加算を表す演算子ですね。演算子のオーバーロードはクラス内でも、グローバル領域でも行う事が可能です。
 まずは、クラス内で`+`演算子を定義してみましょう。
 ```cpp
@@ -1302,11 +1302,289 @@ int main()
 
 ## 9.4.14 比較演算子
 比較演算子(`<`、`>`、`<=`、`>=`)もオーバーロードする事ができます。まずは以下のコードを見てください。
+```cpp
+#include<iostream>
 
+struct X{
+    constexpr X(int a):a_(std::move(a)){}
+    int a_;
+
+    constexpr bool operator<(const X& other)const noexcept
+    {
+        return a_<other.a_;
+    }
+    constexpr bool operator>(const X& other)const noexcept
+    {
+        return a_>other.a_;
+    }
+    constexpr bool operator<=(const X& other)const noexcept
+    {
+        return a_<=other.a_;
+    }
+    constexpr bool operator>=(const X& other)const noexcept
+    {
+        return a_>=other.a_;
+    }    
+};
+
+int main()
+{
+    X x1(1),x2(2);
+
+    std::cout<<std::boolalpha<<(x1<x2)<<std::endl;
+    std::cout<<(x1>x2)<<std::endl;
+    std::cout<<(x1<=x2)<<std::endl;
+    std::cout<<(x1>=x2)<<std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+true
+false
+true
+false
+```
+単純に演算子に期待できる動作を実装します。比較演算子は非メンバ関数として定義する事ができ、非メンバ関数として実装する方が一般的と言えます。
+```cpp
+
+#include<iostream>
+
+struct X{
+    constexpr X(int a):a_(std::move(a)){}
+private:
+    friend constexpr bool operator<(const X& l,const X& r)noexcept
+    {
+        return l.a_<r.a_;
+    }
+    friend constexpr bool operator>(const X& l,const X& r)noexcept
+    {
+        return l.a_>r.a_;
+    }
+    friend constexpr bool operator<=(const X& l,const X& r)noexcept
+    {
+        return l.a_<=r.a_;
+    }
+    friend constexpr bool operator>=(const X& l,const X& r)noexcept
+    {
+        return l.a_>=r.a_;
+    }    
+
+    int a_;
+};
+
+int main()
+{
+    X x1(1),x2(2);
+
+    std::cout<<std::boolalpha<<(x1<x2)<<std::endl;
+    std::cout<<(x1>x2)<<std::endl;
+    std::cout<<(x1<=x2)<<std::endl;
+    std::cout<<(x1>=x2)<<std::endl;
+}
+```
+実行結果は同じです。尚、これら比較演算子は、`<`か`>`を実装してしまえば後はそれを使って実装する事が可能です。
+```cpp
+#include<iostream>
+
+struct X{
+    constexpr X(int a):a_(std::move(a)){}
+private:
+    friend constexpr bool operator<(const X& l,const X& r)noexcept
+    {
+        return l.a_<r.a_;
+    }
+    friend constexpr bool operator>(const X& l,const X& r)noexcept
+    {
+        return r.a_<l.a_;
+    }
+    friend constexpr bool operator<=(const X& l,const X& r)noexcept
+    {
+        return !(l.a_>r.a_);
+    }
+    friend constexpr bool operator>=(const X& l,const X& r)noexcept
+    {
+        return !(l.a_<r.a_);
+    }    
+
+    int a_;
+};
+
+int main()
+{
+    X x1(1),x2(2);
+
+    std::cout<<std::boolalpha<<(x1<x2)<<std::endl;
+    std::cout<<(x1>x2)<<std::endl;
+    std::cout<<(x1<=x2)<<std::endl;
+    std::cout<<(x1>=x2)<<std::endl;
+}
+```
+実行結果は変わりません。
 
 ## 9.4.15 等価比較演算子
+等価比較演算子(`==`、`!=`)もオーバーロードする事ができます。まずは以下のコードを見てください。
+```cpp
+#include<iostream>
+
+struct X{
+    constexpr X(int x):x_(std::move(x)){}
+
+    constexpr bool operator==(const X& other)const noexcept
+    {
+        return x_==other.x_;
+    }
+    constexpr bool operator!=(const X& other)const noexcept
+    {
+        return x_!=other.x_;
+    }
+private:
+    int x_;
+};
+
+int main()
+{
+    X x1(10);
+    X x2=x1;
+
+    std::cout<<std::boolalpha<<(x1==x2)<<std::endl;
+    std::cout<<(x1!=x2)<<std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+true
+false
+```
+単純に演算子に期待できる動作を実装します。等価比較演算子は非メンバ関数としても定義する事ができ、一般的には非メンバ関数として実装する事が多いでしょう。
+```cpp
+#include<iostream>
+
+struct X{
+    constexpr X(int x):x_(std::move(x)){}
+private:
+    friend constexpr bool operator==(const X& l,const X& r)noexcept
+    {
+        return l.x_==r.x_;
+    }
+    friend constexpr bool operator!=(const X& l,const X& r)noexcept
+    {
+        return l.x_!=r.x_;
+    }
+    int x_;
+};
+
+int main()
+{
+    X x1(10);
+    X x2=x1;
+
+    std::cout<<std::boolalpha<<(x1==x2)<<std::endl;
+    std::cout<<(x1!=x2)<<std::endl;
+}
+```
+実行結果は変わりません。尚、等価比較演算子は比較演算子が定義されていればそれらを使って実装する事が可能です。
+```cpp
+#include<iostream>
+
+struct X{
+    constexpr X(int x):a_(std::move(x)){}
+private:
+    friend constexpr bool operator<(const X& l,const X& r)noexcept
+    {
+        return l.a_<r.a_;
+    }
+    friend constexpr bool operator>(const X& l,const X& r)noexcept
+    {
+        return r.a_<l.a_;
+    }
+    friend constexpr bool operator==(const X& l,const X& r)noexcept
+    {
+        return !(l<r) and !(l>r);
+    }
+    friend constexpr bool operator!=(const X& l,const X& r)noexcept
+    {
+        return !(l==r);
+    }
+    int a_;
+};
+
+int main()
+{
+    X x1(10);
+    X x2=x1;
+
+    std::cout<<std::boolalpha<<(x1==x2)<<std::endl;
+    std::cout<<(x1!=x2)<<std::endl;
+}
+```
+実行結果は変わりません。
 
 ## 9.4.16 論理演算子
+論理演算子(`&&`、`||`)もオーバーロードする事ができます。まずは以下のコードを見てください。
+```cpp
+#include<iostream>
+
+struct X{
+    constexpr X(bool x):a_(std::move(x)){}
+
+    constexpr bool operator&&(const X& other)const noexcept
+    {
+        return a_&&other.a_;
+    }
+    constexpr bool operator||(const X& other)const noexcept
+    {
+        return a_||other.a_;
+    }
+private:
+    bool a_;
+};
+
+int main()
+{
+    X x1=true;
+    X x2=false;
+
+    std::cout<<std::boolalpha<<(x1&&x2)<<std::endl;
+    std::cout<<(x1||x2)<<std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+false
+true
+```
+論理演算子は非メンバ関数として定義する事ができ、一般的には非メンバ関数として定義する事が多いでしょう。
+```cpp
+#include<iostream>
+
+struct X{
+    constexpr X(bool x):a_(std::move(x)){}
+private:
+    friend constexpr bool operator&&(const X& l,const X& r)noexcept
+    {
+        return l.a_&&r.a_;
+    }
+    friend constexpr bool operator||(const X& l,const X& r)noexcept
+    {
+        return l.a_||r.a_;
+    }
+    
+    bool a_;
+};
+
+int main()
+{
+    X x1=true;
+    X x2=false;
+
+    std::cout<<std::boolalpha<<(x1&&x2)<<std::endl;
+    std::cout<<(x1||x2)<<std::endl;
+}
+```
+実行結果は変わりません。尚、`&&は`!`と`||`が定義されていた場合それらを用いて実装する事ができます。
+```cpp
+
+```
 
 ## 9.4.17 複合代入演算子
 
