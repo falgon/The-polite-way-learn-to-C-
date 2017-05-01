@@ -2240,7 +2240,7 @@ operator new/deleteは、usualなnewであればusualなdeleteを、placementな
 
 まず、`new`演算子には、「7.6 動的な領域確保」で述べたような使い方に加えて、情報を付加するような構文があり、標準で定義されたものは大きく二種類に分類することができます。これらは**placement new(しばしば配置new)**と呼ばれます。
 
-### placement-newによる情報負荷
+### placement-newによる情報付加
 
 まず一つ目ですが、`new`演算子は、領域の確保に失敗すると`std::bad_alloc`例外を送出しますが、従来の古いしきたりのように、例外ではなく`nullptr`を返すように設定することができます\(しかし、これは現代のC++ではdeprecatedとされているため、`nullptr`を返すようにするべきではありません\)。
 
@@ -2321,7 +2321,7 @@ struct X{
 	void operator delete(void*,std::size_t)noexcept; // placement delete ...ではない
 };
 ```
-さて、上記のplacement new/deleteはこのようなシグネチャで宣言されていますが、operator deleteに注目してください。実は、このdelete、コメントにもあるようにplacement deleteではなく、usual deleteとして定義されてしまうのです。その理由は、usual new/deleteの項で取り上げたように、`void operator delete(void*,std::size\_t)noexcept;`というシグネチャは、usual deleteにもなりうるといった事に関連しています。**このような定義のみの`X`は`void operator delete(void*)`を持ちません。そういった場合、`void operator delete(void*,std::size\_t)noexcept;`といったシグネチャのoperator deleteは、placement deleteではなく、usual deleteとして定義されてしまうのです。`void operator delete(void*,std::size\_t)noexcept;`をplacement deleteとして定義したい場合、`void operator delete(void*)`といったシグネチャのoperator usual delete(通常とは異なるアライメントに対応させるoperator new/deleteのusualなoperator deleteはvoid operator delete(void*,std::align\_val\_t)noexcept;となる)が定義されなければなりません**。
+さて、上記のplacement new/deleteはこのようなシグネチャで宣言されていますが、operator deleteに注目してください。実は、このdelete、コメントにもあるようにplacement deleteではなく、usual deleteとして定義されてしまうのです。その理由は、usual new/deleteの項で取り上げたように、`void operator delete(void*,std::size_t)noexcept;`というシグネチャは、usual deleteにもなりうるといった事に関連しています。**このような定義のみの`X`は`void operator delete\(void*\)`を持ちません。そういった場合、`void operator delete(void*,std::size_t)noexcept;`といったシグネチャのoperator deleteは、placement deleteではなく、usual deleteとして定義されてしまうのです。`void operator delete(void*,std::size_t)noexcept;`をplacement deleteとして定義したい場合、`void operator delete(void*)`といったシグネチャのoperator usual delete\(通常とは異なるアライメントに対応させるoperator new/deleteのusualなoperator deleteはvoid operator delete\(void*,std::align_val_t\)noexcept;となる\)が定義されなければなりません**。
 よって、下記のように追加する必要があります。
 ```cpp
 struct X{
