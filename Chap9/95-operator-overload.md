@@ -2003,8 +2003,8 @@ align is 32
 
 * `main`関数では、まず一番初めに単一の`X`型をnewしています。この時呼び出されるのは`(1)`のoperator newです。その後、出力からわかるように`X`のコンストラクタが呼ばれています。`main`関数ですぐさまそれをdeleteしていますので、その後の即座に`X`のデストラクタが呼ばれていることがわかります。その後、operator deleteが呼び出されます。この時呼び出されるのは`(6)`のoperator deleteです。
 
-* 次に、単一の`Y`型をnewしています。`Y`型の定義部分に注目してください。`struct alignas((__STDCPP_DEFAULT_NEW_ALIGNMENT__*2)) Y`となっています。これは、`Y`型のインスタンスを特定のバイト境界でメモリに置けとコンパイラに対して示しています。バイト境界についてもコラムのアライメントの項目で取り上げますが、簡単に言えば、例えば4バイト境界の位置にアライメントした場合、オブジェクトはメモリ上の4の倍数のアドレスに配置され、8バイト境界の位置にアライメントした場合、オブジェクトはメモリ上の8の倍数のアドレスに配置される事となります。そしてその指定は`alignas`を使う事で可能です。今回の場合、`Y`の宣言部分で`alignas`を指定しているため、インスタンスは全てアライメントされなければなりません。そしてそのアライメント値を`__STDCPP_DEFAULT_NEW_ALIGNMENT__`の二倍としています。`std::align_val_t`版のoperator new/deleteが呼ばれるのは、呼び出しに関連するオブジェクトのアライメントが`__STDCPP_DEFAULT_NEW_ALIGNMENT__`よりも大きかった場合ですから、その二倍を指定しているので`std::align_val_t`版が呼び出されるのは必然と言えます。よって、この時newで呼び出されるのは、`(2)`のoperator newです。`(2)`のoperator newでは、`std::aligned_alloc`が呼び出されていますが、これは任意のアライメント値でアライメントしつつ領域を確保することができる標準関数です。これは、`<cstdlib>`に定義されています。さてその後、先ほどと同じくコンストラクタが呼び出され、
-即デストラクタが呼び出されています。その後、`std::align_val_t`版のoperator deleteが呼び出されます、この時呼び出されるのは`(8)`のoperator deleteです。
+* 次に、単一の`Y`型をnewしています。`Y`型の定義部分に注目してください。`struct alignas((\_\_STDCPP\_DEFAULT\_NEW\_ALIGNMENT\_\_\*2)) Y`となっています。これは、`Y`型のインスタンスを特定のバイト境界でメモリに置けとコンパイラに対して示しています。バイト境界についてもコラムのアライメントの項目で取り上げますが、簡単に言えば、例えば4バイト境界の位置にアライメントした場合、オブジェクトはメモリ上の4の倍数のアドレスに配置され、8バイト境界の位置にアライメントした場合、オブジェクトはメモリ上の8の倍数のアドレスに配置される事となります。そしてその指定は`alignas`を使う事で可能です。今回の場合、`Y`の宣言部分で`alignas`を指定しているため、インスタンスは全てアライメントされなければなりません。そしてそのアライメント値を`\_\_STDCPP\_DEFAULT\_NEW\_ALIGNMENT\_\_`の二倍としています。`std::align\_val\_t`版のoperator new/deleteが呼ばれるのは、呼び出しに関連するオブジェクトのアライメントが`\_\_STDCPP\_DEFAULT\_NEW\_ALIGNMENT\_\_`よりも大きかった場合ですから、その二倍を指定しているので`std::align\_val\_t`版が呼び出されるのは必然と言えます。よって、この時newで呼び出されるのは、`(2)`のoperator newです。`(2)`のoperator newでは、`std::aligned\_alloc`が呼び出されていますが、これは任意のアライメント値でアライメントしつつ領域を確保することができる標準関数です。これは、`<cstdlib>`に定義されています。さてその後、先ほどと同じくコンストラクタが呼び出され、
+即デストラクタが呼び出されています。その後、`std::align\_val\_t`版のoperator deleteが呼び出されます、この時呼び出されるのは`(8)`のoperator deleteです。
 
 * 次に、配列の`X`型をnewしています。この時呼び出されるのは、`(3)`のoperator new[]です。今回要請した要素数は3なので、コンストラクタ、デストラクタがそれぞれ三度呼び出されています。operator deleteが呼び出されます。この時呼び出されるのは`(10)`のoperator deleteです。
 
@@ -2321,7 +2321,7 @@ struct X{
 	void operator delete(void*,std::size_t)noexcept; // placement delete ...ではない
 };
 ```
-さて、上記のplacement new/deleteはこのようなシグネチャで宣言されていますが、operator deleteに注目してください。実は、このdelete、コメントにもあるようにplacement deleteではなく、usual deleteとして定義されてしまうのです。その理由は、usual new/deleteの項で取り上げたように、`void operator delete(void*,std::size_t)noexcept;`というシグネチャは、usual deleteにもなりうるといった事に関連しています。**このような定義のみの`X`は`void operator delete(void*)`を持ちません。そういった場合、`void operator delete(void*,std::size_t)noexcept;`といったシグネチャのoperator deleteは、placement deleteではなく、usual deleteとして定義されてしまうのです。`void operator delete(void*,std::size_t)noexcept;`をplacement deleteとして定義したい場合、`void operator delete(void*)`といったシグネチャのoperator usual delete(通常とは異なるアライメントに対応させるoperator new/deleteのusualなoperator deleteはvoid operator delete(void*,std::align_val_t)noexcept;となる)が定義されなければなりません**。
+さて、上記のplacement new/deleteはこのようなシグネチャで宣言されていますが、operator deleteに注目してください。実は、このdelete、コメントにもあるようにplacement deleteではなく、usual deleteとして定義されてしまうのです。その理由は、usual new/deleteの項で取り上げたように、`void operator delete(void*,std::size\_t)noexcept;`というシグネチャは、usual deleteにもなりうるといった事に関連しています。**このような定義のみの`X`は`void operator delete(void*)`を持ちません。そういった場合、`void operator delete(void*,std::size\_t)noexcept;`といったシグネチャのoperator deleteは、placement deleteではなく、usual deleteとして定義されてしまうのです。`void operator delete(void*,std::size\_t)noexcept;`をplacement deleteとして定義したい場合、`void operator delete(void*)`といったシグネチャのoperator usual delete(通常とは異なるアライメントに対応させるoperator new/deleteのusualなoperator deleteはvoid operator delete(void*,std::align\_val\_t)noexcept;となる)が定義されなければなりません**。
 よって、下記のように追加する必要があります。
 ```cpp
 struct X{
@@ -2340,7 +2340,7 @@ struct X{
 };
 ```
 さて、少しややこしいところを終えたところで、引き続きプログラムの流れを追って見ましょう。
-`main`関数内のplacement newを見てください。この部分で、型`X`で独自に定義した引数らにデータを与えています。`__LINE__`と`__FILE__`は、予め標準で定義されてあるマクロであり、それぞれ該当する行数と、自身のファイル名が格納されており、それらの情報を転送する事で、このようなカスタマイズを達成しています。ただ今回は簡略化するために、領域確保に失敗した場合に単に文字列を出力するようにしていますが、本来であれば例外を投げるのが適切でしょう。例外についての詳細は後術しています。
+`main`関数内のplacement newを見てください。この部分で、型`X`で独自に定義した引数らにデータを与えています。`\_\_LINE\_\_`と`\_\_FILE\_\_`は、予め標準で定義されてあるマクロであり、それぞれ該当する行数と、自身のファイル名が格納されており、それらの情報を転送する事で、このようなカスタマイズを達成しています。ただ今回は簡略化するために、領域確保に失敗した場合に単に文字列を出力するようにしていますが、本来であれば例外を投げるのが適切でしょう。例外についての詳細は後術しています。
 
 ### Non-allocating forms
 
