@@ -757,7 +757,7 @@ struct X{
 
 int main()
 {
-    X x=UCHAR_MAX;
+    X x=std::numeric_limits<unsigned char>::max();
     X result1=x<<1;
     X result2=x>>1;
 
@@ -770,7 +770,7 @@ int main()
 11111110
 01111111
 ```
-上記のように、単純にビット演算のセマンティックを表すように実装します。シフト演算子は非メンバ関数として定義する事もできます。
+上記のように、単純にビット演算のセマンティックを表すように実装します。尚、シフト演算子のオーバーロードとは特に関係はありませんが、`std::numeric_limits<unsigned char>::max()`は、`unsigned char`が格納できる最大値を表します。シフト演算子は非メンバ関数として定義する事もできます。
 ```cpp
 #include<iostream>
 #include<bitset>
@@ -796,7 +796,7 @@ struct X{
 
 int main()
 {
-    X x=UCHAR_MAX;
+    X x=std::numeric_limits<unsigned char>::max();
     X result1=x<<1;
     X result2=x>>1;
 
@@ -863,7 +863,7 @@ private:
 
 int main()
 {
-    X x1=UCHAR_MAX,x2=UCHAR_MAX<<CHAR_BIT/2;
+    X x1=std::numeric_limits<unsigned char>::max(),x2=std::numeric_limits<unsigned char>::max()<<CHAR_BIT/2;
 
     X result1=x1&x2;
     X result2=x1^x2;
@@ -912,7 +912,7 @@ private:
 
 int main()
 {
-    X x1=UCHAR_MAX,x2=UCHAR_MAX<<CHAR_BIT/2;
+    X x1=std::numeric_limits<unsigned char>::max(),x2=std::numeric_limits<unsgined char>::max()<<CHAR_BIT/2;
 
     X result1=x1&x2;
     X result2=x1^x2;
@@ -963,7 +963,7 @@ private:
 
 int main()
 {
-    X x1=UCHAR_MAX,x2=UCHAR_MAX<<CHAR_BIT/2;
+    X x1=std::numeric_limits<unsigned char>::max(),x2=std::numeric_limits<unsigned char>::max()<<CHAR_BIT/2;
 
     X result1=x1&x2;
     X result2=x1^x2;
@@ -1691,7 +1691,7 @@ private:
 int main()
 {
     X x1=42;
-    X x2=INT_MAX;
+    X x2=std::numeric_limits<int>::max();
     X x3=1;
 
     std::cout<<(x1+=x3)<<std::endl;
