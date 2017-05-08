@@ -2506,4 +2506,440 @@ int main()
 | `.` | `.*` | `::` | `?:` |
 
 ## 9.4.23 ユーザー定義リテラル
-リテラルとは
+まずリテラルとは、定数を示します。以下のコードを見てみましょう。
+```cpp
+#include<iostream>
+
+void f(float)
+{
+    std::cout<<"float"<<std::endl;
+}
+void f(double)
+{
+    std::cout<<"double"<<std::endl;
+}
+
+int main()
+{
+    f(4.2);
+}
+```
+実行結果は以下の通りです。
+```cpp
+double
+```
+`4.2`という数値がリテラルです。この時、何気なく`4.2`という小数点値を扱っていますが、実行結果からも分かる通り、小数点リテラルに何も指定しなければその値は`double`型として扱われます。`4.2`という値を`float`型として利用したい場合、どのようにすれば良いのでしょうか。例えば、以下のような方法が考えられます。
+```cpp
+#include<iostream>
+
+void f(float)
+{
+    std::cout<<"float"<<std::endl;
+}
+void f(double)
+{
+    std::cout<<"double"<<std::endl;
+}
+
+int main()
+{
+    f(static_cast<float>(4.2));
+    f(float(4.2));
+}
+```
+実行結果は以下の通りです。
+```cpp
+float
+float
+```
+確かに、`float`を受け取る方の関数が呼び出されましたが`4.2`という`double`型の値を`float`型にキャストしているだけですから、本質的な意味を成しておらず、単なる回避策に過ぎません。`float`型の`4.2`であると示すには以下のように、数値の末尾に`f`を添えてその意図を示します。
+```cpp
+#include<iostream>
+
+void f(float)
+{
+    std::cout<<"float"<<std::endl;
+}
+void f(double)
+{
+    std::cout<<"double"<<std::endl;
+}
+
+int main()
+{
+    f(4.2f);
+}
+```
+実行結果は以下の通りです。
+```cpp
+float
+```
+このような末尾に添えた`f`を**サフィックス**と言います。
+本項のタイトルであるユーザー定義リテラルというのは、このサフィックスを独自に定義する事でユーザーがリテラルに意味を持たせる事ができる機能です。
+**サフィックスをオーバーロードする機会として多いのは、そのリテラルの単位であったり、型を示したい場合に用いられます**。
+まずは、例として単位を表すためにこの機能を用いてみましょう。センチ、メートル、キロメートルを、簡易的に表現するクラスを作成し、それを表すサフィックスとして、`cm`、`m`、`km`をユーザー定義でオーバーロードします。
+```cpp
+#include<iostream>
+
+struct metor;
+struct kilometor;
+
+struct centimetor{
+    explicit centimetor()=default;
+    constexpr centimetor(float value):value(std::move(value)){}
+    constexpr centimetor(const centimetor&)=default;
+    constexpr centimetor(const metor&);
+    constexpr centimetor(const kilometor&);
+    float value;
+
+    friend std::ostream& operator<<(std::ostream& os,const centimetor& c)
+    {
+        return os<<c.value;
+    }
+};
+
+struct metor{
+    explicit metor()=default;
+    constexpr metor(float value):value(std::move(value)){}
+    constexpr metor(const metor&)=default;
+    constexpr metor(const centimetor& x)noexcept(noexcept(x.value/100.0f)):value(x.value/100.0f){}
+    constexpr metor(const kilometor&);
+    float value;
+
+    friend std::ostream& operator<<(std::ostream& os,const metor& m)
+    {
+        return os<<m.value;
+    }
+};
+
+
+struct kilometor{
+    explicit kilometor()=default;
+    constexpr kilometor(float value):value(std::move(value)){}
+    constexpr kilometor(const kilometor&)=default;
+    constexpr kilometor(const centimetor& x)noexcept(noexcept(x.value/1000000.0f)):value(x.value/100000.0f){}
+    constexpr kilometor(const metor& x)noexcept(noexcept(x.value/1000.0f)):value(x.value/1000.0f){}
+    float value;
+
+    friend std::ostream& operator<<(std::ostream& os,const kilometor& k)
+    {
+        return os<<k.value;
+    }
+};
+
+constexpr centimetor::centimetor(const metor& x):value(x.value*100.0f){}
+constexpr centimetor::centimetor(const kilometor& x):value(x.value*100000.0f){}
+
+constexpr metor::metor(const kilometor& x):value(x.value*1000.0f){}
+
+constexpr centimetor operator"" _cm(long double value) // リテラル演算子
+{
+    return centimetor(std::move(value));
+}
+constexpr metor operator"" _m(long double value) // リテラル演算子
+{
+    return metor(std::move(value));
+}
+constexpr kilometor operator"" _km(long double value) // リテラル演算子
+{
+    return kilometor(std::move(value));
+}
+
+void f(centimetor centi)
+{
+    std::cout<<centi<<"cm"<<std::endl;
+}
+void f(metor metor)
+{
+    std::cout<<metor<<"m"<<std::endl;
+}
+void f(kilometor kilo)
+{
+    std::cout<<kilo<<"km"<<std::endl;
+}
+
+int main()
+{
+    f(100.0_cm); // オーバーロードしたリテラル演算子の利用
+    f(metor(100.0_cm));
+    f(kilometor(100.0_cm));
+    
+    std::cout<<std::endl;
+
+    f(100.0_m); // オーバーロードしたリテラル演算子の利用
+    f(centimetor(100.0_m));
+    f(kilometor(100.0_m));
+
+    std::cout<<std::endl;
+
+    f(100.0_km); // オーバーロードしたリテラル演算子の利用
+    f(centimetor(100.0_km));
+    f(metor(100.0_km));
+}
+```
+実行結果は以下の通りです。
+```cpp
+100cm
+1m
+0.001km
+
+100m
+10000cm
+0.1km
+
+100km
+1e+07cm
+100000m
+```
+ユーザー定義リテラルを利用する際のシグネチャの書式は以下の通りです。
+```cpp
+戻り値型 operator"" _サフィックス名(仮引数リスト)
+```
+このように定義された関数を**リテラル演算子**と言います。リテラル演算子のシグネチャは通常の演算子オーバーロードと特に変わりはありませんが、関数名に対して一つだけ規約があります。それは、サフィックス名の前に`_`(アンダースコア)を付与しなければならないという事です。アンダースコアで始まらないユーザー定義リテラルのサフィックス名は、標準C++標準によって予約されているため、定義してはならないのです。尚、アンダースコアに続いて大文字で始まる識別子や連続した 2 つ以上のアンダースコアを含む識別子は、ユーザー定義リテラルの規約とは関係なく予約された識別子名なので([Chap2/21-変数とデータ型.md#217-識別子へ名付けてはならないワード](2.1.7 識別子へ名付けてはならないワード)参照)、そのような識別子も定義してはなりません。尚、上記サンプルコードの通り、リテラル演算子に対して`constexpr`キーワード、または`inline`キーワードを付与する事が可能です。
+
+さて、実行結果を見てみると、それぞれの単位ごとに相互変換が行われている様子が分かります。関数`f`に対してサフィックスを付けずに値を渡した場合、関数`f`のオーバーロード解決の際に、`centimetor`、`metor`、`kilometor`のどれにも当てはまる事となるため曖昧となってしまい、コンパイルに失敗します。この時、例えば`centimetor`のオブジェクトを渡したいのであれば、`centimetor(value)`というように`centimetor`のrvalueを渡してしまっても問題はありませんが、単位として見たい時に、上記のように、リテラル演算子を定義してそれを利用する事によって、値の意味を直感的に理解しやすいシーンもある事でしょう。
+
+以上がユーザー定義リテラルの大まかな概要となりますが、ユーザー定義リテラルの機能にはいくつかの決まりがあります。順に確認していきましょう。
+
+### 整数
+引数で整数を受け取るリテラル演算子のシグネチャは以下のいずれかでなければなりません。
+```cpp
+戻り値型 operator"" _サフィックス名(unsigned long long); // #1
+```
+```cpp
+戻り値型 operator"" _サフィックス名(const char*); // #2
+```
+```cpp
+template<char... >
+戻り値型 operator"" サフィックス名(); // #3
+```
+まず#1と#2についてです。このように定義されたリテラル演算子を呼び出した時、引数にはその呼び出し元のサフィックス名を除いたそれぞれ`unsigned long long`型、`const char*`型の値が引数に渡されます。尚、`unsigned long long`型の範囲を超えた値は、当然ながら扱う事ができませんが、その場合、#2か#3で扱う事が可能です。#2もしくは#3で扱った場合、渡された値は#2では`\0`のついた文字列として扱われます。以下では、例として#2のシグネチャを持つリテラル演算子で扱っています。
+```cpp
+#include<iostream>
+
+void operator"" _suffix(const char* value)
+{
+    std::cout<<value<<std::endl;
+}
+
+int main()
+{
+    18446744073709551616_suffix; // 筆者の環境でunsigned long long型を超える数値
+}
+```
+実行結果は以下の通りです。
+```cpp
+18446744073709551616
+```
+尚、この時#1のリテラル演算子を上記のコード中に定義し、オーバーロード解決を試みる場合、実際の値がオーバーフローするか否かに関わらず#1のリテラル演算子が呼び出されてしまうため、注意が必要です。
+
+\#3についてですが、`template`という、ここまでではまだ扱っていないキーワードが出てきました。これについては、[/chapter_11.md](第11章テンプレート)にて詳しく説明しますので、現時点では理解しなくて構いません。
+
+尚、`bool`型を引数型として受け取る事はできません。通常の関数の場合、暗黙変換が行われるため例えば`unsigned long long`型の値を受け取る関数に対して`bool`型の値を渡す事ができますが、リテラル演算子に対しては渡す事はできません。
+また、先ほどもオーバーロード解決の点で注意しなければならないと述べた時に触れたように、**上記三つのリテラル演算子が同時に宣言されオーバーロード解決が行われる場合、#1があれば#1が、#1が無ければ#2または#3が使用されます。尚、#2と#3を同時に宣言する場合、#1は必ず宣言しなければなりません**。
+
+また、リテラル演算子に対して以下のようにマイナス記号`-`を付与した場合、リテラル演算子に渡されるのはマイナス記号が適応された負数ではなく、正数のみが渡されます。
+```cpp
+#include<iostream>
+
+unsigned long long operator"" _suffix(unsigned long long x)
+{
+    std::cout<<x<<std::endl;
+    return x;
+}
+
+int main()
+{
+    -42_suffix;
+}
+```
+実行結果は以下の通りです。
+```cpp
+42
+```
+
+### 浮動小数点数
+引数で浮動小数点数を受け取るリテラル演算子のシグネチャは以下のいずれかでなければなりません。
+```cpp
+戻り値型 operator"" サフィックス名(long double); // #1
+```
+```cpp
+戻り値型 operator"" サフィックス名(const char*); // #2
+```
+```cpp
+template <char...>
+戻り値型 operator"" サフィックス名(); // #3
+```
+それぞれの特徴やオーバーロード解決の際の優先順位は上記整数リテラルの#1、#2、#3の関係性と全く同じです。また、これらも上記整数リテラルの規則と同じように、**上記三つのリテラル演算子が同時に宣言されオーバーロード解決が行われる場合、#1があれば#1が、#1が無ければ#2または#3が使用されます。尚、#2と#3を同時に宣言する場合、#1は必ず宣言しなければなりません**。#3についてはまだ理解しなくとも構いません。
+
+### 文字列
+引数で文字列のアドレスを受け取るリテラル演算子のシグネチャは以下のいずれかでなければなりません。
+```cpp
+戻り値型 operator"" サフィックス名(const char*,std::size_t); // #1
+```
+```cpp
+戻り値型 operator"" サフィックス名(const wchar_t*,std::size_t); // #2
+```
+```cpp
+戻り値型 operator"" サフィックス名(const char16_t*,std::size_t); // #3
+```
+```cpp
+戻り値型 operator"" サフィックス名(const char32_t*,std::size_t); // #4
+```
+第一引数の`const char*`型へは、呼び出し元の値に付与されたサフィックス名を除いた文字列部分の先頭を指すポインタが渡され、第二引数の`std::size_t`には当該文字列の長さが渡されます。
+```cpp
+#include<iostream>
+#include<cstring>
+
+void operator"" _suffix(const char* str,std::size_t len)
+{
+    std::cout<<str<<std::endl;
+    
+    std::cout<<std::strlen(str)<<std::endl;
+    std::cout<<std::boolalpha<<(std::strlen(str)==len)<<std::endl;
+}
+
+int main()
+{
+    "hoge"_suffix;
+}
+```
+実行結果は以下の通りです。
+```cpp
+hoge
+4
+true
+```
+数値に対するユーザー定義リテラルとは異なり、あるリテラル演算子を利用するためにはあるリテラル演算子が定義されなければならないといった規則はありません。尚上記の実行結果の通り、第二引数に渡される文字列の長さは終端文字（`\0`）を除いた長さの値が渡されます。
+\#2以降のワイド文字列などの概念については、別の項目で詳しく取り上げますので現時点で理解する必要はありませんが、そのような異なる文字単位を持つ型のリテラル演算子も定義する事ができるという事だけ理解できれば良いでしょう。
+
+尚、文字列に対するリテラル演算子を利用して文字列リテラル同士を結合する事が可能です。その場合、定義された文字列リテラル演算子が呼び出される前に、プリプロセス時に文字列同士が単に結合され、その後呼び出される形となるため、文字列リテラル演算子の呼び出しは一度のみとなります。
+```cpp
+#include<iostream>
+
+void operator"" _suffix(const char* str,std::size_t)
+{
+    std::cout<<str<<std::endl;
+}
+
+int main()
+{
+    "hello"_suffix "world"_suffix; // サフィックスを二度用いても呼び出されるのは一度
+    "hello"_suffix "world"; // サフィックスを片方のみに付与してもOK
+    "hello" "world"_suffix; // 上記と同じ
+}
+```
+実行結果は以下の通りです。
+```cpp
+helloworld
+helloworld
+helloworld
+```
+上記コードのように、リテラル中にサフィックスを何度記述しても構いませんが、結合される文字列同士のサフィックスは同じでなければなりません。
+
+### 文字
+引数に文字の値を受け取るリテラル演算子のシグネチャは以下のいずれかでなければなりません。
+```cpp
+戻り値型 operator"" サフィックス名(char);
+```
+```cpp
+戻り値型 operator"" サフィックス名(wchar_t);
+```
+```cpp
+戻り値型 operator"" サフィックス名(char16_t);
+```
+```cpp
+戻り値型 operator"" サフィックス名(char32_t);
+```
+これらのリテラル演算子は文字列に対するユーザー定義リテラルと同じように特に規定はありません。
+
+
+### その他の機能と制約
+
+最後に、
+リテラル演算子のサフィックスには、これまで英字を用いて定義してきましたが、ソースファイル文字として許されている場合、サフィックス名は英字に限らず利用する事が可能です。
+```cpp
+#include<iostream>
+
+// \u339Eは㎞のユニコード
+constexpr float operator"" _\u339E(unsigned long long x)
+{
+    return x*100.0f;
+}
+
+int main()
+{
+    // どちらでもOK
+
+    std::cout<<1_㎞<<"m"<<std::endl;
+    std::cout<<1_\u339E<<"m"<<std::endl;
+}
+```
+clang 4.0.0にてコンパイルし、実行結果は以下の通りです。
+```cpp
+100m
+100m
+```
+また、リテラル演算子のシグネチャとして、`operator""`とその後に続く`_`(アンダースコア)の間のスペースは必須ではありません。
+```cpp
+// operator""と_の間にスペースを付与しなくても良い
+constexpr float operator""_\u339E(unsigned long long x)
+{
+ // ...
+```
+また、あるトークンがユーザー定義リテラルと通常のリテラルの両方に解釈可能な場合は、そのトークンは通常のリテラルとして認識されます。例えば、100E2 は、通常の浮動小数点リテラル 100.0E+2 と考える事も、整数リテラル 100 にサフィックス E2 の付いたユーザー定義整数リテラルと考えることもできますが、その場合には浮動小数点リテラルとみなされます。
+```cpp
+#include<iostream>
+
+// アンダースコアのないリテラル演算子の定義は違反ですので以下のようなコードを記述してはなりません。
+void operator"" E2(unsigned long long)
+{
+    std::cout<<__func__<<std::endl;
+}
+
+int main()
+{
+    100E2; // 呼び出されない
+}
+```
+その他、以下に機能と制約を列挙します。
+* 全てのリテラル演算子は、Cリンケージを持ってはならないが、内部リンケージもしくは外部リンケージを持つ可能性がある
+* リテラル演算子はデフォルト引数を持つ事はできない
+
+### グローバル空間への配慮
+
+さて、ここまでユーザー定義リテラルについての機能について説明しましたが、最後に実際に利用するに当たって一つ配慮しなければならない点を挙げておきましょう。といっても、それは通常の関数の場合と同じ気遣いである事に気づくでしょう。例えば通常の関数をグローバル空間に以下のように宣言したとします。
+```cpp
+void f();
+```
+もうこの瞬間に、グローバル名前空間にはこの関数と同じシグネチャの関数は定義する事ができなくなりました。後になって自分が、もしくは自分の書いたコードを利用する誰かが、同じシグネチャの関数`f`を宣言したくなったとしてもです。このように、特に他人に自分のコードをライブラリなどとして使ってもらう事を考えると、その機能を名前空間で囲む事はもはや常識です。
+ですから、特に他人にコードを使ってもらう際には、独自に定義したリテラル演算子も、名前空間で囲んであげるのが、一定のマナーといったところでしょう(自分だけが使うにしても、名前空間で囲う事で識別子の衝突からまのがれる事が出来たり、関数のオーバーロード解決の際の探索範囲から除外できるなどその恩恵は大きいです)。
+```cpp
+#include<iostream>
+#include<cstring>
+
+namespace my_awesome_lib{
+
+struct Integer{
+    constexpr Integer(int x):x_(std::move(x)){}
+    // 内容とは無関係になるためIntegerクラス内の詳細な定義は省略...
+private:
+    int x_;
+};
+
+namespace Integer_literal{ // リテラル演算子は名前空間で囲っておく
+
+constexpr Integer operator"" _Int(unsigned long long x)noexcept
+{
+    return Integer(std::move(x));
+}
+
+} // namespace Integer_literal
+} // namespace my_awesome_libr
+
+int main()
+{
+    using namespace my_awesome_lib::Integer_literal;
+    my_awesome_lib::Integer x=42_Int;
+}
+```
