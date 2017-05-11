@@ -66,10 +66,99 @@ int main()
     g(42,42,42,42,42,42);
 }
 ```
+実行結果は同じです。また、`constexpr if`文で`if constexpr`~`else`節を用いてその条件に合わないステートメントは実体化されません。しかし、実体化されないだけで文法的な誤りはチェックされます。
+```cpp
+#include<iostream>
+#include<type_traits>
 
-実行結果は同じです。
+template<class...>
+constexpr int g(){return 42;}
 
-`constexpr if`は通常の動的な`if`文と同じくスコープの概念を持ちます。
+template<class... T>
+void f(T&&...)
+{
+    if constexpr(std::conjunction_v<std::is_same<int,T>...>){
+        std::cout<<"T is int"<<std::endl;
+    }else{
+        return g<T...>();
+    }
+}
 
+int main()
+{
+    f(42);
+}
+```
+関数`f`の`else`節を見てください。関数`f`は`void`であると宣言していますが、関数`g`は`int`を返しますからコンパイルエラーとなっても可笑しくはなさそうです。しかし、このコードはコンパイルエラーとはなりません。何故ならば、先ほども述べた通り、`else`節は`if constexpr`の条件の合致によって、実体化されないからです。
+ここで、例えば引数に与える値を`int`型`以外の値に変えてみるとどのようになるでしょうか。
+```cpp
+int main()
+{
+    f(4.2); // double型の値を渡す
+}
+```
+すると、GCC7.1.0では以下のようなエラー文が出力されました。
+```cpp
+In instantiation of 'void f(T&& ...) [with T = {double}]':
+19:10:   required from here
+13:24: error: return-statement with a value, in function returning 'void' [-fpermissive]
+         return g<T...>();
+                        ^
+```
+`int`型以外の値を渡せば、当然`if constexpr`の条件に合致しないため`else`節の内容が実体化されます。すると、関数`g`が実体化し、関数`g`が値を返してくるため、その旨をエラーとして教えてくれました。if constexpr`は、このような実体化の防止を作用させる事ができる機能なのです。
+
+`if constexpr`を使う有用な例として、条件にあった型以外を受け取った場合に`static_assert`を発動する例です。まず`if constexpr`を使わずSFINAEで実現した場合は以下のようになります。
+```cpp
+#include<iostream>
+#include<type_traits>
+
+template<class...>
+constexpr bool false_v=std::false_type::value;
+
+template<class... T>
+constexpr void f(T&&...)
+{
+    static_assert(false_v<T...>,"T is not int !");
+}
+
+template<class... T,std::enable_if_t<std::conjunction_v<std::is_same<int,T>...>,std::nullptr_t> =nullptr>
+void f(T&&...)
+{
+    std::cout<<"T is int"<<std::endl;
+}
+
+int main()
+{
+    f(42);
+}
+```
+実行結果は以下の通りです。
+```cpp
+T is int
+```
+関数`f`で、`false_v`という変数テンプレートを用いているのは、実体化のタイミングを遅延させるためです。渡されるテンプレート型に依存させる文を含む事で、`static_assert`をtwo-phase name lookupのタイミングで実体化させています。
+`if constexpr`を用いれば、以下のように記述できます。
+```cpp
+#include<iostream>
+#include<type_traits>
+
+template<class...>
+constexpr bool false_v=std::false_type::value;
+
+template<class... T>
+void f(T&&...)
+{
+    if constexpr(std::conjunction_v<std::is_same<int,T>...>){
+        std::cout<<"T is int"<<std::endl;
+    }else{
+        static_assert(false_v<T...>,"T is not int !");
+    }
+}
+
+int main()
+{
+    f(42);
+}
+```
 See also:[http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2016/p0292r2.html](http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2016/p0292r2.html)
 
