@@ -148,7 +148,7 @@ constexpr bool false_v=std::false_type::value;
 template<class... T>
 void f(T&&...)
 {
-    if constexpr(std::conjunction_v<std::is_same<int,T>...>){
+    if constexpr(std::conjunction_v<std::is_same<int,T>...> and sizeof...(T)){
         std::cout<<"T is int"<<std::endl;
     }else{
         static_assert(false_v<T...>,"T is not int !");
@@ -160,5 +160,68 @@ int main()
     f(42);
 }
 ```
+とこのように、`false_v`にテンプレート引数を渡す事で実体化のタイミングを遅らせていますが、要するにテンプレート引数に依存さえすれば実体化のタイミングを遅延させる事ができるという事なので、例えば以下のように`sizeof`演算子に適用する事でも同じ事が可能です。
+```cpp
+#include<iostream>
+#include<type_traits>
+
+template<class... T>
+void f(T...)
+{
+    if constexpr(std::conjunction_v<std::is_same<int,T>...> and sizeof...(T)){
+        std::cout<<"T is int"<<std::endl;
+    }else{
+        static_assert(sizeof...(T)-sizeof...(T),"T is not int!"); // sizeofに適用する事で実体化タイミングをtwo-phase name lookupのタイミングにする
+    }
+}
+
+int main()
+{
+    f(42);
+}
+```
+まず、`sizeof...(T)`とする事で`T`というテンプレート引数に依存する事となるためこの段階でtwo-phase name lookupが適用されます。`sizeof...(T)`は、Variadic templatesの引数の数を表しますので、その値同士を減算し、必ず`0`にさせる事で`else`節の実行が確定した段階で`static_assert`の発動させます。上記の場合、`false_v`といったようなヘルパテンプレート変数を定義しなくとも同じ動作を行えるため、コードの記述量を考慮した場合、こちらのコードの方が優秀であると考えられるかもしれませんが、意図をより明確に伝えるために、敢えて`false_v`といったようなヘルパテンプレート変数を定義するなどして利用することは、それもまた1つの良い策と言えるでしょう。
+コード量のみ考慮するのであれば、例えばVariadic templateでなかった場合、更に以下のように短く記述できます。
+```cpp
+#include<iostream>
+#include<type_traits>
+
+template<class T>
+void f(T)
+{
+    if constexpr(std::is_same_v<int,T>){
+        std::cout<<"T is int"<<std::endl;
+    }else{
+        static_assert(!sizeof(T),"T is not int!");
+    }
+}
+
+int main()
+{
+    f(42);
+}
+```
+sizeofから返ってくる値は必ず`1`以上なので、それを`!`によって反転させることで必ず`0`となります。よって`else`節が確定された段階で`static_assert`が発動します。尚、この手法は、Variadic templatesに対しては適用できません。下記コードは、何も考えずに、先ほどと同じようにVariadic templatesに対して`sizeof...(T)`を用いたものに`!`を適用した例です。
+```cpp
+#include<iostream>
+#include<type_traits>
+
+template<class... T>
+void f(T...)
+{
+    if constexpr(std::conjunction_v<std::is_same<int,T>...> and sizeof...(T)){
+        std::cout<<"T is int"<<std::endl;
+    }else{
+        static_assert(!sizeof...(T),"T is not int!");
+    }
+}
+
+int main()
+{
+    f();
+}
+```
+引数に何も設定していないので、`else`節が確定します。これは一見、うまく`static_assert`が発動するように思えますが、実際は何事もなくコンパイルが通ってしまいます。これは当然で、あくまで`sizeof...(T)`が`T...`
+それぞれの型のサイズを表すのではなくVariadic templatesの個数を表すものなので、その数が`0`であった場合、反転して`1`となってしまうのです。よって`static_assert`が発動しません。
 See also:[http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2016/p0292r2.html](http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2016/p0292r2.html)
 
