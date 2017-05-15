@@ -152,11 +152,218 @@ Y
 
 
 ## 9.6.2 継承コンストラクタ
+以下のコードを見てください。
+```cpp
+#include<utility>
 
+struct X{
+    explicit X()=default;
+    constexpr X(int x):a(std::move(x)){}
+protected:
+    int a;
+};
 
-## 9.6.3 隠滅
+struct derived:X{
+    derived(int x)
+    {
+        a=std::move(x);
+    }
+};
+
+int main()
+{
+    derived d=42;
+}
+```
+クラス`X`は`a`というメンバを`protected`アクセスレベルで持っています。それを継承して利用する`derived`クラスを後に定義していますが、ここで`derived`のコンストラクタを見てください。`derived`のコンストラクタで`X`内のメンバ`a`を初期化したいところですが、上記のコードでは初期化ではなく、代入操作を行なっています。
+ここで、
+```cpp
+derived(int x):a(std::move(x))
+{
+// ...
+}
+```
+とすれば初期化できるのではないかと思うかも知れませんがこのように記述する事はできません。何故ならば`a`は`derived`クラスのメンバーではないからです。
+
+では継承元のクラスのメンバーは初期化が行えないのでしょうか。勿論、そんな事はありません。継承元のコンストラクタを派生クラスから呼び出せば実現できます。
+```cpp
+#include<utility>
+
+struct X{
+    explicit X()=default;
+    constexpr X(int x):a(std::move(x)){}
+protected:
+    int a;
+};
+
+struct derived:X{
+    derived(int x):X(std::move(x)){} // 継承元であるXのコンストラクタに引数xを受けわたす。
+};
+
+int main()
+{
+    derived d=42;
+}
+```
+この時、継承元のコンストラクタで継承元の内部にあるメンバについての初期化が行えるコンストラクタが定義されていない場合継承、元のメンバをその派生クラスから初期化する事はできません。例えば、継承元のクラスが以下のような実装であった場合、継承先から継承元のクラス`X`におけるメンバ変数`a`の初期値を設定する事はできません。
+```cpp
+// aに初期値を与える術がない
+struct X{
+    explicit X()=default;
+protected:
+    int a;
+};
+```
+さて、上記の通り継承元のクラスのコンストラクタを明示的に呼び出す事で、継承元のコンストラクタに値を受け渡す事で継承元のメンバに初期値を与えていましたが、継承先へ初期値を受けわたすこの記述はとてもよく行うものであるので、以下のように初期値を受け渡して初期化させるコンストラクタを暗黙宣言させる事ができます。この機能を**継承コンストラクタ**と言います。
+```cpp
+#include<utility>
+
+struct X{
+    explicit X()=default;
+    constexpr X(int x):a(std::move(x)){}
+protected:
+    int a;
+};
+
+struct derived:X{
+    using X::X; // 継承コンストラクタ
+    // derived(),constexpr derived(int)が暗黙宣言される
+};
+
+int main()
+{
+    derived d=42;
+}
+```
+継承コンストラクタの機能によって暗黙宣言されるコンストラクタは上記コメントの通り、継承元クラスのコンストラクタが`constexpr`で宣言されている場合、継承先もまた`constexpr`で暗黙宣言されます。つまり、これら全ての機能を受けつぐ形で暗黙宣言されます。
+また、継承元コンストラクタが`delete`指定されており、それを継承コンストラクタの機能で暗黙宣言させた場合、それもまた同じく受け継ぐ形で、`delete`指定されて暗黙宣言されます。
+
+因みに、このような文法を**糖衣構文(Syntax sugar)**と言ったりします。ある機能がなくとも実現は可能であるが、文法によるサポートで簡易的に記述できるような構文を、このように言います。
+
+## 9.6.3 隠蔽
+基底クラスにあるメンバ関数と同じ名前のメンバ関数を派生クラスで定義すると、 基底クラスのメンバ関数は隠されてしまいます。 これを、隠蔽と呼びます。
+```cpp
+#include<iostream>
+
+struct X{
+    void f(){std::cout<<"X::"<<__func__<<std::endl;}
+};
+
+struct derived:X{
+    void f(){std::cout<<"derived::"<<__func__<<std::endl;}
+};
+
+int main()
+{
+    derived d;
+    d.f();
+}
+```
+実行結果は以下の通りです。
+```cpp
+derived::f
+```
+また、Derivedクラスのメンバ関数内から何のスコープ解決を行わずに呼び出した場合も、自分自身が持っている derived::fメンバ関数を呼び出します。
+```cpp
+#include<iostream>
+
+struct X{
+    void f(){std::cout<<"X::"<<__func__<<std::endl;}
+};
+
+struct derived:X{
+    void f(){std::cout<<"derived::"<<__func__<<std::endl;}
+    void g(){f();} // スコープ解決なしでfを呼び出し
+};
+
+int main()
+{
+    derived d;
+    d.g();
+}
+```
+実行結果は以下の通りです。
+```cpp
+derived::f
+```
+ただし、スコープ解決を行う事で隠蔽された基底クラスのメンバを呼び出す事は可能です。
+```cpp
+#include<iostream>
+
+struct X{
+    void f(){std::cout<<"X::"<<__func__<<std::endl;}
+};
+
+struct derived:X{
+    void f(){std::cout<<"derived::"<<__func__<<std::endl;}
+    void g(){X::f();} // スコープ解決によってX::fを呼び出し
+};
+
+int main()
+{
+    derived d;
+    d.g();
+}
+```
+実行結果は以下の通りです。
+```cpp
+X::f
+```
+尚、隠蔽しても例えばそれらの関数がオーバーロード可能な関数であれば以下のようにして継承元から引き出す事も可能です。
+```cpp
+#include<iostream>
+
+struct X{
+    void f(int)
+    {
+        std::cout<<"X::"<<__func__<<std::endl;
+    }
+};
+
+struct derived:X{
+    using X::f; // 隠蔽されたX::fを宣言させる
+    void f(double)
+    {
+        std::cout<<"derived::"<<__func__<<std::endl;
+    }
+};
+
+int main()
+{
+    derived d;
+    d.f(42);
+    d.f(4.2);
+}
+```
+実行結果は以下の通りです。
+```cpp
+X::f
+derived::f
+```
+`using X::f`という記述は継承コンストラクタの記述と同じです。継承コンストラクタの説明では、コンストラクタだけを`using`させて引き出していましたが、このようにメン関数も`using`して機能を引き出す事ができます。
+
+さて、このような隠蔽の機能を使うか否かは果たしたい機能によって適切であるかどうかを考慮する必要がありますが、上記のように`public`継承している場面では、隠蔽してしまうとその意味を成さない事になってしまう事が多いです。その理由は、本章を順に読み進めていく事で理解できるようになるでしょう。
+
 
 ## 9.6.4 継承を禁止する
+継承を禁止させる事も可能です。以下のように記述します。
+```cpp
+struct X final{
+// ...
+};
+```
+クラスの宣言時に`final`キーワードを用いる事でそのクラスを継承する事が禁じられます。クラスの宣言時に`final`キーワードが付与されたクラスを継承しようとすると
+```cpp
+struct X final{};
+
+struct derived:X{};
+```
+GCC 7.1.0では以下のようなエラー文を出力しました。
+```cpp
+error: cannot derive from 'final' base 'X' in derived type 'derived'
+ struct derived:X{};
+        ^~~~~~~
+```
 
 ## 9.6.5 スライシング
 まず定義として、派生クラスは、基底クラスよりサイズが大きくなります。これは、派生クラスは、基底クラスのサイズに追加のメンバ変数うを持っている可能性があるため、断定できる条件なのです。つまりクラス`Base`という基底クラスからクラス`Derived`が派生クラスとして定義されていた場合、両者の関係は必ず`sizeof(Base) <= sizeof(Derived)`が`true`となります。
@@ -217,6 +424,172 @@ int main()
 
 ## 9.6.6 仮想関数とオーバーライド
 
+まずは、以下のコードを見てみましょう。尚、`virtual ~dog()=default;`については現段階では気にしなくて大丈夫です。
+```cpp
+#include<iostream>
+
+struct dog{
+    void call(){std::cout<<"bowwow"<<std::endl;}
+    virtual ~dog()=default;
+};
+
+struct cat:dog{
+    void call(){std::cout<<"mew"<<std::endl;}
+};
+
+int main()
+{
+    dog* ptr1=new dog(); // #1
+    ptr1->call();
+    
+    dog* ptr2=new cat(); // #2
+    ptr2->call();
+    
+    delete ptr1;
+    delete ptr2;
+}
+```
+実行結果は以下の通りです。
+```cpp
+bowwow
+bowwow
+```
+このコードは全くもってよくありません。#1では`dog`クラスをヒープ上にインスタンス化しその後`call`関数を呼び出しているため、`bowwow`と出力されるのは意図した動作です。しかし、その後の#2で、`cat`クラスで定義されている`cat::call`関数を呼び出したいところですが、出力からわかるように、`dog::call`を呼び出してしまいました。何故このようになってしまうかというと、型はあくまで`dog*`であり、そこには継承先である`cat`の型情報が全くないため、実際のオブジェクトによって呼び分けたりする事ができないためです。これを意図した通りに動作させるためには、基底クラスの`dog::call`を**仮想関数**として定義します。
+```cpp
+#include<iostream>
+
+struct dog{
+    virtual void call(){std::cout<<"bowwow"<<std::endl;} // callを仮想関数として定義する
+    virtual ~dog()=default;
+};
+
+struct cat:dog{
+    void call(){std::cout<<"mew"<<std::endl;}
+};
+
+int main()
+{
+    dog* ptr1=new dog();
+    ptr1->call();
+    
+    dog* ptr2=new cat();
+    ptr2->call();
+    
+    delete ptr1;
+    delete ptr2;
+}
+```
+実行結果は以下の通りです。
+```cpp
+bowwow
+mew
+```
+出力の通り、意図した通りに動作しました。このように、関数宣言時に`virtual`キーワードが付与された関数を**仮想関数**と言います。仮想関数を定義すると何が起きるのかというと、**仮想関数テーブル**というものがコンパイラによって暗黙的に生成されます。仮想関数テーブルは、ある仮想関数を呼び出した時に、実際の呼び出し元のオブジェクトの型によって、どの関数が呼ばれるのかの情報が書き込まれているものです。プログラマには直接的に見えない、クラスの隠しメンバ変数としてその情報を持つようになります。`virtual`キーワードの付与によって仮想関数を宣言し、仮想関数テーブルが作成される事で、実際のオブジェクトによってそのオブジェクトの型が持つメンバ関数を呼び出す事ができるのです。これを関数の**オーバーライド**と言います。尚、基底クラスの関数を仮想関数として宣言し、それを派生クラスの関数でオーバーライドしている時、派生クラスのオーバーライドした関数も仮想関数として定義されます。よって以下のように、オーバーライドする関数の宣言で`virtual`を付与する事もできます。
+```cpp
+struct dog{
+    virtual void call(){std::cout<<"bowwow"<<std::endl;} // callを仮想関数として定義する
+    virtual ~dog()=default;
+};
+
+struct cat:dog{
+    virtual void call(){std::cout<<"mew"<<std::endl;} // virtualを明記。動作と意味は全く変わらない
+};
+```
+また全く動作は変わりませんが、`virtual`キーワードを敢えて明記した方が良いとする考え方もあり>ます。
+何故このような考え方があるかといえば、派生クラスの該当関数が仮想関数としてオーバーライドしているのかそのシ
+グネチャだけからは判断する事が出来ないためです。しかし、もしそのような目的で`virtual`キーワードを用いるのであれば、`override`というキーワードを用いて関数宣言するべきです。
+```cpp
+struct Base{
+    virtual ~Base(){std::cout<<__func__<<std::endl;}
+};
+
+struct Derived:Base{
+    ~Derived()override{std::cout<<__func__<<std::endl;} // overrideキーワードによってオーバーライドしてい>る旨を明記する
+};
+```
+`override`キーワードは、基底クラスにある仮想関数をオーバーライドしているという旨を明記するためのキーワードであり、関数の仮引数リストの後に記述します。
+
+ところで、先程、「プログラマには直接的に見えない、クラスの隠しメンバ変数として情報を持つ」と言いました。という事は、その分クラスのサイズが増加するのではと思うかも知れません。まさにその通りで、仮想関数が定義されたクラスはサイズがその分増加します。
+```cpp
+#include<iostream>
+
+struct X{
+    virtual void f(){} // 仮想メンバ関数
+};
+
+struct Y{
+    void f(){} // 仮想でないメンバ関数
+};
+
+int main()
+{
+    std::cout<<sizeof(X)<<std::endl;
+    std::cout<<sizeof(Y)<<std::endl;
+}
+```
+筆者の環境では実行結果は以下の通りです。
+```cpp
+8
+1
+```
+よって、仮想関数テーブルの機能を特別使わないのであれば、仮想関数を宣言する事は無駄であると言えます。
+
+
+
+それでは漸くですが、9.6.5の最後で提示した問題、デストラクタが呼ばれないという問題に対する対処を行いましょう。問題は以下のようなコードでデストラクタが呼ばれないというものでした。
+```cpp
+#include<iostream>
+
+struct Base{
+    ~Base(){std::cout<<__func__<<std::endl;}
+};
+
+struct Derived:Base{
+    ~Derived(){std::cout<<__func__<<std::endl;}
+};
+
+int main()
+{
+    Base* ptr=new Derived(); 
+    delete ptr; // ~Baseのデストラクタしか呼ばれない
+}
+```
+この問題は、デストラクタが仮想関数として定義されておらず、オーバーライドができない事によって起きているのです。つまり、先程まで述べてきたメンバ関数を`virtual`にした場合と同じように、基底クラスのデストラクタを`virtual`宣言する事でこの問題を回避できます。
+```cpp
+#include<iostream>
+
+struct Base{
+    virtual ~Base(){std::cout<<__func__<<std::endl;}
+};
+
+struct Derived:Base{
+    ~Derived(){std::cout<<__func__<<std::endl;}
+};
+
+int main()
+{
+    Base* ptr=new Derived();
+    delete ptr;
+}
+```
+実行結果は以下の通りです。
+```cpp
+~Derived
+~Base
+```
+このようなデストラクタを**仮想デストラクタ**と呼びます。派生クラスのシグネチャからオーバーライドしている事を明記するために`override`というキーワードを用いて関数を宣言/定義するのも良いでしょう。
+```cpp
+struct Base{
+    virtual ~Base(){std::cout<<__func__<<std::endl;}
+};
+
+struct Derived:Base{
+    ~Derived()override{std::cout<<__func__<<std::endl;}
+};
+```
+
+
+継承の
 vtable
 
 ## 9.6.7 多重継承、継承パターン、合成
