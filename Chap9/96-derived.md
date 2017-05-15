@@ -500,11 +500,12 @@ struct cat:dog{
 グネチャだけからは判断する事が出来ないためです。しかし、もしそのような目的で`virtual`キーワードを用いるのであれば、`override`というキーワードを用いて関数宣言するべきです。
 ```cpp
 struct Base{
-    virtual ~Base(){std::cout<<__func__<<std::endl;}
+    virtual void call(){std::cout<<"bowwow"<<std::endl;} // callを仮想関数として定義する
+    virtual ~dog()=default;
 };
 
 struct Derived:Base{
-    ~Derived()override{std::cout<<__func__<<std::endl;} // overrideキーワードによってオーバーライドしてい>る旨を明記する
+    ~()override{std::cout<<__func__<<std::endl;} // overrideキーワードによってオーバーライドしてい>る旨を明記する
 };
 ```
 `override`キーワードは、基底クラスにある仮想関数をオーバーライドしているという旨を明記するためのキーワードであり、関数の仮引数リストの後に記述します。
@@ -534,8 +535,6 @@ int main()
 ```
 よって、仮想関数テーブルの機能を特別使わないのであれば、仮想関数を宣言する事は無駄であると言えます。
 
-
-
 それでは漸くですが、9.6.5の最後で提示した問題、デストラクタが呼ばれないという問題に対する対処を行いましょう。問題は以下のようなコードでデストラクタが呼ばれないというものでした。
 ```cpp
 #include<iostream>
@@ -563,7 +562,7 @@ struct Base{
 };
 
 struct Derived:Base{
-    ~Derived(){std::cout<<__func__<<std::endl;}
+    ~Derived()override{std::cout<<__func__<<std::endl;}
 };
 
 int main()
@@ -587,12 +586,474 @@ struct Derived:Base{
     ~Derived()override{std::cout<<__func__<<std::endl;}
 };
 ```
+尚、仮想関数に設定しオーバーライドする事は**コンストラクタ以外の関数に行う事ができます**。よって、以下のようなコードを記述する事はできません。
+```cpp
+struct Base{
+    virtual Base(); // エラー！コンストラクタを仮想関数としオーバーライドする事はできない
+};
+```
+しかし仮想関数に対して`default`や`delete`指定などを行う事はできます。
+```cpp
+struct Base{
+    virtual ~Base()=default; // デフォルトデストラクタの動作で仮想関数とする
+};
 
+struct Derived:Base{
+    ~Derived()override=default; // 仮想デフォルトデストラクタはオーバーライドしている
+};
+```
+```cpp
+struct Base{
+    virtual void f()=delete; // 仮想関数fはdeleteされている
+};
 
-継承の
-vtable
+struct Derived:Base{
+    void f()override=delete; // オーバーライドした仮想関数fはdeleteされている
+};
+```
 
-## 9.6.7 多重継承、継承パターン、合成
-is-a、has-a
+## 9.6.7 抽象クラスと純粋仮想関数によるインタフェース
+仮想関数のオーバーライドによって、処理の内容を派生クラス側で制御する事ができました。しかし、例えば基底クラスが継承されて処理を上書きする(オーバーライドされる)前提であった場合どうでしょうか。そのような前提はどのようなシーンで起きるかというと、例えば実行する大まかな内容は同じでも内部処理が実際のオブジェクトの型によって変動する場合です。
+```cpp
+struct Drawer{
+    virtual void draw(){ /* ... ? */ }
+    virtual ~Drawer()=default;
+};
 
-## 9.6.8 EBO最適化
+struct Circle:Drawer{
+    void draw()override{ /* 円を描く処理... */}
+};
+
+struct Square:Drawer{
+    void draw()override{ /* 四角形を描く処理... */}
+};
+
+struct Triangle:Drawer{
+    void draw()override{ /* 三角形を描く処理... */}
+};
+
+int main()
+{
+    Drawer* a=new Circle();
+    a->draw(); // 円を描く...
+    
+    Drawer* b=new Square();
+    b->draw(); // 四角形を描く...
+    
+    Drawer* c=new Triangle();
+    c->draw(); // 三角形を描く...
+    
+    Drawer* d=new Drawer();
+    d->draw(); // Drawerは何を描く...?
+    
+    delete a;
+    delete b;
+    delete c;
+    delete d;
+}
+```
+クラス`Drawer`は「描く者」というそれ単体では意味をなさないクラスであり、それを継承して各クラスで関数`draw`をオーバーライドさせるためのクラスです。`Circle`は円を描き、`Square`は四角形を描き、`Triangle`は三角形を描きます。しかしこの場合、`Drawer`クラスは何をするべきでしょうか？`Drawer`クラスの関数`draw`は、継承先でオーバーライドされる事を前提としているので、それ単体では何の意味も持てず、コードの記述に困ってしまいますし、`Drawer`関数を実体化されても何の意味もないので実体化される事自体を防ぎたいところです。
+
+今まで学んできた内で考えられる対策は幾つかありますが、それらはどれもその意味を直接的に示すものではないでしょう。例えば、該当関数に`assert`を仕込み、コンストラクタを`protected`にしてしまう方法です。
+```cpp
+#include<cstddef>
+#include<cassert>
+
+struct Drawer{
+    virtual void draw(){ assert(false); } // コンストラクタがprotectedなため呼び出される事はないが意図を示すためにassertを仕込む
+    virtual ~Drawer()=default;
+protected:
+    Drawer()=default;
+};
+
+struct Circle:Drawer{
+    void draw()override{ /* 円を描く処理... */}
+};
+
+struct Square:Drawer{
+    void draw()override{ /* 四角形を描く処理... */}
+};
+
+struct Triangle:Drawer{
+    void draw()override{ /* 三角形を描く処理... */}
+};
+
+int main()
+{
+    Drawer* a=new Circle();
+    a->draw(); // 円を描く...
+    
+    Drawer* b=new Square();
+    b->draw(); // 四角形を描く...
+    
+    Drawer* c=new Triangle();
+    c->draw(); // 三角形を描く...
+    
+    Drawer* d=new Drawer(); // エラー！protectedアクセス領域にあるコンストラクタは呼び出せない
+    //d->draw(); 
+    
+    delete a;
+    delete b;
+    delete c;
+    //delete d;
+}
+```
+Drawer単体ではインスタンス化出来ないため、`Drawer::draw`が呼び出される心配もなくなりましたが、これでも問題は残ります。それは、継承先で関数`draw`をオーバーライドしなくてもコンパイルが通ってしまう点です。
+```cpp
+struct Drawer{
+    virtual void draw(){ assert(false); } // コンストラクタがprotectedなため呼び出される事はないが意図を示すためにassertを仕込む
+    virtual ~Drawer()=default;
+protected:
+    Drawer()=default;
+};
+
+struct Circle:Drawer{};
+
+struct Square:Drawer{};
+
+struct Triangle:Drawer{};
+
+//...
+```
+`Drawer`クラスは継承先で関数`draw`をオーバーライドされる前提であるのにも関わらずこのようなコードが書けてしまう事はとても危険です(後に学習する、「テンプレート」の知見を得れば、実は強制的に派生クラスへ関数の定義を強制する事ができたりもします)。
+このような場合に、純粋仮想関数という機能を用いる事で全ての問題が解消できます。まず、純粋仮想関数は以下のように記述します。
+```cpp
+struct Drawer{
+    virtual void draw()=0; // #1
+    virtual ~Drawer()=default;
+};
+
+struct Circle:Drawer{
+    void draw()override{ /* 円を描く処理... */}
+};
+
+struct Square:Drawer{
+    void draw()override{ /* 四角形を描く処理... */}
+};
+
+struct Triangle:Drawer{
+    void draw()override{ /* 三角形を描く処理... */}
+};
+
+int main()
+{
+    Drawer* a=new Circle();
+    a->draw(); // 円を描く...
+    
+    Drawer* b=new Square();
+    b->draw(); // 四角形を描く...
+    
+    Drawer* c=new Triangle();
+    c->draw(); // 三角形を描く...
+    
+    delete a;
+    delete b;
+    delete c;
+}
+```
+`#1`が、純粋仮想関数です。関数のシグネチャの後に`=0`と記述する事でその関数を純粋仮想関数とする事ができます。**純粋仮想関数が宣言されたクラスは、それ単体では実体化する事が出来ず、かつ継承先へその関数をオーバーライドする事を強制させます**。
+```cpp
+struct Drawer{
+    virtual void draw()=0;
+    virtual ~Drawer()=default;
+};
+
+struct Circle:Drawer{};
+
+int main()
+{
+    Circle(); // エラー！Circleクラスはdraw関数をオーバーライドしていない
+    Drawer(); // エラー！純粋仮想関数を持つクラスは実体化できない
+}
+```
+純粋仮想関数のみで構成されたクラスを**インタフェースクラス**や、**抽象クラス**と言います。
+
+尚、デストラクタのみは特別で純粋仮想関数の内部実装を定義する事ができます。
+```cpp
+struct Base{
+    virtual ~Base()=0;
+};
+
+Base::~Base(){} // 純粋仮想デストラクタのみ内部実装を定義する事ができる。
+
+struct Derived:Base{};
+
+int main()
+{
+    Base(); // エラー！依然として純粋仮想関数を持つクラスは実体化する事ができない
+}
+```
+これを**純粋仮想デストラクタ**と言います。純粋仮想デストラクタは、定義において、上記のように宣言と定義を分離しなければなりません。つまり以下のようには記述できません。
+```cpp
+struct Base{
+    virtual ~Base()=0
+    {
+        // ...というようには書けない
+    }
+```
+これは何に使うのかと言うと、該当クラスをインタフェースクラスとして定義したいが、純粋仮想関数にできるメンバが1つもない場合などで用います。
+
+## 9.6.8 多重継承と仮想継承
+二つ以上のクラスから継承する事もできます。これを**多重継承**と呼びます。
+```cpp
+struct A{};
+struct B{};
+struct C:A,B{}; // Cは多重継承
+```
+多重継承の際にはカンマ(`,`)でクラスを区切ります。多重継承の際には、継承するそれぞれのクラスに対して以下のようにアクセスレベルを設定できます。
+```cpp
+struct A{};
+struct B{};
+struct C:protected A,private B{};
+```
+さて、多重継承は以下のような構造となった時に少し厄介な問題に直面します。
+```cpp
+#include<iostream>
+
+struct A{
+    void f(){std::cout<<__func__<<std::endl;}
+};
+struct B:A{};
+struct C:A{};
+struct Derived:B,C{};
+
+int main()
+{
+    Derived a;
+    a.f();
+}
+```
+このコードはコンパイルに失敗します。GCC 7.1.0では、以下のようなエラー文を出力しました。
+```cpp
+In function 'int main()':
+error: request for member 'f' is ambiguous
+     a.f();
+       ^
+candidates are: 'void A::f()'
+     void f(){std::cout<<__func__<<std::endl;}
+          ^
+note:                 'void A::f()'
+```
+エラー文では"ambiguous"、つまり曖昧であると述べています。まず、継承構造は以下の図の通りです。
+
+この継承関係によって、`Derived`クラスをインスタンス化した段階でクラス`A`の実態が二つ存在する事にこの問題の起因があります。クラス`B`もクラス`C`も、共にクラス`A`を継承しています。それを`Derived`クラスで一つにまとめているため、関数`f`の呼び出し時に`B`から継承された`A::f`なのか、`C`から継承された`A::f`なのかが曖昧となってしまうのです。
+これはどうすれば良いかというと、単純にスコープ解決を行えば曖昧さを取り除く事ができます。
+```cpp
+#include<iostream>
+
+struct A{
+    void f(){std::cout<<__func__<<std::endl;}
+};
+struct B:A{};
+struct C:A{};
+struct Derived:B,C{};
+
+int main()
+{
+    Derived a;
+    a.B::f();
+    a.C::f();
+}
+```
+`a.B::f()`によって`B`から構築された`A`の関数`f`を、`a.C::f()`によって`C`から構築された`A`の関数`f`を呼び出しています。
+
+このような継承関係で、`A`の実態が二つである事を最も捉えられるのは内部にデータを持っている時でしょう。
+```cpp
+#include<iostream>
+
+struct A{
+    constexpr A(int x):data(std::move(x)){}
+    int data;
+};
+struct B:A{
+    using A::A;
+};
+struct C:A{
+    using A::A;
+};
+struct Derived:B,C{
+    constexpr Derived(int x):B(std::move(x)),C(std::move(x)){}
+};
+
+int main()
+{
+    Derived a(42);
+    a.B::data=100;
+    a.C::data=200;
+    
+    std::cout<< a.B::data <<std::endl;
+    std::cout<< a.C::data <<std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+100
+200
+```
+このように、同名のデータであっても、`B`と`C`がそれぞれ`A`を継承している事でその内部データもその分当然ながらインスタンス化されます。
+
+しかし、このような継承関係でありながら共通のクラスの実態をたった1つのみにしたい場合もあるでしょう。そういった場合には**仮想継承**という機能を使います。仮想継承は、基底クラスの指定時で、`virtual`キーワードを付与します。
+```cpp
+#include<iostream>
+
+struct A{
+    int data;
+};
+struct B:virtual A{};
+struct C:virtual A{};
+struct Derived:B,C{};
+
+int main()
+{
+    Derived a;
+    a.B::data=100;
+    a.C::data=200;
+    
+    std::cout<<a.B::data<<std::endl;
+    std::cout<<a.C::data<<std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+200
+200
+```
+実態が二つであれば`a.B::data`の出力で`100`と出力されるはずですが、どちらも`200`と出力されました。つまり、実態が一つであると言う事になります。
+
+また、実態が一つなので、スコープ解決を行わなくてもデータに対するアクセスは曖昧にはなりません。
+```cpp
+#include<iostream>
+
+struct A{
+    int data;
+};
+struct B:virtual A{};
+struct C:virtual A{};
+struct Derived:B,C{};
+
+int main()
+{
+    Derived a;
+    a.data=100; 
+    std::cout<<a.data<<std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+100
+```
+
+## 9.6.9 is-a、has-a関係
+継承という機能を利用する事で得られる恩恵の一つとして、**差分プログラミングが行える**という点があります。差分プログラミングとは、既に定義されたクラスが持っている機能をもう1度書き直すことを避け、そのクラスを継承して継承先ごとに必要な部分だけを追加で書き足す事で、同じコードの散乱を防止する事ができます。ただし、このような差分プログラミングを行う上で、**is-a**関係を尊重すべきであるという考え方があります。
+
+is-a関係とは何なのでしょうか。is-a関係とは、**継承関係にあるクラス同士が、「Derived is a Base（Derived は Base である）」**と言える関係を言います。例えば、以下のようなクラスはis-a関係にあると言えます。
+```cpp
+struct Bird{ // 鳥をモデル化したクラス
+    virtual void fly()=0; // "飛ぶ"という鳥の機能
+};
+struct Crow:Bird{ // is-a関係。カラスは鳥である。
+    void fly()override;
+};
+```
+一方、以下のようなクラスはis-a関係であるとは言えません。
+```cpp
+struct Wing{ // 翼をモデル化したクラス
+    void fly();
+};
+struct Bird:Wing{/* ... */}; // is-a関係ではない。翼は鳥ではない。
+
+struct Crow:private Bird{ // protectedもしくはprivate継承の場合、機能が絞られる事となるためis-a関係にはなれない。
+```
+「翼は鳥である」という文は成立しませんから、この関係はis-a関係とは言えません。
+
+is-a関係と対比して言われるのが、**has-a**関係です。
+```cpp
+struct Wing{ // 翼をモデル化したクラス
+    void fly();
+};
+struct Bird{
+    Wing wing;
+};
+```
+`Bird`クラスは上記の通りクラス`Wing`の機能を元に構成されます。クラスが別のクラスの機能の上に成り立っている関係をhas-a関係と言います。
+
+## 9.6.10 EBO
+EBOとは、Empty Base Optimizationの略です。EBOは、内部にデータを持たないクラスを継承した際に行われる最適化です。以下のコードを見てください。
+```cpp
+#include<iostream>
+
+struct X{};
+
+int main()
+{
+    std::cout<<sizeof(X)<<std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+1
+```
+なんと、クラス`X`は何もデータを持っていないのにも関わらず、実際のサイズは1であるというように出力されています。これは何故かと言うと、データのないクラスをインスタンス化した際に、そのインスタンス化したオブジェクトのアドレスを取得できるようにするためです。そのオブジェクトのサイズが0では、アドレスを取得する事は当然ながらできません。よって、C++において最小単位である1バイトサイズのオブジェクトとしてインスタンス化されるのです。
+
+しかし、このクラスを継承させて見てみると、少し面白い事が起きます。
+```cpp
+#include<iostream>
+
+struct X{};
+struct Y:X{};
+
+int main()
+{
+    std::cout<<sizeof(Y)<<std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+1
+```
+まず、クラス`X`は何もデータを持ちませんが、先ほど述べたようにアドレスを取得できるように、最低限のサイズである1バイトが割り振られるはずです。そして、クラス`Y`も何もデータを持たないため、最低限のサイズである1バイトが割り振られ、その合計として2バイトというように出力される...かと思いきや、実際の出力はなんと1バイトとなっています。
+
+これがEBO最適化というものです。まず、C++の言語規格として、何もデータを持たない型が別の型を継承していて、継承元の型が既にサイズを持っている場合や、それとは逆に何もデータを持たない型の継承先がサイズを持っている場合、その何もデータを持っていないクラス分の追加サイズは無くしても良いように定められているため、その原則に則った最適化が行われます。これが、EBOという最適化です。
+
+EBOは、あくまで言語仕様として必須ではないため、コンパイラによってはEBOが行われない可能性がありますが、大抵のコンパイラはEBO最適化を行います。
+
+このように、EBOは無駄な領域を取らない便利な最適化ですが、継承関係によってはEBOを適用できない場合があります。例えば以下の場合はEBOを行う事ができません。
+```cpp
+#include<iostream>
+
+struct A{};
+
+struct B:A{};
+struct C:A{};
+struct Derived:B,C{};
+
+int main()
+{
+    std::cout<<sizeof(Derived)<<std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+2
+```
+`A`、`B`、`C`も全て全てデータを何も持っていませんが、EBOが効いていません。これは何故かというと、多重継承の項で説明したように、異なるクラスがそれぞれ同じ基底クラスを継承している時、双方共に異なる実態を持つからです。異なる実態を持つと言う事は、それぞれを最適化で無くす事はできないのです。
+と言う事は、基底クラスの実態を複数にしなければEBO最適化が行われるので、仮想継承を行えば良いのでは？と思うかもしれません。しかし残念ながら、仮想継承する事によってvtableが構築され、データが何もないクラスには成らなくなってしまいますから、EBOは効きません。
+```cpp
+#include<iostream>
+
+struct A{};
+
+struct B:virtual A{};
+struct C:virtual A{};
+struct Derived:B,C{};
+
+int main()
+{
+    std::cout<<sizeof(Derived)<<std::endl;
+}
+```
+筆者の環境では以下のように出力されました。
+```cpp
+16
+```
+では、多重継承の場合、EBOの恩恵を受ける事はできないのかというと、実はそうではないのです。その方法は、「第11章 テンプレート」にて明らかとなりますので、楽しみにしていてください。
