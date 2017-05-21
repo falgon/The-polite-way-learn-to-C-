@@ -2,5 +2,5 @@
 
 -------------------
 
-*  try,catch
-* noexcept
+1. [attribute](/Chap10/attribute.md)
+2. [例外](/Chap10/exception.md)

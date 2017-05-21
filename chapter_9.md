@@ -10,14 +10,3 @@
 4. [フレンド/ADL](/Chap9/94-friend_and_adl.md)
 5. [演算子のオーバーロード](/Chap9/95-operator-overload.md)
 6. [継承/派生](/Chap9/96-derived.md)
-    
-* dynamic\_cast
-final,override
-15. キャスト
-16. 継承パターン
-17. 構造化束縛
-18. RVO最適化
-19. 関数オブジェクト、ラムダ式
-
-
-
