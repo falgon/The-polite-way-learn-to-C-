@@ -143,8 +143,7 @@ namespace std{
 ```cpp
 struct X{
         template<class InputIterator>
-        X(const char* s,InputIterator begin,InputIterator end):str(s),v(be
-gin,end){}
+        X(const char* s,InputIterator begin,InputIterator end):str(s),v(begin,end){}
 
         template<std::size_t s>
         decltype(auto) get()const
