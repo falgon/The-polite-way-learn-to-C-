@@ -83,6 +83,7 @@ int main()
 実行結果は以下の通りです。
 ```cpp
 42 4.2 a
+42 4.2 a
 ```
 もしこのような条件に合わない独自のクラスで Structured bindings を使いたければ、ユーザー側でその動作を定義する必要があります。
 
@@ -228,3 +229,5 @@ hoge
 2 9 0 5 4 6 7 1 3 8
 ```
 意図した通りに Structured bindings によって二つのメンバ変数を受け取れている事がわかります。
+
+参照：[https://blog.tartanllama.xyz/c++/2016/07/20/structured-bindings/](https://blog.tartanllama.xyz/c++/2016/07/20/structured-bindings/)
