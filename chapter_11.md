@@ -7,11 +7,8 @@
 是非この章でテンプレートにどっぷり浸かり、真のC++を使う者としての基礎を身につけていきましょう。
 
 * [関数テンプレート](/Chap11/111-関数テンプレート.md)
-    * ユニバーサル参照、Perfect Forwarding
-    * オーバーロード順位
-* クラステンプレート
-    * ユニバーサル参照に対する少しの注意点(内包される型に対する推論に&&を用いてもそれはユニバーサル参照とはならない)
-    * User-defined deduction guides
+* [クラステンプレート](/Chap11/class_template.md)
+* User-defined deduction guides
 * テンプレートの特殊化
 * decltype
 * auto
@@ -22,5 +19,5 @@
 * 構造化束縛
 * メタプログラミング、静的再帰
 * Fold expression
-* SFINAE
 * [constexpr if](/Chap11/11x-constexpr-if.md)
+* [Structured bindings](/Chap11/structured-bindings.md)
