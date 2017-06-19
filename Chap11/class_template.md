@@ -1,5 +1,5 @@
 
-## 11.x.x SFINAEと型特性(type\_traits)
+## 11.2.x SFINAEと型特性(type\_traits)
 [11.1.6](/Chap11/111-関数テンプレート.md#1116-sfinae)にて、`int`を`T::value_type`に変換できる場合のみ関数が呼び出されるようにする事ができると述べました。それについて、本項では説明していきます。まず、導入として以下のコードを見ていただきましょう。
 ```cpp
 template<bool,class=void>
