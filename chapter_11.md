@@ -16,7 +16,6 @@
 * 後置返却型指定
 * 変数テンプレート
 * エイリアステンプレート
-* 構造化束縛
 * メタプログラミング、静的再帰
 * Fold expression
 * [constexpr if](/Chap11/11x-constexpr-if.md)
