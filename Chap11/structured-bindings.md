@@ -215,7 +215,7 @@ decltype(a) b; // b の型は int& ?
 
 > Given the type T<i>i</i>`std::tuple_element<i, E>::type`, each v<i>i</i> is a variable of type “reference to T<i>i</i>” initialized with the initializer, where the reference is an lvalue reference if the initializer is an lvalue and an rvalue reference otherwise; the referenced type is T<i>i</i>.
 
-`std::tuple_element::type`で指定された型 T<i>i</i> が与えられた場合、各v<i>i</i>は初期化子で初期化された "reference to T<i>i</i>" 型の変数であり、初期化子が左辺値の場合は左辺値参照、それ以外の場合はrvalue参照で、<s>参照される型(referenced type)はT<i>i</i></s>です。referenced type は、参照型、つまり lvalue reference だとか rvalue reference だとかを言っているのではなく、全く別の意味である、**参照された型**である事に注意してください。つまり、まず **Structured binding において referenced type とは`std::tuple_element::type`に設定された型であるという事**です。次に、[\[dcl.type.auto.deduct\]](http://eel.is/c++draft/dcl.spec.auto#dcl.type.auto.deduct-5)を見てみると以下のように述べられています。
+`std::tuple_element::type`で指定された型 T<i>i</i> が与えられた場合、各v<i>i</i>は初期化子で初期化された "reference to T<i>i</i>" 型の変数であり、初期化子が左辺値の場合は左辺値参照、それ以外の場合はrvalue参照で、<strong>参照される型(referenced type)はT<i>i</i></strong>です。referenced type は、参照型、つまり lvalue reference だとか rvalue reference だとかを言っているのではなく、全く別の意味である、**参照された型**である事に注意してください。つまり、まず **Structured binding において referenced type とは`std::tuple_element::type`に設定された型であるという事**です。次に、[\[dcl.type.auto.deduct\]](http://eel.is/c++draft/dcl.spec.auto#dcl.type.auto.deduct-5)を見てみると以下のように述べられています。
 
 > If the placeholder is the decltype(auto) type-specifier, T shall be the placeholder alone. The type deduced for T is determined as described in [dcl.type.simple], as though e had been the operand of the decltype.
 
