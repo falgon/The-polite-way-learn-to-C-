@@ -44,11 +44,32 @@ int main()
 false
 true
 ```
-前述した通り、`typeid`演算子は`std::type_info`のオブジェクトへの参照を返すため、それを`const`参照で受け取っていますね。勿論、ポインターで持つ事もできます。
+`type_info`クラスは、演算子`==`と`!=`に対するオーバーロードがされているため、上記のように2つの型が同じ型か判定する事ができます。<br>
+また、前述した通り、`typeid`演算子は`std::type_info`のオブジェクトへの参照を返すため、それを`const`参照で受け取っていますね。勿論、ポインターで持つ事もできます。
 ```cpp
 std::type_info const* tp = &typeid(int);
 ```
-`type_info`クラスは、演算子`==`と`!=`に対するオーバーロードがされているため、上記のように2つの型が同じ型か判定する事ができます。
+尚、ヌルポインターを指すオブジェクトを関節参照して`typeid`演算子に渡されると、`std::bad_typeid`例外が送出されます。
+```cpp
+#include<typeinfo>
+#include<iostream>
+
+struct X{virtual void f(){}};
+
+int main()
+{
+        try{
+                X* p = nullptr;
+                [[maybe_unused]] const std::type_info& t = typeid(*p);
+        }catch(std::bad_typeid& exp){
+                std::cerr << exp.what() << std::endl;
+        }
+}
+```
+筆者の環境では実行結果は以下のようになりました。
+```cpp
+std::bad_typeid
+```
 尚、`type_info`クラスは、ユーザーが`typeid`演算子を使用する事によってのみオブジェクトを生成する事ができるため、`type_info`クラスを直接ユーザーがデフォルト構築、コピー、ムーブを行う事はできません。
 ```cpp
 std::type_info t1; // エラー！デフォルト構築は delete 指定されている
