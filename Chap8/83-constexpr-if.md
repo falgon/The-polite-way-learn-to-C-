@@ -8,13 +8,13 @@ constexpr int plus(const int x,const int y){return x+y;}
 
 int main()
 {
-	constexpr int a=10,b=20;
+    constexpr int a=10,b=20;
 	
-	if(plus(a,b)==30){
-		std::cout<<"thirty!"<<std::endl;
-	}else{
-		std::cout<<"not thirty!"<<std::endl;
-	}
+    if(plus(a,b)==30){
+	std::cout<<"thirty!"<<std::endl;
+    }else{
+	std::cout<<"not thirty!"<<std::endl;
+    }
 }
 ```
 実行結果は以下となります。
@@ -31,13 +31,13 @@ constexpr int plus(const int x,const int y){return x+y;}
 
 int main()
 {
-	constexpr int a=10,b=20;
+    constexpr int a=10,b=20;
 	
-	if constexpr(plus(a,b)==30){
-		std::cout<<"thirty!"<<std::endl;
-	}else{
-		std::cout<<"not thirty!"<<std::endl;
-	}
+    if constexpr(plus(a,b)==30){
+	std::cout<<"thirty!"<<std::endl;
+    }else{
+	std::cout<<"not thirty!"<<std::endl;
+    }
 }
 ```
 `if constexpr`というようにする事で、その分岐処理は、必ずコンパイル時に行われるようになります。よって、例えば動的な条件式を`constexpr if`文で使う事はできません。
@@ -48,16 +48,15 @@ int plus(int x,int y){return x+y;}
 
 int main()
 {
-	int a=10,b=20;
-	
-	if constexpr(plus(a,b)==30){ // plus関数は静的な関数でないためエラー
-		std::cout<<"thirty!"<<std::endl;
-	}else{
-		std::cout<<"not thirty!"<<std::endl;
-	}
+    int a=10,b=20;
+    if constexpr(plus(a,b)==30){ // plus関数は静的な関数でないためエラー
+        std::cout<<"thirty!"<<std::endl;
+    }else{
+        std::cout<<"not thirty!"<<std::endl;
+    }
 }
 ```
-コードを見てお気づきになったかもしれませんが、`if constexpr`の後の`else`では、`constexpr`キーワードを付与する必要はありません。しかし、`else if`節では、以下のように`else constexpr if`とする必要があります。
+`if constexpr`の後の`else`では、`constexpr`キーワードを付与する必要はありません。しかし、`else if`節では、以下のように`else constexpr if`とする必要があります。
 ```cpp
 #include<iostream>
 
@@ -65,13 +64,13 @@ constexpr int plus(const int x,const int y){return x+y;}
 
 int main()
 {
-	constexpr int a=10,b=30;
+    constexpr int a=10,b=30;
 	
-	if constexpr(plus(a,b)==30){
-		std::cout<<"thirty!"<<std::endl;
-	}else if constexpr(plus(a,b)==40){
-		std::cout<<"fourty!"<<std::endl;
-	}else{
+    if constexpr(plus(a,b)==30){
+        std::cout<<"thirty!"<<std::endl;
+    }else if constexpr(plus(a,b)==40){
+	std::cout<<"fourty!"<<std::endl;
+    }else{
         std::cout<<"other"<<std::endl;
     }
 }
@@ -86,12 +85,12 @@ fourty!
 
 int main()
 {
-	constexpr bool a=false;
+    constexpr bool a=false;
     int b=20;
     
-	if constexpr(a){
-		std::cout<<"selected a"<<std::endl;
-	}else if(b==20){
+    if constexpr(a){
+	std::cout<<"selected a"<<std::endl;
+    }else if(b==20){
         std::cout<<"selected b"<<std::endl;
     }else{
         std::cout<<"selected other"<<std::endl;
@@ -106,15 +105,14 @@ bは動的な変数ですが、`else if`節で`constexpr`キーワードが付�
 ```cpp
 #include<iostream>
 
-
 int main()
 {
-	constexpr bool a=false;
+    constexpr bool a=false;
     constexpr int b=30; // # 1
 
-	if constexpr(a){
-		std::cout<<"selected a"<<std::endl;
-	}else if(b==20){
+    if constexpr(a){
+        std::cout<<"selected a"<<std::endl;
+    }else if(b==20){
         std::cout<<"selected b"<<std::endl;
     }else if constexpr(b==30){
         std::cout<<"selected other"<<std::endl;
