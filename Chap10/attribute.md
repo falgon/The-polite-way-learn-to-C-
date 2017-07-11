@@ -128,6 +128,13 @@ int main()
     f(3);
 }
 ```
+fallthrough属性は、最後の`case`文で指定する事はできません。
+```cpp
+switch(i){
+    case 1:
+        [[fallthrough]]; // 不適格
+}
+```
 尚、`__has_cpp_attribute(fallthrough)`が定義される場合、その値は201603です。
 
 ## 10.2.4 nodiscard属性
