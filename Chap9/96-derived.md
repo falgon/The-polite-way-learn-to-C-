@@ -434,7 +434,7 @@ Derived* ptr1 = new Derived(); // OK. Derived のポインター型で Derived �
 Base* ptr2 = new Derived(); // OK. Base のポインター型で Derived 型のオブジェクトをポイントする
 Derived* ptr3 = new Base(); // NG. 派生クラス型のポインターで基底クラス型のオブジェクトをポイントする事はできない
 ```
-これは何故なのかは、メモリレイアウトを考えると明快です。以下に図を示します。
+これが何故なのかは、メモリレイアウトを考えると明快です。以下に図を示します。
 
 ![pointer relation](/assets/derived_pointer_relation.png)
 
