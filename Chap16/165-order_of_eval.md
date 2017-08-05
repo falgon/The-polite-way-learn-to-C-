@@ -69,22 +69,30 @@ C++11/14 では、C++03 以前の評価基準とは異なるものとなって�
 ここで、C++11/14 における評価順序を説明する前に前述した side effects に加えていくつかの用語を定義しておきます。
 
 * value computation
+
 value computation は、式が表している値を取り出す、つまり読み込み操作の事を言います。C++コミュニティでは、これを**vc**と略称する事があります。本章でもこれを vc と表記します。
 * side effects
+
 前述した通りです。尚 C++コミュニティでは、これを**se**と略称する事があります。本章でも以下これを se と表記します。
 * 評価(evaluation)
+
 vc と se をまとめて評価(evaluation)と言います。
 * sequenced-before
+
 単一のスレッドにおける2つの変数アクセス間の順序/前後関係を示す用語です。**例えば「A sequenced-before B」ならば、アクセス A は アクセス B より前に行われる事が保証されるという事を示します**。(happens-before と同じではありません。happens-before は異なるスレッド間における順序付け関係を示します。)
 ![sequenced-before hasse diagram](/assets/165/sequenced_before.jpg)
 
 * unsequenced
+
 「A sequenced-before B」でも「B sequenced-before A」でもない事を「A と B は unsequenced」と言います。「A と B が unsequenced」である場合、A と B は任意の順序で実行され、重複する可能性があります(単一の実行スレッド内で、コンパイラは A 及び B を含むCPU命令をインターリーブする事ができます)。
 ![unsequenced hasse diagram](/assets/165/unsequenced.jpg)
 
 * full-expression
+
 full-expression とは、別の式の部分式ではない式を言います。
+
 * 厳密な半順序(strict partial order)
+
 sequenced-before 関係の性質を考えると、A は A 自身に対して sequenced-before ではありません。この性質を非反射的(irreflexive)と言います。また、「A sesequenced-before B」である場合、決して「B sequenced-before A」とはなりません。この性質を非対称的(asymmetric,antisymmetric)と言います。また、「A sequenced-before B」であり、かつ「B sequenced-before C」である場合、「A sequenced-before C」である事が保証されます。この性質を推移的(transitive)と言います。非反射的かつ非対称的かつ推移的である事を厳密な半順序(strict partial order)と言います。
 ![strict partial order](/assets/165/strict_partial_order.jpg)
  
@@ -105,7 +113,7 @@ i = i++ + 1; // C
 <br><br>
 というように示すと、以下のようになります。現時点では以下の並びと実際の順序は全く断定できるものではないため、無関係である事に注意してください。
 
-a. vc: 0
+a. vc: 0<br>
 b. se: i = 0
 
 これについてsequenced-before 関係を見出していきます。
@@ -135,12 +143,12 @@ i = i += 1 + 1; // B
 ```
 A と同様、各評価を示します。またA と同様、以下の並びには実際の順序と
 
-a. vc: i 部分式X/左辺 i 読み込み
-b. vc: 1 部分式X/右辺 1 読み込みと加算
-c. se: i+=1 部分式X/左辺 i 変更
-d. vc: 1 部分式Y/右辺 1 読み込み
-e. vc: i+1 部分式Y/右辺 1 読み込みと加算
-f. se: i 式Z 変更
+a. vc: i 部分式X/左辺 i 読み込み<br>
+b. vc: 1 部分式X/右辺 1 読み込みと加算<br>
+c. se: i+=1 部分式X/左辺 i 変更<br>
+d. vc: 1 部分式Y/右辺 1 読み込み<br>
+e. vc: i+1 部分式Y/右辺 1 読み込みと加算<br>
+f. se: i 式Z 変更<br>
 
  
 これに対して sequenced-before 関係を見出していきます。
@@ -189,7 +197,7 @@ C++17 でも unsequenced である場合はどのようなコードでしょう�
 ```cpp
 i = ++i + i++;
 ```
-これは以下の同義です。
+これは以下と同義です。
 ```cpp
 i = i += 1 + i++;
 ```
