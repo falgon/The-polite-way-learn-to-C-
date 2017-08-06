@@ -80,12 +80,12 @@ value computation は、式が表している値を取り出す、つまり読�
 vc と se をまとめて評価(evaluation)と言います。
 * sequenced-before
 
-単一のスレッドにおける2つの変数アクセス間の順序/前後関係を示す用語です。**例えば「A sequenced-before B」ならば、アクセス A は アクセス B より前に行われる事が保証されるという事を示します**。(happens-before と同じではありません。happens-before は異なるスレッド間における順序付け関係を示します。)
+単一のスレッドにおける2つの変数アクセス間の順序/前後関係を示す用語です。**例えば「A sequenced-before B」ならば、アクセス A は アクセス B より前に行われる事が保証されるという事を示します**。(happens-before と同じではありません。happens-before は異なるスレッド間における順序付け関係を示します。)<br>
 ![sequenced-before hasse diagram](/assets/165/sequenced_before.jpg)
 
 * unsequenced
 
-「A sequenced-before B」でも「B sequenced-before A」でもない事を「A と B は unsequenced」と言います。「A と B が unsequenced」である場合、A と B は任意の順序で実行され、重複する可能性があります(単一の実行スレッド内で、コンパイラは A 及び B を含むCPU命令をインターリーブする事ができます)。
+「A sequenced-before B」でも「B sequenced-before A」でもない事を「A と B は unsequenced」と言います。「A と B が unsequenced」である場合、A と B は任意の順序で実行され、重複する可能性があります(単一の実行スレッド内で、コンパイラは A 及び B を含むCPU命令をインターリーブする事ができます)。<br>
 ![unsequenced hasse diagram](/assets/165/unsequenced.jpg)
 
 * full-expression
