@@ -9,3 +9,4 @@
 * 有用なライブラリ各種(Any,Optional,Variant,Tuple,Smart Pointer...etc)
     * スマートポインタにおけるムーブセマンティックと暗黙の変換
 * nullptr
+* ファイル入出力、ファイルシステム関連
