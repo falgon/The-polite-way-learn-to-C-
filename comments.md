@@ -20,6 +20,9 @@
 * "例えば Win32 API という、Microsoft 社 による Windows OS の各機能にアクセスするためのインタフェースセットには、**タスク**という用語が一切使われていません。"
 → [http://ascii.jp/elem/000/000/653/653041/](http://ascii.jp/elem/000/000/653/653041/) 参照。
 
+### [14.1.2 データ競合(data races)](/Chap14/multithread_intro.md)
+* データ競合の定義は N4660 [intro.memory] を参照
+
 ## 第16章
 ### 16.5 
 #### [16.5.1 評価の順序/言語バージョンごとの解釈](Chap16/165-order_of_eval.md)
