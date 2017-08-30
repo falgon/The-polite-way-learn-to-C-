@@ -515,7 +515,6 @@ public:
             std::error_code ec(static_cast<int>(std::errc::device_or_resource_busy),std::generic_category());
             throw std::system_error(ec);
         }
-        m_.lock();
         ++value_;
         m_.unlock();
     }
