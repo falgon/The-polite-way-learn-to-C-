@@ -80,7 +80,7 @@ int main()
     }
 }
 ```
-実行結果は以下となります。
+出力例は以下となります。
 ```cpp
 Thread (f) executing
 Thread (f) executing
@@ -156,7 +156,7 @@ int main()
     std::cout << "after joining: " << th1.joinable() << std::endl;
 }
 ```
-実行結果は以下の通りです。
+出力例は以下の通りです。
 ```cpp
 empty: false
 after starting: true
@@ -181,7 +181,7 @@ int main()
     th1.join();
 }
 ```
-実行結果は以下の通りです。
+出力例は以下の通りです。
 ```cpp
 th1: false
 th2: true
@@ -205,7 +205,7 @@ int main()
     std::cout << "after joining: " << (std::thread::id() == th1.get_id()) << std::endl;
 }
 ```
-実行結果は以下の通りです。
+出力例は以下の通りです。
 ```cpp
 empty: true
 after starting: false
@@ -244,7 +244,7 @@ int main()
     std::cout << a << std::endl;
 }
 ```
-実行結果は以下の通りです。
+出力例は以下の通りです。
 ```cpp
 42
 ```
@@ -314,7 +314,7 @@ int main()
     }
 }
 ```
-実行結果は以下の通りです。
+出力例は以下の通りです。
 ```cpp
 joined
 throw
@@ -487,7 +487,7 @@ int main()
     std::cout << n << std::endl;
 }
 ```
-実行結果は以下となります。
+出力例は以下となります。
 ```cpp
 10
 ```
@@ -538,19 +538,180 @@ int main()
     std::cout << x << std::endl;
 }
 ```
-筆者の環境では、`false`を返したため、例外が投げられた後に`std::terminate`が呼ばれました。次に、`std::recursive_mutex`について説明します。
+筆者の環境では、`false`を返したため、例外が投げられた後に`std::terminate`が呼ばれました。次に、`std::recursive_mutex`について説明します。`std::mutex`と同様、排他的なセマンティックスを提供するクラスですが、それに加えて`std::recursive_mutex`は、同一スレッド上からの再帰的なロックを管理する事のできるクラスです。`std::mutex`ではこのような事はできません。`std::recursive_mutex`は、その内部に所有権カウンタを保持しており、`lock`及び`try_lock`した回数と一致する回数`unlock`を呼び出す事でアンロックされます。尚、`std::recursive_mutex`が再帰的に所有権を獲得できる最大回数は特に規定されていませんが、`lock`メンバ関数による呼び出しにおいてその回数に達すると`std::system_error`例外が投げられます。また、その回数に達した段階で`try_lock`メンバ関数を呼び出すと`false`が返されます。`std::recursive_mutex`は`std::mutex`と同じように、`lock`、`try_lock`、`unlock`、`native_handle`メンバ関数が用意されています。早速使って見ましょう。
+```cpp
+#include <algorithm>
+#include <iostream>
+#include <iterator>
+#include <mutex>
+#include <thread>
+#include <type_traits>
+#include <vector>
 
-// .........
+template <class T>
+class simply_safe_container {
+    std::recursive_mutex lock_;
+    std::vector<T> data_;
 
-次に、`std::timed_mutex`について説明します。
+    template <class... Ts>
+    using requirement =
+    std::enable_if_t<
+        std::conjunction_v<std::is_convertible<T, std::decay_t<Ts>>...> and !std::conjunction_v<std::is_same<simply_safe_container, std::decay_t<Ts>>...>,
+        std::nullptr_t>;
 
-// ........
+public:
+    simply_safe_container() = default;
 
-次に、`std::recursive_timed_mutex`について説明します
+    template <class... Ts, requirement<Ts...> = nullptr>
+    simply_safe_container(Ts &&... ts) : lock_{}, data_{std::forward<Ts>(ts)...} {}
 
-// ......
+    template <class U, class... Ts, requirement<U, Ts...> = nullptr>
+    void emplace_back(U &&first, Ts &&... last)
+    {
+    lock_.lock();
+    data_.emplace_back(std::forward<U>(first));
+    if constexpr (bool(sizeof...(last))) {
+        emplace_back(std::forward<Ts>(last)...);
+    }
+    lock_.unlock();
+    }
 
+    friend std::ostream &operator<<(std::ostream &os, simply_safe_container &this_)
+    {
+    this_.lock_.lock();
+    std::copy(std::begin(this_.data_), std::end(this_.data_), std::ostream_iterator<T>(os, " "));
+    this_.lock_.unlock();
 
+    return os;
+    }
+};
+
+void f(simply_safe_container<int> &s)
+{
+    s.emplace_back(1, 2, 3);
+}
+
+int main()
+{
+    simply_safe_container<int> ssc{1, 2, 3};
+
+    std::thread th1(f, std::ref(ssc)), th2(f, std::ref(ssc)), th3(f, std::ref(ssc));
+    th1.join();
+    th2.join();
+    th3.join();
+
+    std::cout << ssc << std::endl;
+}
+```
+出力例は以下の通りです。
+```cpp
+1 2 3 1 2 3 1 2 3 1 2 3
+```
+再帰的にロックを取得してもデッドロックが発生しない(未定義動作が起こらない)事がわかります。次に、`std::timed_mutex`について説明します。`std::timed_mutex`は`std::mutex`と同様、排他的で非再帰的な所有権セマンティックスを提供するクラスですが、それに加えて`std::timed_mutex`は、`try_lock_for`、`try_lock_until`メンバ関数を使用してロック取得におけるタイムアウト機能を提供します。`try_lock_for`には`std::chrono::duration`を用いてタイムアウトする相対時間を、`try_lock_until`には`std::chrono::time_point`を用いてタイムアウトする絶対時間を指定します。尚、`try_lock_for`において指定された`std::chrono::duration`のオブジェクトが、`.zero()`以下である場合、`try_lock`メンバ関数と同じ効果を持ちブロッキングせずにロック取得を試みます。それ以外の場合、`try_lock_for`はロックが取得されるまで、または`std::chrono::duration`オブジェクトによって指定された時間が経過するまでブロックします。他のスレッドんいよってロックが取得されていなくても取得に失敗する事があります。いずれの場合でも、ロックの取得に成功すれば`true`が返り、それ以外の場合は`false`が返ります。
+また、`try_lock_until`は`std::chrono::time_point`オブジェクトによって指定された時間までに残った時間内にロック取得を試みます。指定された時間に既に達していた場合、このメンバ関数は`try_lock`メンバ関数と同じ効果を持ち、ブロッキングせずにロック取得を試みます。それ以外の場合、`try_lock_until`メンバ関数は、ロックが取得されるか、指定された時間が経過するまでブロックします。指定された時間の前のある時点で他のスレッドがロックしていなくても、ロック取得に失敗する事があります。いずれの場合でも、ロック取得に成功した場合`true`が返り、それ以外の場合は`false`が返ります。それぞれ使って見ましょう。
+```cpp
+#include <chrono>
+#include <iostream>
+#include <mutex>
+#include <system_error>
+#include <thread>
+
+class X {
+    std::timed_mutex m_;
+    int value_ = 0;
+
+public:
+    friend std::ostream &operator<<(std::ostream &os, const X &x)
+    {
+    os << x.value_;
+    return os;
+    }
+
+    void exclusion_increment()
+    {
+    if (!m_.try_lock_for(std::chrono::seconds(2))) { // !m_.try_lock_until(std::chrono::system_clock::now() + std::chrono::seconds(2)) と同様
+        std::error_code ec(static_cast<int>(std::errc::device_or_resource_busy), std::generic_category());
+        throw std::system_error(ec);
+    }
+    ++value_;
+    m_.unlock();
+    }
+};
+
+void f(X &x)
+{
+    for (std::size_t i = 0; i < 5; ++i) {
+    x.exclusion_increment();
+    }
+}
+
+int main()
+{
+    X x;
+    std::thread th1(f, std::ref(x)), th2(f, std::ref(x));
+
+    th1.join();
+    th2.join();
+
+    std::cout << x << std::endl;
+}
+```
+出力例は以下の通りです。
+```cpp
+10
+```
+次に、`std::recursive_timed_mutex`について説明します。`std::recursive_timed_mutex`は、`std::recursive_mutex`のように再帰的にロックが可能かつロック取得のタイムアウト機能を提供するクラスです。`std::timed_mutex`同様、`try_lock_for`、`try_lock_until`メンバ関数が用意されており、これらを用いて再帰的なロック管理を行う事ができます。早速使ってみましょう。
+```cpp
+#include <chrono>
+#include <iostream>
+#include <mutex>
+#include <system_error>
+#include <thread>
+
+class X {
+    std::timed_mutex m_;
+    int value_ = 0;
+
+public:
+    friend std::ostream &operator<<(std::ostream &os, const X &x)
+    {
+    os << x.value_;
+    return os;
+    }
+
+    void exclusion_increment()
+    {
+    if (!m_.try_lock_for(std::chrono::seconds(2))) {
+        std::error_code ec(static_cast<int>(std::errc::device_or_resource_busy), std::generic_category());
+        throw std::system_error(ec);
+    }
+    ++value_;
+    m_.unlock();
+    }
+};
+
+void f(X &x)
+{
+    for (std::size_t i = 0; i < 5; ++i) {
+    x.exclusion_increment();
+    }
+}
+
+int main()
+{
+    X x;
+    std::thread th1(f, std::ref(x)), th2(f, std::ref(x));
+
+    th1.join();
+    th2.join();
+
+    std::cout << x << std::endl;
+}
+```
+出力例は以下の通りです。
+```cpp
+1 2 3 1 2 3 1 2 3 1 2 3
+```
 ところで、ミューテックスのアンロックが実行されなかった場合、未定義の動作を引き起こしてしまいます。`std::thread`の`join`、`detach`を RAII に管理させるのと同じようにこれも RAII で管理させてしまえば良いのではないでしょうか。というわけで、そのような機能は既に標準ライブラリによって用意されています。`std::lock_guard`、`std::unique_lock`、`std::scoped_lock`がそれです。まず`std::lock_guard`から見ていきます。`std::lock_guard`は、前述した通り RAII のスタイルでミューテックスを管理します。`std::lock_guard`オブジェクトに`std::mutex`オブジェクトを指定すると、その所有権を取得します。`std::lock_guard`オブジェクトが作成されたスコープを離れた時、`lock_guard`が破棄されるため、それと同時にミューテックスが解放されます。尚、`std::lock_guard`クラスはコピーできません。
 ```cpp
 #include <iostream>
@@ -592,7 +753,7 @@ int main()
     std::cout << x << std::endl;
 }
 ```
-実行結果は以下の通りです。
+出力例は以下の通りです。
 ```cpp
 10
 ```
@@ -606,8 +767,11 @@ void exclusion_increment()
     ++value_;
 }
 ```
-実行結果は変わりません。<br>
-さらにより高度なロック制御を行いたい場合、`std::unique_lock`を使用します。`std::unique_lock`は、コンストラクト時点でロックを取得する事もできますが、そうではなく後でロックを取得するように設定する事ができます。また、ロック取得時に、`lock`ではなく、`try_lock`を使用させるよう指示する事ができます。また、ミューテックスの所有権の移動、放棄と任意のタイミングでの所有ミューテックスのロック操作が行えます。まずは単純にコンストラクト時にロックし、デストラクト時にロックを解除する例です。単に上記の`std::lock_guard<decltype(m_)>`を`std::unique_lock<decltype(m_)>`とするだけです。
+出力例は変わりません。尚、`std::lock_guard`は deduction guides が宣言されているため以下のようにテンプレート引数を省略する事ができます。
+```cpp
+std::lock_guard lock(m_);
+```
+`std::lock_guard`よりさらに高度なロック制御を行いたい場合、`std::unique_lock`を使用します。`std::unique_lock`は、コンストラクト時点でロックを取得する事もできますが、そうではなく後でロックを取得するように設定する事ができます。また、ロック取得時に、`lock`ではなく、`try_lock`を使用させるよう指示する事ができます。また、ミューテックスの所有権の移動、放棄と任意のタイミングでの所有ミューテックスのロック操作が行えます。まずは単純にコンストラクト時にロックし、デストラクト時にロックを解除する例です。単に上記の`std::lock_guard<decltype(m_)>`を`std::unique_lock<decltype(m_)>`とするだけです。
 ```cpp
 // 略...
 void exclusion_increment()
@@ -638,30 +802,259 @@ void exclusion_increment()
 }
 ```
 更に、第二引数に`std::chrono::duration`または`std::chrono::time_point`を渡す事で、それぞれロックの取得に`try_lock_for`と`try_lock_until`を呼び出させるよう設定する事ができます。
+```cpp
+// 略...
+void exclusion_increment()
+{
+    std::unique_lock<decltype(m1_)> lock1(m1_,std::chrono::seconds(2)); // コンストラクト時に try_lock_for を呼び出す
+    std::unique_lock<decltype(m2_)> lock2(m2_,std::chrono::steady_clock::now() + std::chrono::seconds(2)); // コンストラクト時に try_lock_until を呼び出す
+    ++value_;
+}
+```
+尚、`std::unique_lock`は deduction guides が宣言されているため、以下のようにテンプレート引数を省略する事ができます。
+```cpp
+std::unique_lock lock(m1_);
+```
+また、`std::scoped_lock`というものもあります。これは、可変個のミューテックス型及びミューテックスオブジェクトを取る`std::lock_guard`です。つまり、任意の数のミューテックスを一度にロックしスコープを抜けるタイミングでロックを解除します。第一引数に`std::adopt_lock`を渡すと、ロック済みのミューテックスを設定する事もできます。
+```cpp
+// 略...
+void exclusion_increment()
+{
+    std::scoped_lock<decltype(m1_),decltype(m2_)> lock(m1_,m2_); // コンストラクト時に二つのミューテックスをロック(lockを呼び出す)する
+    m1_.lock();
+    m2_.lock();
+    std::scoped_lock<decltype(m3_),decltype(m4_)> lock(std::adopt_lock,m3_,m4_); // コンストラクト時にロックを取得しない
+    ++value_;
+}
+```
+尚、`std::scoped_lock`には deduction guides が宣言されていますので、以下のようにテンプレート引数を省略する事ができます。
+```cpp
+std::scoped_lock lock(m1_,m2_);
+```
+尚、ここまではミューテックス型のメンバ関数`lock`、`try_lock`を直接呼んでいましたが、それらの非メンバ関数版である`std::lock`、`std::try_lock`関数も用意されています。これらは引数が可変個受け取れるので、それぞれ渡したミューテックスを一度にロック及びアンロックします。`std::lock`は、渡された各ミューテックスオブジェクトに対して`lock`、`try_lock`、または`unlock`メンバ関数を順次呼び出すデッドロック回避アルゴリズムを用いて、全てのミューテックスをロックします。この際いずれかの`lock`、`try_lock`操作において例外が発生した場合、それ以降に行われる`lock`、`try_lock`呼び出しを行わずに、それ以前にロック取得した全てのミューテックスオブジェクトの`unlock`メンバ関数を呼び出してアンロックします。そして、`std::system_error`例外が送出されます。`std::try_lock`は、各ミューテックスオブジェクトの`try_lock`メンバ関数を順次呼び出します。この際いずれかの`try_lock`が`false`を返すか例外を送出した場合、以降の`try_lock`メンバ関数の呼び出しを行わずにそれ以前までに取得した全てのミューテックスオブジェクトの`unlock`メンバ関数を呼び出してアンロックします。全てのミューテックスオブジェクトへの`try_lock`メンバ関数の処理が成功した場合、`-1`を返し、失敗した場合その失敗した最初のミューテックスオブジェクトへの0から始まるインデックス値を返します。
+```cpp
+// 略
+void exclusion_increment()
+{
+    std::lock(m1_,m2_); // デッドロック回避アルゴリズムを用いて全てのミューテックスのロックを取得する。
+    std::scoped_lock lock(std::adopt_lock,m1_,m2_); // ロック取得済みなので std::adopt_lock を指定して scoped_lock に管理を委任する。
+    ++value_;    
+}
+```
+```cpp
+// 略
+void exclusion_increment()
+{
+    if(std::try_lock(m1_,m2_) != -1){
+        std::error_code ec(static_cast<int>(std::errc::device_or_resource_busy), std::generic_category());
+        throw std::system_error(er);
+    }
+    std::scoped_lock lock(std::adopt_lock,m1_,m2_); // 同上
+    ++value_;
+}
+```
+ところで、ここまで一連の機能を述べておきながらですが、排他制御におけるロックとアンロックの操作は、最適化におけるリオーダーなどを考慮する必要がないのでしょうか。C++ 標準規格では、全てのミューテックスクラスにおける、`lock`系メンバ関数、`lock`非メンバ関数と`unlock`の間に順序関係が成立する事が保証されています。よって**起こらない**と言えます。<br>
+最後に`std::call_once`という関数を紹介します。これは、指定された関数を一度だけ呼び出すもので、複数のスレッド間で共通使用するデータの初期化処理などで利用する事ができます。第一引数には`std::once_flag`型のオブジェクトを渡します。これは、初期状態であるかどうかを表すフラグです。第二引数には Callable コンセプトに基づく関数を渡し、第三引数からはその関数に与える引数を指定します。関数の呼び出しが例外を送出する場合、その例外は`call_once`を呼び出した地点に伝達され、フラグは初期状態のままとなります。送出される型はシステムのAPI における何らかのエラーである場合は`std::system_error`、また、その他第二引数に指定した関数から送出されるあらゆる例外型が送出される可能性があります。尚、第二引数に指定された関数が例外を送出する時、同じ`std::once_flag`オブジェクトを指定した次の`call_once`関数の呼び出しでは、その第二引数に指定された関数が呼び出されます。また、同じ`std::once_flag`を指定した複数の`call_once`関数呼び出しにおいては、指定された各関数の呼び出しは同時には行われず、順序関係が成立する事が保証されています。また、C++17 までは第二引数に指定した関数への引数は値コピー、ムーブされていたため、参照型を関数へ渡すためには、それを`std::reference_wrapper`などでラップして渡す必要がありましたが、C++17 からはそれらが Perfect Forwarding されるようになったため、そのような必要は無くなりました。早速、サンプルを見て見ましょう。
+```cpp
+#include <iostream>
+#include <mutex>
+#include <thread>
 
-// ........
+std::once_flag flag;
+std::mutex m;
 
-また、`std::scoped_lock`というものもあります。これは、可変個のミューテックス型及びミューテックスオブジェクトを取る`std::lock_guard`のようなものです。
+void init(int& n)
+{
+    n = 42;
+}
 
-// .......
+void do_once()
+{
+    int n = 0;
+    std::call_once(flag, init, n);
+    std::lock_guard lock(m);
+    std::cout << n << std::endl;
+}
 
-尚、ここまではミューテックス型のメンバ関数`lock`、`try_lock`、`unlock`を直接呼んでいましたが、`std::lock`、`std::try_lock`、`std::unlock`関数も用意されています。これらは引数が可変となっており、それぞれ渡したミューテックスをロック及びアンロックします。
+int main()
+{
+    std::thread th1(do_once), th2(do_once), th3(do_once);
+    th1.join();
+    th2.join();
+    th3.join();
+}
+```
+出力例は以下の通りです。
+```cpp
+42
+0
+0
+```
+以上が`<mutex>`ヘッダにて標準が提供する機能でした。次に、**condition variable (条件変数)**という概念を説明します。
 
-// .....
+## 14.2.x condition\_variable
+マルチスレッドの動作において、スレッド間で共有される情報がある条件を満たしたらあるスレッドが動いて欲しいという場合があります。ある条件を満たすまでそのスレッドにはサスペンドしていて欲しいですが、条件がみたされたのちに他のスレッドから処理を始める合図を行う仕組みが必要となります。このような場合、**condition variable (条件変数)** を利用します。**condition variable とは、ある特定の条件になった時にスレッドの停止と再開を支持するための変数です**。データ競合を防ぐためにあるミューテックスとは**全く異なる概念**です。実は理論的には、この condition variable という概念を用いなくとも同様な事は可能です。例えば、ある条件の状態を保持しているデータに対してループによって定期的にアクセスし、条件に達した段階で処理を続行する(このような実装をポーリング方式という)実装を行う事で実現できます。しかし、このようなポーリング方式では条件を満たしているかについて常にそのスレッドはアクセスし続けなければならないので、一般的な実行環境における実行効率の観点において良いとは言い難い場合があります。条件を満たした時に動き始めてもらって、それまでは特別サスペンドしている方が良いのであれば、ポーリング方式を採用する意義は全く見出せません。<br>
+C++ では、`<condition_variable>`ヘッダーをインクルードする事で、この condition variable という概念における表現方法を統一しつつ効率的に記述できる`std::condition_variable`、`std::condition_variable_any`を利用する事ができます。<br>
+まずは基本的な条件変数型である`std::condition_variable`から説明します。まず大事なのは、**`std::condition_variable`そのものは、条件とする変数を持ちません**。`condition_variable`という名前でありながら条件変数そのものではないというのは少しおかしいように感じるかもしれませんが、`std::condition_variable`のイメージとしては conditional\_variable の所謂ラッパーという捉え方が分かりやすいかもしれません。`std::condition_variable`は条件変数そのもののデータを保持しているのではなく、条件変数という概念における操作のみをモデル化した機構であるとも言えます。ならば、条件はどうやって指定するのかというとこれは、ライブラリユーザーが通常通り記述する事となります。まず`std::condition_variable`には`notify_one`、`notify_all`というスレッドに起床を指示するメンバ関数と`wait`という起床されるまで待機するメンバ関数、また指定される時間に応じてタイムアウトする機能を持ち、起床されるまで待機する`wait_for`、`wait_until`というメンバ関数が用意されています。この中でも基本となる`notify_one`と`wait`を取り上げて、ライブラリの機能と同時に condition variable の概念について見ていきます。まずは、以下のコードを見てください。
+```cpp
+#include <chrono>
+#include <condition_variable>
+#include <iostream>
+#include <thread>
 
-さらに、ユーティリティとして`std::call_once`という関数も用意されています。これは、指定された関数を一度だけ呼び出すもので、複数のスレッド間で共通使用するデータの初期化処理などで利用する事ができます。
+std::condition_variable cv;
+std::mutex m;
+bool b = false;
 
-// ........
+void waits()
+{
+    std::unique_lock lock(m);
+    std::cout << "Waiting..." << std::endl;
+    if (!b) {
+    cv.wait(lock);
+    }
+    std::cout << "finished waiting." << std::endl;
+}
 
-## 14.2.2 std::future
+void signals()
+{
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    {
+    std::lock_guard lock(m);
+    b = true;
+    std::cout << "Notifying... " << std::endl;
+    }
+    cv.notify_one();
+}
 
-## 14.2.3 std::promice
+int main()
+{
+    std::thread th1(waits), th2(signals);
+    th1.join();
+    th2.join();
+}
+```
+まず初めに述べておきますと、**このコードは潜在的なバグを含んでいる NG なコードです**が、まずは各処理が何をしているのか解説します。まず、このコードにおける条件とは、「グローバル変数`b`が`true`になった時」です。これを踏まえてコードを見ていきます。まず、スレッドを二つ作成しています。各スレッドは`waits`と`signals`という関数を呼ぶようですね。`signals`関数は分かりやすいですね。まず処理の流れが視覚的に分かりやすいように2秒経過させています。その後、一段深いスコープに入り`std::lock_guard`によってロックを獲得し、グローバル変数`b`を`true`に変えています。その後何か出力してからスコープを抜けます。このタイミングで`signals::lock`によってロックが解除されます。その後、`std::condition_variable`のオブジェクト`cv`から`notify_one`メンバ関数を呼び出しています。`notify_one`メンバ関数は、その呼び出し元の関数を待っているスレッドがある場合、待機中のスレッドの内の**1つ**のブロックを解除するメンバ関数です。つまりこの部分でもう一つのスレッドである`th2`(`waits`)に対して起床を支持しているのです。尚、`notify_one`メンバ関数の呼び出しはミューテックスで保護する必要はありません。次に、待たされる方の`waits`関数を見て見ます。`std::unique_lock`によってロックを取得して何か出力した後、条件をチェックしてから`wait`メンバ関数に渡しています。**`wait`メンバ関数には内部のミューテックスが`std::mutex`であるロック取得済みの`std::unique_lock`オブジェクトを渡さなければならない**(`std::unique_lock<std::mutex>`のみのサポートであるため)ので、`std::unique_lock`でロックを取得しています。条件変数のその用法から、条件の状態を持っているデータへのアクセスを排他的としなければならない事は必然ですから、ロックが必要である事も自然です。その後、`b`が`false`である場合は`wait`するようにしています。まず`wait`メンバ関数が呼ばれると、他のスレッドがロックを取得できるようミューテックスはアンロックされます。そしてブロッキングが行われます。他のスレッドから起床を促されると、`wait`メンバ関数はブロックを辞め、ミューテックスのロックを再度取得します。これは、その後`waits`関数で続く処理を排他的にする事は勿論、ユーザーが明示的にロックを書く必要はなくなりますし、`wait`メンバ関数から例外が送出された場合のロック処理を明示的に書かなければならない点をライブラリ側が隠滅するためにあります。尚、取得されたロックは`unique_lock`にアンロックを委任しているため、`waits`関数を抜けるタイミングでアンロックされます。<br>
+さて、ここまで考えてみると上記のコードには何の問題もないように思えますが、残念ながら**spurious wakeup**と言われる問題について、上記コードでは考慮できていないのです。
 
-## 14.2.4 std::async
+### spurious wakeup
+spurious wakeup とは、条件変数でのwait 処理においてそれに対して起床を命じていないのにも関わらずブロックが解除される現象を言います。これはライブラリの内部実装やシステム、ハードウェア、OS の単位で行われ、条件変数を"利用する"立場からは関与する事のできない原因によって生じます。つまり、これは C++ 言語特有の問題ではないという事です。ではそもそも何故 spurious wakeup という理不尽にも思える仕組みがあるのかについての詳細は様々なケースと C++17 言語の解説からは少し離れている部分の解説を伴わなければならないため省きますが、簡単に言えば実行効率を落とさないための妥協点なのです。つまりプログラマー側が、これを受け入れてプログラムを書かなければなりません。先ほど掲載したコードから spurious wakeup が考慮されていない部分を抜きだします。
+```cpp
+if (!b) {
+    cv.wait(lock);
+}
+```
+spurious wakeup によって`waits`関数が起きてしまった場合、この wait 処理はそれをそのまま受け入れて処理を再開してしまいます。重要なのは、グローバル変数`b`が`true`となっている時に処理を再開したいという事です。つまり、spurious wakeup によって`waits`関数が起きてしまったとしても、その後もう一度`b`の状態を見て、もし`false`であったらまた`waits`関数を呼び出して眠らせてしまえば良いのです。つまり、以下のようにします。
+```cpp
+while(!b) {
+    cv.wait(lock);
+}
+```
+これで例え spurious wakeup によって起こされてしまっても、`b`が`true`でない限りまた眠るので予期せぬ処理の続行を防ぐ事ができます。尚、このように状態を扱うデータをチェックする事は condition variable を用いたプログラミングにおける定番のイディオムなので、`std::condition_variable`ではそのイディオムを内包するバージョンの`wait`メンバ関数も用意されています。以下は上記の`while`で`b`の状態をチェックするコードと同等の処理を行います。
+```cpp
+cv.wait(lock,[]{return b;}
+```
+という事で先ほどのコードに加えて spurious wakeup が考慮されたコードは以下の通りです。
+```cpp
+#include <chrono>
+#include <condition_variable>
+#include <iostream>
+#include <thread>
+
+std::condition_variable cv;
+std::mutex m;
+bool b = false;
+
+void waits()
+{
+    std::unique_lock lock(m);
+    std::cout << "Waiting..." << std::endl;
+    cv.wait(lock, []{ return b; });
+    std::cout << "finished waiting." << std::endl;
+}
+
+void signals()
+{
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    {
+    std::lock_guard lock(m);
+    b = true;
+    std::cout << "Notifying... " << std::endl;
+    }
+    cv.notify_one();
+}
+
+int main()
+{
+    std::thread th1(waits), th2(signals);
+    th1.join();
+    th2.join();
+}
+```
+さてここまでは、`notify_one`と`wait`メンバ関数を用いてきましたが、ここで`notify_all`、`wait_for`、`wait_until`について説明します。まず`notify_one`メンバ関数は前述した通り、待機中のスレッドの内の**1つ**のブロックを解除するもので、複数の待ちスレッドを起床させる事はできません。`notify_all`は全てのスレッドを起床させるメンバ関数です。早速使って見ましょう。
+```cpp
+#include <chrono>
+#include <condition_variable>
+#include <iostream>
+#include <thread>
+
+std::condition_variable cv;
+std::mutex m;
+bool b = false;
+
+void waits(const char* s)
+{
+    std::unique_lock lock(m);
+    std::cout << s << " is Waiting..." << std::endl;
+    cv.wait(lock,[]{return b;});
+    std::cout << s << " finished waiting." << std::endl;
+}
+
+void signals()
+{
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    {
+    std::lock_guard lock(m);
+    b = true;
+    std::cout << __func__ << ": Notifying... " << std::endl;
+    }
+    cv.notify_all();
+}
+
+int main()
+{
+    std::thread th1(waits,"th1"), th2(waits,"th2"), th3(waits,"th3"), th4(signals);
+    th1.join();
+    th2.join();
+    th3.join();
+    th4.join();
+}
+```
+出力例は以下の通りです。
+```cpp
+th1 is Waiting...
+th2 is Waiting...
+th3 is Waiting...
+signals: Notifying...
+th1 finished waiting.
+th2 finished waiting.
+th3 finished waiting.
+```
+次に、`wait_until`、`wait_for`メンバ関数について説明します。
+
+// .........
+
+* `native_handle`メンバ関数
+* `notify_all_at_thread_exit`関数
+
+## 14.2.x std::future
+
+## 14.2.x std::promice
+
+## 14.2.x std::async
 
 ## 14.2.x atomic
 
 * std::atomic 基本操作 
 * メモリバリア各種
 
-ところで、排他制御におけるロックとアンロックの操作はリオーダーされてしまう事はないのでしょうか。それは C++ の標準規格によって起こりえないと明記されていますので起こりえません。
