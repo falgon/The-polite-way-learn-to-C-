@@ -952,7 +952,7 @@ while(!b) {
 ```
 これで例え spurious wakeup によって起こされてしまっても、`b`が`true`でない限りまた眠るので予期せぬ処理の続行を防ぐ事ができます。尚、このように状態を扱うデータをチェックする事は condition variable を用いたプログラミングにおける定番のイディオムなので、`std::condition_variable`ではそのイディオムを内包するバージョンの`wait`メンバ関数も用意されています。以下は上記の`while`で`b`の状態をチェックするコードと同等の処理を行います。
 ```cpp
-cv.wait(lock,[]{return b;}
+cv.wait(lock,[]{return b;});
 ```
 という事で先ほどのコードに加えて spurious wakeup が考慮されたコードは以下の通りです。
 ```cpp
