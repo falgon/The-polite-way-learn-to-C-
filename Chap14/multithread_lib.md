@@ -556,8 +556,8 @@ class simply_safe_container {
     template <class... Ts>
     using requirement =
     std::enable_if_t<
-        std::conjunction_v<std::is_convertible<T, std::decay_t<Ts>>...> and !std::conjunction_v<std::is_same<simply_safe_container, std::decay_t<Ts>>...>,
-        std::nullptr_t>;
+        std::conjunction_v<std::is_convertible<T, std::decay_t<Ts>>...> and !std::conjunction_v<std::is_same<simply_safe_container, std::decay_t<Ts>>...>,std::nullptr_t
+    >;
 
 public:
     simply_safe_container() = default;
@@ -568,21 +568,21 @@ public:
     template <class U, class... Ts, requirement<U, Ts...> = nullptr>
     void emplace_back(U &&first, Ts &&... last)
     {
-    lock_.lock();
-    data_.emplace_back(std::forward<U>(first));
-    if constexpr (bool(sizeof...(last))) {
-        emplace_back(std::forward<Ts>(last)...);
-    }
-    lock_.unlock();
+    	lock_.lock();
+    	data_.emplace_back(std::forward<U>(first));
+    	if constexpr (bool(sizeof...(last))) {
+		emplace_back(std::forward<Ts>(last)...);
+    	}
+    	lock_.unlock();
     }
 
     friend std::ostream &operator<<(std::ostream &os, simply_safe_container &this_)
     {
-    this_.lock_.lock();
-    std::copy(std::begin(this_.data_), std::end(this_.data_), std::ostream_iterator<T>(os, " "));
-    this_.lock_.unlock();
+    	this_.lock_.lock();
+    	std::copy(std::begin(this_.data_), std::end(this_.data_), std::ostream_iterator<T>(os, " "));
+    	this_.lock_.unlock();
 
-    return os;
+    	return os;
     }
 };
 
@@ -623,25 +623,25 @@ class X {
 public:
     friend std::ostream &operator<<(std::ostream &os, const X &x)
     {
-    os << x.value_;
-    return os;
+    	os << x.value_;
+    	return os;
     }
 
     void exclusion_increment()
     {
-    if (!m_.try_lock_for(std::chrono::seconds(2))) { // !m_.try_lock_until(std::chrono::system_clock::now() + std::chrono::seconds(2)) と同様
-        std::error_code ec(static_cast<int>(std::errc::device_or_resource_busy), std::generic_category());
-        throw std::system_error(ec);
-    }
-    ++value_;
-    m_.unlock();
+    	if (!m_.try_lock_for(std::chrono::seconds(2))) { // !m_.try_lock_until(std::chrono::system_clock::now() + std::chrono::seconds(2)) と同様
+        	std::error_code ec(static_cast<int>(std::errc::device_or_resource_busy), std::generic_category());
+        	throw std::system_error(ec);
+    	}
+    	++value_;
+    	m_.unlock();
     }
 };
 
 void f(X &x)
 {
     for (std::size_t i = 0; i < 5; ++i) {
-    x.exclusion_increment();
+    	x.exclusion_increment();
     }
 }
 
@@ -675,25 +675,25 @@ class X {
 public:
     friend std::ostream &operator<<(std::ostream &os, const X &x)
     {
-    os << x.value_;
-    return os;
+    	os << x.value_;
+    	return os;
     }
 
     void exclusion_increment()
     {
-    if (!m_.try_lock_for(std::chrono::seconds(2))) {
-        std::error_code ec(static_cast<int>(std::errc::device_or_resource_busy), std::generic_category());
-        throw std::system_error(ec);
-    }
-    ++value_;
-    m_.unlock();
+    	if (!m_.try_lock_for(std::chrono::seconds(2))) {
+        	std::error_code ec(static_cast<int>(std::errc::device_or_resource_busy), std::generic_category());
+        	throw std::system_error(ec);
+    	}
+    	++value_;
+    	m_.unlock();
     }
 };
 
 void f(X &x)
 {
     for (std::size_t i = 0; i < 5; ++i) {
-    x.exclusion_increment();
+    	x.exclusion_increment();
     }
 }
 
@@ -911,7 +911,7 @@ void waits()
     std::unique_lock lock(m);
     std::cout << "Waiting..." << std::endl;
     if (!b) {
-    cv.wait(lock);
+    	cv.wait(lock);
     }
     std::cout << "finished waiting." << std::endl;
 }
@@ -920,9 +920,9 @@ void signals()
 {
     std::this_thread::sleep_for(std::chrono::seconds(2));
     {
-    std::lock_guard lock(m);
-    b = true;
-    std::cout << "Notifying... " << std::endl;
+    	std::lock_guard lock(m);
+    	b = true;
+    	std::cout << "Notifying... " << std::endl;
     }
     cv.notify_one();
 }
@@ -977,9 +977,9 @@ void signals()
 {
     std::this_thread::sleep_for(std::chrono::seconds(2));
     {
-    std::lock_guard lock(m);
-    b = true;
-    std::cout << "Notifying... " << std::endl;
+    	std::lock_guard lock(m);
+    	b = true;
+    	std::cout << "Notifying... " << std::endl;
     }
     cv.notify_one();
 }
@@ -1014,9 +1014,9 @@ void signals()
 {
     std::this_thread::sleep_for(std::chrono::seconds(2));
     {
-    std::lock_guard lock(m);
-    b = true;
-    std::cout << __func__ << ": Notifying... " << std::endl;
+    	std::lock_guard lock(m);
+    	b = true;
+    	std::cout << __func__ << ": Notifying... " << std::endl;
     }
     cv.notify_all();
 }
