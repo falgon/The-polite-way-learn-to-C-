@@ -104,7 +104,7 @@ Thread (Xf) executing
 Thread (Xf) executing
 Thread (Xf) executing
 ```
-Callable コンセプトに基づいた呼び出し可能な関数らを設定し、スレッドを開始できている事が分かると思います。`std::thread`のオブジェクトはコピーする事はできませんが、ムーブする事ができます。また、設定する関数及び設定する引数の全ての型はムーブコンストラクト可能でなければなりません。尚、新しいスレッドの作成に失敗した、つまり`std::thread`の対して関数を設定した時にコンストラクトに失敗した場合、`std::system_error`例外(`std::resource_unavailable_try_again`)が投げられます。また、上記コードのように`join`というメンバ関数を呼び出す事でそんスレッドの完了を待機する事ができます。これを**`join`操作**と言います。同関数が呼び出された時点で`std::thread`のオブジェクトに関連づけられたスレッドがまだ処理継続中だった場合、そのスレッドが完了するまで呼び出し元のスレッドがブロックされます。そして`join`操作が完了すると、`std::thread`は空の状態となります。`join`関数もコンストラクタ同様、`join`操作に失敗した場合、`system_error`例外(`std::no_such_process`または`std::invalid_argument`、デッドロックを検出した場合及び`get_id() == this_thread::get_id()`である場合、`std::resource_deadlock_would_occur`)が投げられます。もう一つ、基本的な操作として`detach`というものがあります。
+Callable コンセプトに基づいた呼び出し可能な関数らを設定し、スレッドを開始できている事が分かると思います。`std::thread`のオブジェクトはコピーする事はできませんが、ムーブする事ができます。また、設定する関数及び設定する引数の全ての型はムーブコンストラクト可能でなければなりません。尚、新しいスレッドの作成に失敗した、つまり`std::thread`の対して関数を設定した時にコンストラクトに失敗した場合、`std::system_error`例外(`std::resource_unavailable_try_again`)が投げられます。また、上記コードのように`join`というメンバ関数を呼び出す事でそのスレッドの完了を待機する事ができます。これを**`join`操作**と言います。同関数が呼び出された時点で`std::thread`のオブジェクトに関連づけられたスレッドがまだ処理継続中だった場合、そのスレッドが完了するまで呼び出し元のスレッドがブロックされます。そして`join`操作が完了すると、`std::thread`は空の状態となります。`join`関数もコンストラクタ同様、`join`操作に失敗した場合、`system_error`例外(`std::no_such_process`または`std::invalid_argument`、デッドロックを検出した場合及び`get_id() == this_thread::get_id()`である場合、`std::resource_deadlock_would_occur`)が投げられます。もう一つ、基本的な操作として`detach`というものがあります。
 ```cpp
 #include<thread>
 #include<iostream>
@@ -1178,7 +1178,7 @@ th2 finished waiting.
 th3 finished waiting.
 th4 finished waiting.
 ```
-`std::condition_variable`はそん特質上、`notify`を行わなければブロックされているスレッドは永遠に眠ったままです。これを防止するのに、`std::notify_all_at_thread_exit`という関数が用意されています。この関数を呼び出すと、その呼び出されたスレッドの終了時に全てのスレッドを起床させます。引数には`std::condition_variable`オブジェクトとロック済みである`std::unique_lock<std::mutex>`オブジェクトを渡します。ミューテックスオブジェクトはムーブさせなければなりません。スレッド終了時に移譲されたロックの`unlock`メンバ関数を呼び出してから`std::condition_variable`オブジェクトの`notify_all`メンバ関数を呼び出す事で同処理を実現します。
+`std::condition_variable`はその特質上、`notify`を行わなければブロックされているスレッドは永遠に眠ったままです。これを防止するのに、`std::notify_all_at_thread_exit`という関数が用意されています。この関数を呼び出すと、その呼び出されたスレッドの終了時に全てのスレッドを起床させます。引数には`std::condition_variable`オブジェクトとロック済みである`std::unique_lock<std::mutex>`オブジェクトを渡します。ミューテックスオブジェクトはムーブさせなければなりません。スレッド終了時に移譲されたロックの`unlock`メンバ関数を呼び出してから`std::condition_variable`オブジェクトの`notify_all`メンバ関数を呼び出す事で同処理を実現します。
 ```cpp
 #include <chrono>
 #include <condition_variable>
