@@ -1040,7 +1040,7 @@ th1 finished waiting.
 th2 finished waiting.
 th3 finished waiting.
 ```
-次に、`wait_for`、`wait_until`メンバ関数について説明します。二つとも前述したブロッキング効果を持ち、それぞれ`相対時間(`std::chrono::duration`)と絶対時間(`std::chrono::time_point`)を指定し、指定された時間内に起床されない場合、タイムアウトとなり`std::cv_status::timeout`が返却され、そうでない場合は`std::cv_status::no_timeout`が返却されます。述語を渡すバージョンでは、返却値としては指定された関数の結果が返ります。まずは、`wait_for`メンバ関数の利用例を以下に示します。
+次に、`wait_for`、`wait_until`メンバ関数について説明します。二つとも前述したブロッキング効果を持ち、それぞれ相対時間(`std::chrono::duration`)と絶対時間(`std::chrono::time_point`)を指定し、指定された時間内に起床されない場合、タイムアウトとなり`std::cv_status::timeout`が返却され、そうでない場合は`std::cv_status::no_timeout`が返却されます。述語を渡すバージョンでは、返却値としては指定された関数の結果が返ります。まずは、`wait_for`メンバ関数の利用例を以下に示します。
 ```cpp
 #include <chrono>
 #include <condition_variable>
