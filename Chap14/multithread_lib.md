@@ -892,10 +892,10 @@ int main()
 ```
 以上が`<mutex>`ヘッダにて標準が提供する機能でした。次に、**condition variable (条件変数)**という概念を説明します。
 
-## 14.2.x condition\_variable
+## 14.2.3 condition\_variable
 マルチスレッドの動作において、スレッド間で共有される情報がある条件を満たしたらあるスレッドが動いて欲しいという場合があります。ある条件を満たすまでそのスレッドにはサスペンドしていて欲しいですが、条件がみたされたのちに他のスレッドから処理を始める合図を行う仕組みが必要となります。このような場合、**condition variable (条件変数)** を利用します。**condition variable とは、ある特定の条件になった時にスレッドの停止と再開を指示するための変数です**。データ競合を防ぐためにあるミューテックスとは**全く異なる概念**です。実は理論的には、この condition variable という概念を用いなくとも同様な事は可能です。例えば、ある条件の状態を保持しているデータに対してループによって定期的にアクセスし、条件に達した段階で処理を続行する(このような実装をポーリング方式という)実装を行う事で実現できます。しかし、このようなポーリング方式では条件を満たしているかについて常にそのスレッドはアクセスし続けなければならないので、一般的な実行環境における実行効率の観点において良いとは言い難い場合があります。条件を満たした時に動き始めてもらって、それまでは特別サスペンドしている方が良いのであれば、ポーリング方式を採用する意義は全く見出せません。<br>
 C++ では、`<condition_variable>`ヘッダーをインクルードする事で、この condition variable という概念における表現方法を統一しつつ効率的に記述できる`std::condition_variable`、`std::condition_variable_any`を利用する事ができます。<br>
-まずは基本的な条件変数型である`std::condition_variable`から説明します。まず大事なのは、**`std::condition_variable`そのものは、条件とする変数を持ちません**。`condition_variable`という名前でありながら条件変数そのものではないというのは少しおかしいように感じるかもしれませんが、`std::condition_variable`のイメージとしては conditional\_variable の所謂ラッパーという捉え方が分かりやすいかもしれません。`std::condition_variable`は条件変数そのもののデータを保持しているのではなく、条件変数という概念における操作のみをモデル化した機構であるとも言えます。ならば、条件はどうやって指定するのかというとこれは、ライブラリユーザーが通常通り記述する事となります。まず`std::condition_variable`には`notify_one`、`notify_all`というスレッドに起床を指示するメンバ関数と`wait`という起床されるまで待機するメンバ関数、また指定される時間に応じてタイムアウトする機能を持ち、起床されるまで待機する`wait_for`、`wait_until`というメンバ関数が用意されています。この中でも基本となる`notify_one`と`wait`を取り上げて、ライブラリの機能と同時に condition variable の概念について見ていきます。まずは、以下のコードを見てください。
+まずは基本的な条件変数型である`std::condition_variable`から説明します。まず大事なのは、**`std::condition_variable`そのものは、条件とする変数を持ちません**。`condition_variable`という名前でありながら条件変数そのものではないというのは少しおかしいように感じるかもしれませんが、`std::condition_variable`のイメージとしては condition\_variable の所謂ラッパーという捉え方が分かりやすいかもしれません。`std::condition_variable`は条件変数そのもののデータを保持しているのではなく、条件変数という概念における操作のみをモデル化した機構であるとも言えます。ならば、条件はどうやって指定するのかというとこれは、ライブラリユーザーが通常通り記述する事となります。まず`std::condition_variable`には`notify_one`、`notify_all`というスレッドに起床を指示するメンバ関数と`wait`という起床されるまで待機するメンバ関数、また指定される時間に応じてタイムアウトする機能を持ち、起床されるまで待機する`wait_for`、`wait_until`というメンバ関数が用意されています。この中でも基本となる`notify_one`と`wait`を取り上げて、ライブラリの機能と同時に condition variable の概念について見ていきます。まずは、以下のコードを見てください。
 ```cpp
 #include <chrono>
 #include <condition_variable>
@@ -1040,18 +1040,210 @@ th1 finished waiting.
 th2 finished waiting.
 th3 finished waiting.
 ```
-次に、`wait_until`、`wait_for`メンバ関数について説明します。
+次に、`wait_for`、`wait_until`メンバ関数について説明します。二つとも前述したブロッキング効果を持ち、それぞれ`相対時間(`std::chrono::duration`)と絶対時間(`std::chrono::time_point`)を指定し、指定された時間内に起床されない場合、タイムアウトとなり`std::cv_status::timeout`が返却され、そうでない場合は`std::cv_status::no_timeout`が返却されます。述語を渡すバージョンでは、返却値としては指定された関数の結果が返ります。まずは、`wait_for`メンバ関数の利用例を以下に示します。
+```cpp
+#include <chrono>
+#include <condition_variable>
+#include <iostream>
+#include <thread>
 
-// .........
+std::condition_variable cv;
+std::mutex m;
+bool b = false;
 
-* `native_handle`メンバ関数
-* `notify_all_at_thread_exit`関数
+void waits1(const char* s)
+{
+    std::unique_lock lock(m);
+    std::cout << s << " is Waiting..." << std::endl;
+    while(!b){
+        std::cv_status result = cv.wait_for(lock,std::chrono::seconds(2));
+        if(result == std::cv_status::timeout){
+            std::cout << "timeout" << std::endl;
+            return;
+        }
+    }
+    std::cout << s << " finished waiting." << std::endl;
+}
 
-## 14.2.x std::future
+void waits2(const char* s)
+{
+    std::unique_lock lock(m);
+    std::cout << s << " is Waiting..." << std::endl;
+    
+    if(!cv.wait_for(lock,std::chrono::seconds(2),[]{return b;})){
+        std::cout << "timeout" << std::endl;
+        return;
+    }
+    std::cout << s << " finished waiting." << std::endl;
+}
 
-## 14.2.x std::promice
+void signals()
+{
+    {
+    std::lock_guard lock(m);
+    b = true;
+    std::cout << __func__ << ": Notifying... " << std::endl;
+    }
+    cv.notify_all();
+}
 
-## 14.2.x std::async
+int main()
+{
+    std::thread th1(waits1,"th1"), th2(waits1,"th2"), th3(waits2,"th3"), th4(waits2,"th4"), th5(signals);
+    th1.join();
+    th2.join();
+    th3.join();
+    th4.join();
+    th5.join();
+}
+```
+出力例は以下の通りです。
+```cpp
+th3 is Waiting...
+th2 is Waiting...
+th1 is Waiting...
+th4 is Waiting...
+signals: Notifying...
+th3 finished waiting.
+th2 finished waiting.
+th1 finished waiting.
+th4 finished waiting.
+```
+次に`wait_until`の利用例を以下に示します。
+```cpp
+#include <chrono>
+#include <condition_variable>
+#include <iostream>
+#include <thread>
+
+std::condition_variable cv;
+std::mutex m;
+bool b = false;
+
+void waits1(const char* s)
+{
+    std::unique_lock lock(m);
+    std::cout << s << " is Waiting..." << std::endl;
+    while(!b){
+        std::cv_status result = cv.wait_until(lock,std::chrono::steady_clock::now() + std::chrono::seconds(2));
+        if(result == std::cv_status::timeout){
+            std::cout << "timeout" << std::endl;
+            return;
+        }
+    }
+    std::cout << s << " finished waiting." << std::endl;
+}
+
+void waits2(const char* s)
+{
+    std::unique_lock lock(m);
+    std::cout << s << " is Waiting..." << std::endl;
+    
+    if(!cv.wait_until(lock,std::chrono::steady_clock::now() + std::chrono::seconds(2),[]{return b;})){
+        std::cout << "timeout" << std::endl;
+        return;
+    }
+    std::cout << s << " finished waiting." << std::endl;
+}
+
+void signals()
+{
+    {
+    std::lock_guard lock(m);
+    b = true;
+    std::cout << __func__ << ": Notifying... " << std::endl;
+    }
+    cv.notify_all();
+}
+
+int main()
+{
+    std::thread th1(waits1,"th1"), th2(waits1,"th2"), th3(waits2,"th3"), th4(waits2,"th4"), th5(signals);
+    th1.join();
+    th2.join();
+    th3.join();
+    th4.join();
+    th5.join();
+}
+```
+出力例は以下の通りです。
+```cpp
+th1 is Waiting...
+th2 is Waiting...
+th3 is Waiting...
+th4 is Waiting...
+signals: Notifying...
+th1 finished waiting.
+th2 finished waiting.
+th3 finished waiting.
+th4 finished waiting.
+```
+`std::condition_variable`はそん特質上、`notify`を行わなければブロックされているスレッドは永遠に眠ったままです。これを防止するのに、`std::notify_all_at_thread_exit`という関数が用意されています。この関数を呼び出すと、その呼び出されたスレッドの終了時に全てのスレッドを起床させます。引数には`std::condition_variable`オブジェクトとロック済みである`std::unique_lock<std::mutex>`オブジェクトを渡します。ミューテックスオブジェクトはムーブさせなければなりません。スレッド終了時に移譲されたロックの`unlock`メンバ関数を呼び出してから`std::condition_variable`オブジェクトの`notify_all`メンバ関数を呼び出す事で同処理を実現します。
+```cpp
+#include <chrono>
+#include <condition_variable>
+#include <iostream>
+#include <thread>
+
+std::condition_variable cv;
+std::mutex m;
+bool b = false;
+
+void waits(const char* s)
+{
+    std::unique_lock lock(m);
+    std::cout << s << " is Waiting..." << std::endl;
+    
+    if(!cv.wait_until(lock,std::chrono::steady_clock::now() + std::chrono::seconds(2),[]{return b;})){
+        std::cout << "timeout" << std::endl;
+        return;
+    }
+    std::cout << s << " finished waiting." << std::endl;
+}
+
+void signals()
+{
+    std::unique_lock lock(m);
+    b = true;
+    std::cout << __func__ << ": Notifying... " << std::endl;
+    std::notify_all_at_thread_exit(cv,std::move(lock));
+}
+
+int main()
+{
+    std::thread th1(waits,"th1"), th2(waits,"th2"), th3(signals);
+    th1.join();
+    th2.join();
+    th3.join();
+}
+```
+尚、condition variable には`native_handle`メンバ関数があり、これによって実装依存の condition variable に対する操作を行う事ができます。例えば、環境が pthread を用いていた場合は例えば以下のように利用する事ができます。
+```cpp
+std::condition_variable cv;
+
+void f()
+{
+    {
+        std::lock_guard lock(m);
+        b = true;
+    }
+    pthread_cond_signal(cv.native_handle());
+}
+```
+以上が、`<condition_variable>`にて提供される機能です。
+
+## 14.2.4 future
+ところで、今までスレッドを利用するにおいて、`std::thread`に対して指定していた INVOKE コンセプトに基づく関数の返却型は全て`void`でした。これには何か規定があるのでしょうか。
+```cpp
+int f() { return 42; }
+
+std::thread th(f);
+th.join();
+```
+これには特別な規定はありませんので、返却型は`void`以外でも構いません。しかし、このようにして利用しても、値が返却されたところで無視されてしまうのです。引数に対して入力を設定するのは、それがデザインとしてベターであるのならば構いません。しかし、本当は値を返却して結果を受け取りたいというようであれば、`std::promise`クラスと`std::future`クラスを使います。``std::promie`クラスは`std::future`クラスを組み合わせて利用します。`std::promise`は別スレッドでの処理結果を書き込む役割を担っています。反対に`std::future`はその結果を読み取る役割を担っています。`std::promise`と`std::future`は互いに同一の共有状態へアクセスするため、これを利用してスレッド間における値の受け渡しやスレッド間同期を実現します。まずは簡単な例を見て見ましょう。
+これらの機能は`<future>`ヘッダをインクルードする事で利用できます。
+
+* std::async
 
 ## 14.2.x atomic
 
