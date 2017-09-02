@@ -1240,9 +1240,279 @@ int f() { return 42; }
 std::thread th(f);
 th.join();
 ```
-結論から言うと、これに特別な規定はありませんの。よって、返却型は`void`以外でも構いません。しかし、かと言って上記のように単に返却型を持つ関数を設定しても、値が返却されたところで無視される事となっているため、全く意味がありません。入力用の引数を設けるなどの設計も考えられますが、それがデザインとしてベターであるのならば構いません。しかし、本当は値を返却して結果を受け取りたいだけであるというようであれば、`std::promise`クラスと`std::future`クラスを使った記述の方がより良い表現力を持ったコードとなります。`std::promie`クラスは`std::future`クラスを組み合わせて利用します。`std::promise`は別スレッドでの処理結果を書き込む役割を担っています。反対に`std::future`はその結果を読み取る役割を担っています。`std::promise`と`std::future`は互いに同一の共有状態へアクセスするため、これを利用してスレッド間における値の受け渡しやスレッド間同期を実現します。まずは簡単な例を見て見ましょう。
-これらの機能は`<future>`ヘッダをインクルードする事で利用できます。
+結論から言うと、これに特別な規定はありませんの。よって、返却型は`void`以外でも構いません。しかし、かと言って上記のように単に返却型を持つ関数を設定しても、値が返却されたところで無視される事となっているため、全く意味がありません。入力用の引数を設けるなどの設計も考えられますが、それがデザインとしてベターであるのならば構いません。しかし、本当は値を返却して結果を受け取りたいだけであるというようであれば、`std::promise`クラスと`std::future`クラスを使った記述の方がより良い表現力を持ったコードとなります。
+`std::promise`は別スレッドでの処理結果を書き込む役割を担っており、対して`std::future`はその結果を読み取る役割を担っています。`std::promise`と`std::future`は互いに同一の処理結果とその処理が完了したかどうかなどの状態情報(これを**shared state**と呼ぶ)を参照する事で、異なるスレッド間におけるデータ共有の役割を果たします。このように、`std::promise`クラスは`std::future`クラスと組み合わせて利用します。これらの機能は`<future>`ヘッダをインクルードする事で利用できます。
+```cpp
+#include<future>
+```
+以下、簡単のために処理が完了して値または例外を別のスレッドが読み込む事ができる状態をレディ状態とここでは言う事にします。早速`std::promise`と`std::future`を使って別スレッドから値を得てみましょう。
+```cpp
+#include <array>
+#include <future>
+#include <iostream>
+#include <numeric>
+#include <thread>
+#include <type_traits>
+#include <utility>
 
+template <class, class = std::void_t<>>
+static constexpr bool has_iterator = false;
+template <class T>
+static constexpr bool has_iterator<T, std::void_t<typename T::iterator>> = true;
+
+template <class Range, std::enable_if_t<has_iterator<Range>, std::nullptr_t> = nullptr>
+void accumulate(const Range& range, std::promise<typename Range::value_type> p)
+{
+    typename Range::value_type sum = std::accumulate(std::begin(range), std::end(range), 0);
+    p.set_value(std::move(sum));
+}
+
+int main()
+{
+    std::array<int, 10> ar;
+    using value_type = typename decltype(ar)::value_type;
+    std::iota(std::begin(ar), std::end(ar), 1);
+
+    std::promise<value_type> p;
+    std::future<value_type> f = p.get_future();
+    std::thread th([&ar, &p] { accumulate(ar, std::move(p)); });
+
+    f.wait(); // スレッドから結果が得られるまで待つ
+    value_type result = f.get(); // 結果の取得
+    th.join();
+
+    std::cout << result << std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+55
+```
+1 から 9 までの総和を新たに作成したスレッドから得ていますね。まず全体の流れを見ていきましょう。`std::future`はその性質上`std::promise`との共有状態を保持していなければ役割として意味がないので、デフォルトコンストラクトしただけのオブジェクトを利用する事はありません(その後 shared state を保持する`std::future`のオブジェクトをムーブまたはスワップした場合は有効な`std::future`オブジェクトとなります。)。`std::promise::get_future`メンバ関数を呼び出す事で`std::promise`との shared state を参照できる`std::future`オブジェクトを得る事ができますので、これで初期化しています。その後、`std::promise`のオブジェクトを別スレッドへムーブして内部で総和処理を行なった後に、その結果を`std::promise::set_value`メンバ関数を利用して結果を伝搬します。この時レディ状態となります。尚`std::promise::set_value`は排他的に処理されるためミューテックスなどで自前で保護する必要はありません。一方、スレッドの作成及び実行元では、`std::future::wait`メンバ関数を呼び出してレディ状態となるまで待ち、`std::future::get`メンバ関数を呼び出して別スレッドでセットされた値を取得します。その後、スレッドの完了を待機して標準出力へ出力して処理が終わります。<br>尚、`std::promise::get_future`メンバ関数を複数回呼び出すと例外(`std::future_error`)が投げられます。また、`std::future::get`メンバ関数を複数回呼び出すと例外(`std::future_error`/エラー状態`std::future_errc::no_state`)が投げられます。<br>
+上記コードでは`std::future::wait`メンバ関数を呼びしていますが、これを呼び出さずに、`std::future::get`を呼び出す事もできます。
+```cpp
+// 略.....
+
+int main()
+{
+    std::array<int, 10> ar;
+    using value_type = typename decltype(ar)::value_type;
+    std::iota(std::begin(ar), std::end(ar), 1);
+
+    std::promise<value_type> p;
+    std::future<value_type> f = p.get_future();
+    std::thread th([&ar, &p] { accumulate(ar, std::move(p)); });
+
+    value_type result = f.get(); // std::future::wait を呼び出していない
+    th.join();
+
+    std::cout << result << std::endl;
+}
+```
+この場合どうなるかというと`std::future::wait`メンバ関数が事実上内部で呼び出され、レディ状態となるまで処理をブロックし、レディ状態となったら値を返しますので、`std::future::wait`メンバ関数を呼び出してから`std::future::get`メンバ関数を呼び出すのと比べて即座に値が返されるとは限りません。(`std::future::wait`を呼び出した後に`std::future::get`を呼び出したとしても`std::future::get`の内部で`std::future::wait`が呼び出されるかもしれません。いずれにせよ、`std::future::wait`の間でレディ状態となるため、その場合即座に値が返されます。)。`std::promise::set_value`を呼び出して shared state がないか既に値、または例外がセット済みである場合は例外(`std::future_error`型。 shared state がない場合は`std::future_errc::no_state`、エラー状態は既に値または例外がセット済みである場合は`std::future_errc::promise_already_satisfied`)が送出されます。また値をセットするメンバ関数は`std::future::set_value`の他に`std::promise::set_value_at_thread_exit`メンバ関数が用意されています。このメンバ関数を呼び出して値をセットすると、呼び出した時点で直ちにレディ状態にする事なく値がセットされ、そのスレッドの全てのデータがスレッドローカル寿命によって破棄された後にレディ状態となります。
+```cpp
+#include <array>
+#include <chrono>
+#include <future>
+#include <iostream>
+#include <numeric>
+#include <thread>
+#include <type_traits>
+#include <utility>
+
+template <class, class = std::void_t<>>
+static constexpr bool has_iterator = false;
+template <class T>
+static constexpr bool has_iterator<T, std::void_t<typename T::iterator>> = true;
+
+template <class Range, std::enable_if_t<has_iterator<Range>, std::nullptr_t> = nullptr>
+void accumulate(const Range& range, std::promise<typename Range::value_type> p)
+{
+    typename Range::value_type sum = std::accumulate(std::begin(range), std::end(range), 0);
+    p.set_value_at_thread_exit(std::move(sum)); // スレッドの最後でレディ状態となる
+
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for(2s); // 何か途中処理を挟む...
+} // この時点でレディ
+
+int main()
+{
+    std::array<int, 10> ar;
+    using value_type = typename decltype(ar)::value_type;
+    std::iota(std::begin(ar), std::end(ar), 1);
+
+    std::promise<value_type> p;
+    std::future<value_type> f = p.get_future();
+    std::thread([&ar, &p] { accumulate(ar, std::move(p)); }).detach(); // デタッチして管理を放棄する
+
+    f.wait(); // スレッドの管理を放棄しているが、スレッドから結果が得られるまで待つため同期できる
+    value_type result = f.get(); // 結果の取得
+
+    std::cout << result << std::endl;
+}
+```
+出力内容は変わりませんが、必ず2秒間待つ処理が入る事となります。次にその他に用意されている各メンバ関数に焦点をあててその機能を紹介します。まずは`std::promise::set_exception`と`std::promise::set_exception_at_thread_exit`です。これは、そのスレッドから例外を送出するためのメンバ関数であり、それぞれ`std::promise::set_exception`は呼び出したその時点でレディ状態にし、`std::promise::set_exception_at_thread_exit`はその全てん全てのデータがスレッドローカルの寿命によって破棄された後にレディ状態にします。
+```cpp
+#include <array>
+#include <chrono>
+#include <future>
+#include <iostream>
+#include <mutex>
+#include <numeric>
+#include <thread>
+#include <utility>
+
+template <class, class = std::void_t<>>
+static constexpr bool has_iterator = false;
+template <class T>
+static constexpr bool has_iterator<T, std::void_t<typename T::iterator>> = true;
+
+struct throw_BinaryOperation {
+    template <class T, class U>
+    T operator()(T &&lhs, U &&)
+    {
+        throw std::runtime_error("example");
+        return lhs;
+    }
+};
+
+template <class Range, std::enable_if_t<has_iterator<Range>, std::nullptr_t> = nullptr>
+void accumulate1(const Range &range, std::promise<typename Range::value_type> p)
+{
+    try {
+        typename Range::value_type sum = std::accumulate(std::begin(range), std::end(range), 0, throw_BinaryOperation());
+        p.set_value(std::move(sum)); // この時点でレディ
+    } catch (const std::runtime_error &err) {
+        p.set_exception(std::current_exception()); // 例外を送出した場合この時点でレディ
+    }
+
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for(2s); // 何か途中処理を挟む...
+}
+
+template <class Range, std::enable_if_t<has_iterator<Range>, std::nullptr_t> = nullptr>
+void accumulate2(const Range &range, std::promise<typename Range::value_type> p)
+{
+    try {
+        typename Range::value_type sum = std::accumulate(std::begin(range), std::end(range), 0, throw_BinaryOperation());
+        p.set_value(std::move(sum)); // この時点でレディ
+    } catch (const std::runtime_error &err) {
+        p.set_exception_at_thread_exit(std::current_exception());
+    }
+
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for(2s); // 何か途中処理を挟む...
+} // 例外を送出した場合この時点でレディ
+
+int main()
+{
+    std::array<int, 10> ar;
+    using value_type = typename decltype(ar)::value_type;
+    std::iota(std::begin(ar), std::end(ar), 1);
+
+    std::promise<value_type> p1, p2;
+    std::future<value_type> f1 = p1.get_future(), f2 = p2.get_future();
+    std::thread th1([&ar, &p1] { accumulate1(ar, std::move(p1)); }), th2([&ar, &p2] { accumulate2(ar, std::move(p2)); });
+
+    f1.wait();
+    try {
+        [[maybe_unused]] value_type result1 = f1.get();
+    } catch (const std::runtime_error &err) {
+        std::cerr << err.what() << std::endl; // 別スレッドの std::promise オブジェクトにセットされた例外が再度投げられる
+    }
+
+    f2.wait();     // 例外が投げられた場合 set_exception_at_thread_exit によって例外が設定されるため
+                // それまでの全ての処理(this_thread::sleep_forなど)の後にレディとなる。
+    try {
+        [[maybe_unused]] value_type result2 = f2.get();
+    } catch (const std::runtime_error &err) {
+        std::cerr << err.what() << std::endl;
+    }
+
+    th1.join();
+    th2.join();
+}
+```
+実行結果は以下の通りです。
+```cpp
+example
+example
+```
+`std::promise::set_exception`、`std::promise::set_exception_at_thread_exit`には`std::exception_ptr`のオブジェクトを渡します。
+<br>また、これらのメンバ関数は`set_value`、`set_value_at_thread_exit`同様 shared state が存在しないか、shared state が既に値または例外を格納している場合は、例外(`std::future_error`型。エラー状態は shared state が存在しない場合は`std::future_errc::no_state`が、既に値または例外を格納している場合は`std::future_errc::promise_already_satisfied`)がスローされ、これらの処理は排他的に行われます。
+次に、`std::future`の機能について見ていきます。これまでは`std::future::wait`メンバ関数を使ってレディ状態になるまで待機していましたが、`std::future::wait_for`、`std::future::wait_until`メンバ関数を利用してタイムアウトさせる事もできます。`std::future::wait_for`メンバ関数には相対時間(`std::chrono::duration`)を、`std::future::wait_until`には絶対時間(`std::chrono::time_point`)を指定します。
+```cpp
+#include <array>
+#include <future>
+#include <iostream>
+#include <numeric>
+#include <thread>
+#include <type_traits>
+#include <utility>
+
+template <class, class = std::void_t<>>
+static constexpr bool has_iterator = false;
+template <class T>
+static constexpr bool has_iterator<T, std::void_t<typename T::iterator>> = true;
+
+template <class Range, std::enable_if_t<has_iterator<Range>, std::nullptr_t> = nullptr>
+void accumulate(const Range& range, std::promise<typename Range::value_type> p)
+{
+    typename Range::value_type sum = std::accumulate(std::begin(range), std::end(range), 0);
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    p.set_value(std::move(sum));
+}
+
+int main()
+{
+    std::array<int, 10> ar;
+    using value_type = typename decltype(ar)::value_type;
+    std::iota(std::begin(ar), std::end(ar), 1);
+
+    std::promise<value_type> p;
+    std::future<value_type> f = p.get_future();
+    std::thread th([&ar, &p] { accumulate(ar, std::move(p)); });
+
+    for(std::future_status status = std::future_status::deferred; status != std::future_status::ready;){
+        status = f.wait_for(std::chrono::seconds(1));
+	// status = f.wait_until(std::chrono::steady_clock::now() + std::chrono::seconds(1)); 同様
+        if(status == std::future_status::deferred){
+            std::cout << "defferred\n";
+        }else if(status == std::future_status::timeout){
+            std::cout << "timeout\n";
+        }else if(status == std::future_status::ready){
+            std::cout << "ready\n";
+        }
+    }
+    th.join();
+
+    std::cout << f.get() << std::endl;
+}
+```
+出力例は以下の通りです。
+```cpp
+timeout
+timeout
+ready
+55
+```
+次に、`std::future::valid`メンバ関数です。これは、呼び出した`std::future`のオブジェクトが shared state を参照するかどうかをチェックするメンバ関数です。shared state を参照する場合は`true`を、そうでない場合は`false`となります。
+```cpp
+// accumulate 関数の定義など上記同様...
+
+int main()
+{
+    // スレッドの join まで上記同様...
+
+    std::cout << f.valid() << std::endl; // 1
+    std::cout << f.get() << std::endl;
+    std::cout << f.valid() << std::endl; // 0
+}
+```
+また`std::future::share`というメンバ関数も用意されています。これは、`std::shared_future`のオブジェクトを返すメンバ関数で、`std::shared_future`とは同じ shared state を複数のオブジェクトで待機できるようにするためのものです。それ以外の機能は、`std::future`と全く同じ機能を持っています。
+```cpp
+
+```
 * std::async
 
 ## 14.2.x atomic
