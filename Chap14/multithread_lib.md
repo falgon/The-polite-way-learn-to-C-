@@ -1256,9 +1256,7 @@ void waits()
 {
     std::unique_lock lock(m);
     std::cout << "Waiting..." << std::endl;
-    if (!b) {
-        cv.wait(lock);
-    }
+    cv.wait(lock,[]{return b;});
     std::cout << "finished waiting." << std::endl;
 }
 
