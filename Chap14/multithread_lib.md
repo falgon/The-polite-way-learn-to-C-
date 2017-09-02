@@ -1230,6 +1230,56 @@ void f()
     pthread_cond_signal(cv.native_handle());
 }
 ```
+最後に`std::condition_variable_any`について説明します。これは、基本的には`std::condition_variable`と全く同様ですが、唯一異なるのは`std::condition_variable`が`std::unique_lock<std::mutex>`のみしかサポートしなかったのに対して、任意の **BasicLockable** コンセプトを満たしたミューテックス機構を使えるようにしている点です。BasicLockable コンセプトは、とても小さなコンセプトで、実行スレッドに対する排他的なブロッキングセマンティックスを提供する型の特性です。これは、例えば型`L`で BasicLockable を満たすには、型`L`のオブジェクト`m`に対して次の条件を満たす必要があります。
+
+* `m.lock()`: 現在の実行スレッドに対してロックを取得できるまでブロックする。例外が投げられた場合、ロックは取得されない。
+* `m.unlock()`: 現在の実行スレッドがロックを取得している場合において、実行スレッドが保持するロックを解除する。この時、例外は送出されない。
+
+この二つが満たされれば、BasicLockable を満たす型となるのです。ただし`std::condition_variable_any`は一般的に`std::condition_variable`よりもパフォーマスに劣ってしまうかもしれません。BasicLockable コンセプトに基づいたミューテックスを簡単に作って使って見ましょう。
+```cpp
+#include <chrono>
+#include <condition_variable>
+#include <iostream>
+#include <thread>
+
+std::condition_variable_any cv;
+bool b = false;
+
+struct MyMutex{
+    std::mutex m;
+
+    void lock() { m.lock(); }
+    void unlock() noexcept { m.unlock(); }
+} m;
+
+void waits()
+{
+    std::unique_lock lock(m);
+    std::cout << "Waiting..." << std::endl;
+    if (!b) {
+        cv.wait(lock);
+    }
+    std::cout << "finished waiting." << std::endl;
+}
+
+void signals()
+{
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    {
+        std::lock_guard lock(m);
+        b = true;
+        std::cout << "Notifying... " << std::endl;
+    }
+    cv.notify_one();
+}
+
+int main()
+{
+    std::thread th1(waits), th2(signals);
+    th1.join();
+    th2.join();
+}
+```
 以上が、`<condition_variable>`にて提供される機能です。
 
 ## 14.2.4 future
@@ -1509,11 +1559,129 @@ int main()
     std::cout << f.valid() << std::endl; // 0
 }
 ```
-また`std::future::share`というメンバ関数も用意されています。これは、`std::shared_future`のオブジェクトを返すメンバ関数で、`std::shared_future`とは同じ shared state を複数のオブジェクトで待機できるようにするためのものです。それ以外の機能は、`std::future`と全く同じ機能を持っています。
+また`std::future::share`というメンバ関数も用意されています。これは、`std::shared_future`のオブジェクトを返すメンバ関数で、`std::shared_future`とは同じ shared state を複数のオブジェクトで待機できるようにするためのものです。それ以外の機能は、`std::future`と全く同じ機能を持っています(`share`メンバ関数を除く、ムーブコンストラクタ、ムーブ代入演算子、`get`、`valid`、`wait`、`wait_for`、`wait_until`)。`std::shared_future`のオブジェクトに shared state を参照できるようにさせるには、この`std::future::share`メンバ関数による初期化、または`std::future`のオブジェクトによる初期化が必要となります。
 ```cpp
+#include <array>
+#include <future>
+#include <numeric>
+#include <thread>
+#include <type_traits>
+#include <utility>
+#include <cassert>
 
+template <class, class = std::void_t<>>
+static constexpr bool has_iterator = false;
+template <class T>
+static constexpr bool has_iterator<T, std::void_t<typename T::iterator>> = true;
+
+template <class Range, std::enable_if_t<has_iterator<Range>, std::nullptr_t> = nullptr>
+void accumulate(const Range& range, std::promise<typename Range::value_type> p)
+{
+    typename Range::value_type sum = std::accumulate(std::begin(range), std::end(range), 0);
+    p.set_value(std::move(sum));
+}
+
+int main()
+{
+    std::array<int, 10> ar;
+    using value_type = typename decltype(ar)::value_type;
+    std::iota(std::begin(ar), std::end(ar), 1);
+
+    std::promise<value_type> p;
+    std::shared_future<value_type> sf1 = p.get_future().share();
+    std::shared_future<value_type> sf2 = sf1;
+    std::thread th([&ar, &p] { accumulate(ar, std::move(p)); });
+
+    assert(55 == sf1.get() && 55 == sf2.get());
+    th.join();
+}
 ```
-* std::async
+尚`std::shared_future`オブジェクトをムーブした場合はムーブされた`shared_future`のオブジェクトは shared state を持たなくなります。
+```cpp
+std::shared_future<value_type> sf1 = p.get_future().share();
+std::shared_future<value_type> sf2 = std::move(sf1); // sf1.valid() == false
+```
+また、`std::future::share`を呼び出した`std::future`のオブジェクトは shared state を持たなくなります。
+```cpp
+std::future<value_type> f = p.get_future();
+std::shared_future<value_type> sf = f.share(); // f.valid() == false
+```
+尚`std::shared_future`は`std::future`オブジェクトからも初期化が行えます。
+```cpp
+std::shared_future<value_type> sf = p.get_future();
+``` 
+次に`std::promise<void>`と`std::future<void>`、`std::shared_future<void>`について説明します。`std::promise`、`std::future`、`std::shared_future`の全てのクラス定義において`void`型が特殊化されています。`std::promise`に`void`型を与えた場合`std::promise::set_value`、`std::promise::set_value_at_thread_exit`が値を受け付けないメンバ関数として定義され、`std::future`、`std::shared_future`に`void`型を与えた場合`std::future::get`、`std::shared_future::get`が何もしないメンバ関数となります。これらの特殊化は、実際の値を必要としないスレッド間の信号処理のようなものを必要としている時に活用できます。
+
+これはなんだかやっている事は`std::condition_variable`ととても似ていますね。まさにその通り(`std::condition_variable`そのものは条件が満たされるまでサスペンドするといったセマンティックスを含んでいますからその点では若干ニュアンスとして異なります)で、例えば`std::shared_future<void>`を使うと、`std::condition_variable::notify_all()`と実質同様に複数のスレッドに対して同時に通知を行うといった事が可能です。
+```cpp
+#include<iostream>
+#include<future>
+#include<chrono>
+#include<mutex>
+#include<thread>
+#include<utility>
+
+std::mutex m;
+
+void safe_disp(const char* s)
+{
+    std::lock_guard lock(m);
+    std::cout << s << std::endl;
+}
+
+int main()
+{
+    std::promise<void> ready, f1_ready, f2_ready;
+    std::shared_future<void> ready_future = ready.get_future().share();
+
+    const auto f1 = [&f1_ready,ready_future]
+    {    
+        safe_disp("f1: started");
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        f1_ready.set_value(); // f1 が開始した事を通知する
+        safe_disp("f1: waiting");
+        ready_future.wait();  // main からの指示を待つ
+        safe_disp("f1: unblocked by main");
+    };
+    const auto f2 = [&f2_ready,ready_future]
+    {
+        safe_disp("f2: started");
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        f2_ready.set_value(); // f2 が開始した事を通知する
+        safe_disp("f2: waiting");
+        ready_future.wait(); // main からの指示を待つ
+        safe_disp("f2: unblocked by main");
+    };
+
+
+    std::thread th1(f1), th2(f2);
+    
+    f1_ready.get_future().wait(); // f1 が開始されるまで待つ
+    f2_ready.get_future().wait(); // f2 が開始されるまで待つ
+
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::cout << "ready set" << std::endl;
+    ready.set_value(); // f1, f2 が開始された後に f1, f2 に通知する
+
+    th1.join();
+    th2.join();
+}
+```
+出力例は以下の通りです。
+```cpp
+f1: started
+f2: started
+f2: waiting
+f1: waiting
+ready set
+f2: unblocked by main
+f1: unblocked by main
+```
+まずスレッドが作成され`f1`、`f2`が開始されますが、`main`関数側は`f1`、`f2`それぞれの`std::promise`オブジェクトがどちらともレディ状態とならない限り処理をブロックします。`f1`、`f2`が無事開始され、なんらかの処理(ここでは簡単のため`std::this_thread::sleep_for`をしているだけですが)が完了すると`set_value`各`std::promise`オブジェクトを`std::promise::set_value`によってレディ状態にしています。そして何か出力して今度は`main`関数にある`std::promise`のレディ状態が得られるまで両スレッド共にブロックします。`main`関数側は`f1`、`f2`のレディ状態が取れた段階で何か処理(ここでは簡単のため`std::this_thread::sleep_for`をしているだけですが)を開始します。これが終わると、何か出力した後に、`ready`をレディ状態にします。`f1`、`f2`両スレッドはこれによってブロッキングを解除し、次の処理(何か出力)を開始して終了です。このように、`shared_future<void>`を用いると一つの`std::promise`から複数のスレッドに対して信号を送る事ができます。
+
+* `const` lvalue reference、lvalue reference への特殊化
+* `std::async`
+* `std::packaged_task`
 
 ## 14.2.x atomic
 
