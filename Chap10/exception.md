@@ -212,3 +212,21 @@ int main()
 #endif
 ```
 尚、`__cpp_noexcept_function_type`の値は`201510`です。
+
+
+## 10.1.5 標準ライブラリによるサポート
+`<exception>`ヘッダーをインクルードする事で例外の扱いに関連したいくつかのクラスと関数を利用する事ができます。
+```cpp
+#include <exception>
+```
+このヘッダーから提供される各機能について見ていきます。まず、`std::exception`クラスについてです。このクラスは標準ライブラリが提供する全ての例外クラスの基本クラスとなるクラスであり、従って標準の例外は全てこのクラスで`catch`する事ができます。
+```cpp
+try{
+   throw std::runtime_error("example");
+}catch(const std::exception&){
+   // ....
+}
+```
+次は`std::bad_exception`クラスについてです。これも例外クラスですが、このクラスについては殆ど言うことがありません。なぜならば、これは C++17 よりも前のバージョンまで非推奨として存在していた`std::set_unexpected`関数に対して利用するためのもののような存在だったからです。ただこの例外クラスが投げられる事も全くなくはありません。例えば後に説明する`std::current_exception`関数で得た例外オブジェクトのコピーコンストラクタが例外を投げる時にこの例外クラスは投げられます。
+
+* `nested_exception`、`set_terminate`、`get_terminate`、`terminate`、`uncaught_exception`、`exception_ptr`、`current_exception`、`rethrow_exception`、`make_exception_ptr`、`throw_with_nested`、`rethrow_if_nested`
