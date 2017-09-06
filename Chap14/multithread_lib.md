@@ -1680,9 +1680,186 @@ f1: unblocked by main
 ```cpp
 #include <future>
 ```
-// .......
+まずは以下サンプルコードを見ていただきましょう。
+```cpp
+#include <array>
+#include <functional>
+#include <future>
+#include <iostream>
+#include <iterator>
+#include <numeric>
+#include <type_traits>
+#include <utility>
 
-* `std::packaged_task`
+template <class InputIterator>
+typename std::iterator_traits<InputIterator>::value_type parallel_sum(InputIterator first, InputIterator last)
+{
+    using value_type = typename std::iterator_traits<InputIterator>::value_type;
+
+    const typename std::iterator_traits<InputIterator>::difference_type length = std::distance(first, last);
+    if (length < 1000) // 999 以下であれば自スレッドで演算
+    return std::accumulate(first, last, 0);
+
+    InputIterator middle_iter = std::next(first, length / 2);
+    std::future<value_type> handle = std::async(std::launch::async, parallel_sum<InputIterator>, middle_iter, last);
+    const value_type sum = parallel_sum(first, middle_iter);
+
+    return sum + handle.get();
+}
+
+int main()
+{
+    std::array<int, 10000> ar;
+    std::iota(std::begin(ar), std::end(ar), 1);
+    std::cout << "The sum is " << parallel_sum(std::begin(ar), std::end(ar)) << '\n';
+}
+```
+実行結果は以下の通りです。
+```cpp
+The sum is 50005000
+```
+`std::async`は、非同期実行の結果値を得るための`std::future`オブジェクトを返します。第一引数には前述した通り実行ポリシーを渡します。上記コードで指定しているのは`std::launch::async`ですから、タスクを非同期で実行するために新しいスレッドが起動されます。`std::async`関数から返された`std::future`オブジェクトの`wait`、または`get`メンバ関数を呼び出す事で、`std::async`関数が内部的に生成したスレッドの完了を待機します。尚`std::async`に`std::launch::async`を指定してスレッドを起動できなかった時、例外(`std::system_error`、エラーコード`std::errc::resource_unavailable_try_again`)を送出します。また、`std::async`内部データのメモリを確保できなかった場合は、`std::bad_alloc`が投げられます。上記コードの動作としては、1つのスレッドで要素数 999 以下の総和を担って演算を行います。尚、実行スレッド内から例外が投げられると、`std::future::wait`及び`std::future::get`メンバ関数からその例外がそのまま送出されます。
+```cpp
+#include <future>
+#include <iostream>
+
+int main()
+{
+    const auto functor = []{throw std::runtime_error("test"); return 42;};
+    std::future<int> f1 = std::async(std::launch::async,functor), f2 = std::async(std::launch::async,functor);
+
+    try{
+        [[maybe_unused]] int result = f1.get();
+    }catch(const std::runtime_error& er){
+        std::cerr << er.what() << std::endl;
+    }
+
+    try{
+        f2.wait();
+        [[maybe_unused]] int result = f2.get();
+    }catch(const std::runtime_error& er){
+        std::cerr << er.what() << std::endl;
+    }
+}
+```
+実行結果は以下の通りです。
+```cpp
+test
+test
+```
+次に、標準で用意されているもう一つのポリシー、`std::launch::deferred`を使った例を見て見ましょう。
+```cpp
+#include <future>
+#include <iostream>
+
+int main()
+{
+    const auto functor = []() noexcept { return 42; };
+
+    std::future<int> f1 = std::async(std::launch::deferred,functor); // スレッドは生成しない。つまりこの時点では実行されない。
+    int result1 = f1.get(); // この時点で実行
+
+    std::future<int> f2 = std::async(std::launch::deferred,functor);
+    f2.wait(); // この時点で実行
+    int result2 = f2.get();
+
+    std::future<int> f3 = std::async(std::launch::deferred,[]{ throw std::runtime_error("test"); return 42;});
+    try{
+        [[maybe_unused]] int result3 = f3.get();
+    }catch(const std::runtime_error& er){
+        std::cerr << er.what() << std::endl;
+    }
+
+    std::cout << result1 << "\n" << result2 << std::endl;
+}
+```
+実行結果は以下の通りです。
+```cpp
+test
+42
+42
+```
+尚、`std::launch::deferred`ポリシーを指定した`std::async`関数から得られる`std::future`オブジェクトから`wait_for`及び`wait_until`メンバ関数を呼び出した場合、`std::future_status::deferred`を返します。同オブジェクトからの`wait_for`、`wait_until`メンバ関数呼び出しでは渡された関数の実行はされません。
+```cpp
+#include <future>
+#include <iostream>
+#include <cassert>
+
+int main()
+{
+    const auto functor = []() noexcept { return 42; };
+
+    std::future<int> f1 = std::async(std::launch::deferred,functor);
+    assert(f1.wait_for(std::chrono::seconds(2)) == std::future_status::deferred);
+
+    std::future<int> f2 = std::async(std::launch::deferred,functor);
+    assert(f2.wait_until(std::chrono::seconds(2) + std::chrono::steady_clock::now()) == std::future_status::deferred);
+
+    assert(f1.get() == 42); // 実行
+    assert(f2.get() == 42); // 実行
+}
+```
+また、`std::async`はポリシーを指定せずに利用する事もできます。その場合、処理系に依存して`std::launch::async`または`std::launch::deferred`のどちらかが任意に選ばれます。これにより、シングルスレッドシステムとマルチスレッドシステムの両方で同じコードを利用でき、かつ利用できる場合のみ("利用でいる"の基準は処理系依存)マルチスレッドで処理するという事ができます。以下に各ポリシーの動作や指定しなかった場合の挙動が見えるサンプルコードを示します。
+```cpp
+#include <future>
+#include <iostream>
+#include <cassert>
+#include <optional>
+#include <chrono>
+
+template<class T>
+std::optional<T> get_and_disp_status(std::future<T> ft)
+{
+    switch(ft.wait_for(std::chrono::seconds(2))){
+        case std::future_status::deferred: 
+            std::cout << "std::launch::deferred" << std::endl; 
+            return {ft.get()};
+            break;
+        case std::future_status::ready: 
+            std::cout << "std::launch::async: ready" << std::endl; 
+            return {ft.get()};
+            break;
+        case std::future_status::timeout: 
+            std::cout << "std::launch::async: time out" << std::endl; 
+            return {};
+            break;
+        default: 
+            std::cout << "Not standard" << std::endl; break;
+            return {};
+    }
+    return {};
+}
+
+int main()
+{
+    const auto functor = []() noexcept { return 42; };
+
+    std::future<int> f1 = std::async(functor); // std::launch::async か std::launch::deferred かは処理系依存
+    std::future<int> f2 = std::async(std::launch::async | std::launch::deferred,functor); // 同上
+    std::future<int> f3 = std::async(std::launch::deferred,functor);
+    std::future<int> f4 = std::async(std::launch::async,[]{ std::this_thread::sleep_for(std::chrono::seconds(3)); return 42; });
+    
+    const auto result1 = get_and_disp_status(std::move(f1));
+    const auto result2 = get_and_disp_status(std::move(f2));
+    const auto result3 = get_and_disp_status(std::move(f3));
+    const auto result4 = get_and_disp_status(std::move(f4));
+
+    std::cout << result1.value_or(-1) << "\n" << result2.value_or(-1) << "\n" << result3.value_or(-1) << "\n" << result4.value_or(-1) << std::endl;
+}
+```
+出力例は以下の通りです。
+```cpp
+std::launch::async: ready // 処理系依存
+std::launch::async: ready // 処理系依存
+std::launch::deferred
+std::launch::async: time out
+42
+42
+42
+-1
+```
+尚、整数値をlaunch型にキャストするなど有効でない実行ポリシーを指定した場合、その動作は未定義となります。<br>
+次に、`std::packaged_task`クラスを紹介します。
 
 ## 14.2.x atomic
 
