@@ -198,10 +198,10 @@ bubble_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
 #include <iterator>
 
 struct linear_search_insert {
-    template <class ForwardIterator, class Compare>
-    void operator()(ForwardIterator first, ForwardIterator iter, Compare comp)
+    template <class BidirectionalIterator, class Compare>
+    void operator()(BidirectionalIterator first, BidirectionalIterator iter, Compare comp)
     {
-        typedef typename std::iterator_traits<ForwardIterator>::value_type value_type;
+        typedef typename std::iterator_traits<BidirectionalIterator>::value_type value_type;
         const value_type x = *iter;
         do {
             *iter = *std::next(iter, -1);
@@ -211,8 +211,8 @@ struct linear_search_insert {
     }
 };
 
-template <class ForwardIterator, class Compare, class SearchInserter>
-ForwardIterator insertion_sort(ForwardIterator first, ForwardIterator last, Compare comp, SearchInserter search_inserter)
+template <class BidirectionalIterator, class Compare, class SearchInserter>
+ForwardIterator insertion_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp, SearchInserter search_inserter)
 {
     for (ForwardIterator i = std::next(first, 1); i != last; ++i) {
         if (!comp(*std::next(i, -1), *i)) { // (1)
@@ -222,14 +222,14 @@ ForwardIterator insertion_sort(ForwardIterator first, ForwardIterator last, Comp
     return first;
 }
 
-template <class ForwardIterator, class Compare>
-ForwardIterator insertion_sort(ForwardIterator first, ForwardIterator last, Compare comp)
+template <class BidirectionalIterator, class Compare>
+ForwardIterator insertion_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp)
 {
     return insertion_sort(first, last, comp, linear_search_insert());
 }
 
-template <class ForwardIterator>
-ForwardIterator insertion_sort(ForwardIterator first, ForwardIterator last)
+template <class BidirectionalIterator>
+ForwardIterator insertion_sort(BidirectionalIterator first, BidirectionalIterator last)
 {
     return insertion_sort(first, last, std::less<>(), linear_search_insert());
 }
@@ -255,26 +255,153 @@ insertion_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
 上記コードでは、この挿入位置の決定に、線形探索を利用しており、コード中`linear_search_insert`関数オブジェクトがそれに値します。この場合の挿入ソートの時間計算量は、$$ O(n^{2}) $$ となります。<br>
 しかしながら、この検索部分には少し改善の余地が残されています。検索を行う範囲は、上記処理の通り、すでに挿入ソートの過程内でソート済みです。ソート済みの範囲に対しては、二分探索が有効なのです。二分探索については下記 $$ O(logN) $$ で説明します。
 
+### $$ O(N logN)
+念のためこの対数について説明しておくと、$$ N $$ を何回 $$ 2 $$ で割れば $$ 1 $$ になるかという意味で。例えば $$ N = 10^{12} $$($$1$$兆) としても約40回程度割れば $$ 1 $$ になります。このように、$$logN$$ の部分は殆ど増えないため、少し遅い $$ O(N) $$ 程度の時間計算量であると言えます。<br>さて、マージソートといわれるソートはこの時間計算量オーダーとなります。マージソートとは、すでにソート済みである複数個の列を 1 列にマージする際に、小さいもの(大きいもの)から順に新しい列に並べる事でソートします。手順としては、
+
+1. データ列を分割する。
+2. 分割されたデータ列内に含まれるデータが 1 つである場合それを返す。そうでなければ再帰的に 1 から 3 を適用する
+3. 二つのソートされたデータ列(1 つのデータを含む)を小さいもの(大きいもの)から順に新しい列に並べるようにしてマージする
+
+というように行います。
 ```cpp
 #include <algorithm>
 
-struct binary_search_insert {
-    template <class ForwardIterator, class Compare>
-    void operator()(ForwardIterator first, ForwardIterator iter, Compare comp)
+template <class RandomAccessIterator, class Compare>
+RandomAccessIterator merge_sort(RandomAccessIterator first, RandomAccessIterator last, Compare comp)
+{
+    if (last - first > 1) {
+        RandomAccessIterator middle = first + (last - first) / 2;
+        merge_sort(first, middle, comp);
+        merge_sort(middle, last, comp);
+        std::inplace_merge(first, middle, last, comp);
+    }
+    return first;
+}
+
+template <class RandomAccessIterator>
+RandomAccessIterator merge_sort(RandomAccessIterator first, RandomAccessIterator last)
+{
+    return merge_sort(first, last, std::less<>());
+}
+```
+次のように利用する事を想定しています。
+```cpp
+// ... (略)
+
+merge_sort(std::begin(v), std::end(v)); // less than
+merge_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
+```
+再帰によってデータ列を細分化して、マージソートの実際のマージ部分を`std::inplace_merge`に任せています。その名の通り、この関数は追加の作業記憶領域を必要としないため、この実装の空間計算量は $$ 0 $$ です。しかし、$$ O(n) $$ の空間計算量を必要とする実装も一般的に見られます。また、データ列に対するそれぞれのマージ操作は並列化が容易である特徴があります。また、安定なソートを実装できます。
+
+また、クイックソートと言われる比較的高速なソートも、最良時間計算量及び平均計算量がこのオーダーです。クイックソートは、1つ適当な値(これをピボットと言います)を選択し、ピボットより小さい値を前方または後方、大きい値を前方または後方に移動し、二分割されたそれぞれのデータをそれぞれにソートします。
+```cpp
+#include <algorithm>
+#include <functional>
+
+template <class BidirectionalIterator, class Compare>
+void quick_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp)
+{
+    if (first == last) return;
+    
+    BidirectionalIterator l = first, r = std::next(last, -1);
+    while (comp(l, r)) {
+        for (; comp(*l, *first) && comp(l, r); ++l);
+        for (; comp(*first, *r); --r);
+        std::iter_swap(l, r);
+    }
+    std::iter_swap(first, l);
+    quick_sort(first, l, comp);
+    quick_sort(++l, last, comp);
+}
+
+/*
+ * std::partition による実装
+ *
+
+template <class BidirectionalIterator, class Compare>
+void quick_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp)
+{
+    if (first == last) return;
+
+    // std::partition() の時間計算量は O(n) です。
+    BidirectionalIterator split = std::partition(std::next(first, 1), std::bind(comp, std::placeholders::_1, *first)); 
+    std::iter_swap(first, std::next(split, -1));
+    quick_sort(first, std::next(split, -1), comp);
+    quick_sort(split, last, comp);
+}
+
+ *
+ *
+ */
+ 
+template <class BidirectionalIterator>
+void quick_sort(BidirectionalIterator first, BidirectionalIterator last)
+{
+    quick_sort(first, last, std::less<>());
+}
+```
+次のように利用する事を想定しています。
+```cpp
+// ... (略)
+
+quick_sort(std::begin(v), std::end(v)); // less than
+quick_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
+```
+クイックソートは、ランダムなデータに対しては有効的ですが、すでにソート済みであったり、並び順が全く逆だったとき(例えば昇順に並び替えようとするデータ列が降順であった場合)、時間計算量が $$ O(n ^ {2}) $$ になってしまいます。クイックソートの高速さは初めのピボット選択が大きな鍵を握っている特性があるため、ピボットの選択方法を工夫する必要があります。上記の実装では、無条件でデータ列の一番先頭をピボットとしており、ピボットの選択方法としてはあまりにも愚直でよろしくありません。ピボットの選択方法には、乱数から選択する、データ列の中間を選択する、データ列から最初、中間、最後の要素を取り出してその中央値を選択するといった方法があります。特に最後のものは median-of-three と言われます。下記コードは、それを利用したクイックソートの実装です。
+```cpp
+template <class T>
+const T& med3(const T& x, const T& y, const T& z) // median-of-three を得る
+{
+    return std::max(std::min(x, y), std::min(std::max(x, y), z)); 
+}
+
+template <class BidirectionalIterator, class Compare>
+void quick_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp)
+{
+    if (first == last) return;
+    
+    typedef typename std::iterator_traits<BidirectionalIterator>::value_type value_type;
+    BidirectionalIterator miter = std::next(first, std::distance(first, last) / 2);
+    const value_type pivot = med3(*first, *miter, *std::next(last, -1));
+    BidirectionalIterator upper = std::partition(first, last, std::bind(comp, std::placeholders::_1, pivot));
+    BidirectionalIterator lower = std::partition(upper, last, std::bind(std::not_fn(comp), pivot, std::placeholders::_1));
+
+    quick_sort(first, upper, comp);
+    quick_sort(lower, last, comp);
+}
+
+// ... 同じオーバーロード(略)
+```
+median-of-three によって万事解決のように思えますが、これでも尚最悪の時間計算量は $$ O(N^{2}) $$ のままです。どのような場合でなりうるかというと、多くの等しい値の並ぶデータ列に対するソートです。例えば昇順ソートをするとして、入力データが全て同等のであったとします。ソートの過程で、左側のパーティションが空のまま、そして右側のパーティションから 1 つずつ要素が削除されていきます。これが $$ O(N^{2}) $$ の時間計算量を要する事となってしまうのです。この問題は、[Dutch national flag problem(直訳すると、オランダ国旗問題)](https://en.wikipedia.org/wiki/Dutch_national_flag_problem)とも言われます。
+```cpp
+// 3way qsort sample code
+```
+クイックソートは、このようにピボットの選択方法、分割の仕方などの他にも、様々な工夫がされた亜種が存在しています。全てを説明するのは本項の範囲を超えるため特に触れませんが、興味のある方は是非調べてみましょう。<br>
+尚、クイックソートは C 標準ライブラリで用意されています。それを次のように利用する事ができます。
+```cpp
+#include <cstdlib>
+
+template <class T>
+struct less {
+    auto operator()() const noexcept
     {
-        std::rotate(std::upper_bound(first, iter, *iter, comp), iter, std::next(iter, 1));
+        return [](const void* a, const void* b) -> int {
+            const auto x = *static_cast<const T*>(a);
+            const auto y = *static_cast<const T*>(b);
+            return x < y ? -1 : x > y  ? 1 : 0;
+        };
     }
 };
 
-insertion_sort(std::begin(v), std::end(v), std::less<>(), binary_search_insert()); // less than
-insertion_sort(std::begin(v), std::end(v), std::greater<>(), binary_search_insert()); // greater than
+typedef decltype(v)::value_type value_type;
+std::qsort(std::data(v), v.size(), sizeof(value_type), less<value_type>()());
 ```
 
-### $$ O(N logN)
-マージソート、クイックソート
+### $$ O(N) $$
+データ数 N から線形探索を行うといったアルゴリズムがこの計算量オーダーとなります。
 
-### $$ O(logN)
-挿入ソートの説明の最後で挙げた二分探索がこのオーダーです。二分探索とは、すでにソート済みのデータ列に対して、全体を半分ずつ分けて、別れた片方を検索の対象とするといった処理を反復的に行う探索アルゴリズムです。
+### $$ O(logN) $$
+挿入ソートの説明の最後で挙げた二分探索がこの計算量オーダーです。二分探索とは、すでにソート済みのデータ列に対して、全体を半分ずつ分けて、別れた片方を検索の対象とするといった処理を反復的に行う探索アルゴリズムです。
 ```cpp
 // draftdraftdraft
 ```
