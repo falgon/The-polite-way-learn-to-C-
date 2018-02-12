@@ -1,6 +1,7 @@
 # 16.7 アルゴリズムと計算量理論
 
-この項では、アルゴリズムと実装、またその性能を表すのに多様される O 記法、そしてアルゴリズムの複雑性クラスの分類について説明します。
+この項では、アルゴリズムと実装、またその性能を表すのに多様される O 記法、そしてアルゴリズムの複雑性クラスの分類について説明します。<br>
+尚、本項で説明されているコード例は単純化されており、実際の利用にはより強い型制約を設けるなどが必要です。
 
 ## 16.7.1 アルゴリズムと O 記法
 
@@ -8,16 +9,33 @@ O 記法はある特定のアルゴリズムの計算量を示すことのでき
 例えば、$$ 1 $$ から $$ n $$($$ n $$ は整数とする)までの整数の総和($$ \sum_{ k = 1 }^{ n } k = 1 + 2 + 3 + ... n $$)を求める時、どのように計算を行うと良いでしょうか？
 愚直な実装は次のようになるでしょう。
 ```cpp
+//! TPLCXX17 namespace
+namespace TPLCXX17 {
+//! chapter 16.7.1 namespace
+namespace chap16_7_1 {
+//! version 1 namespace
+namespace v1 {
+/**
+ * @brief 1 から @a n までの総和を求めます
+ * @param n unsigned int の整数値
+ * @return 1 から @a n までの総和を返します
+ * @code
+ * void sum_sample()
+ * {
+ *      [[maybe_unused]] int r = TPLCXX17::chap16_7_1::v1::sum(10);
+ * }
+ * @endcode
+*/
 unsigned int sum(unsigned int n)
 {
     int k = 0;
     for (unsigned int i = 1; i <= n; ++i) k += i;
     return k;
 }
-```
-これは、次のように利用することを想定としています。
-```cpp
-int r = sum(n);
+
+} // namespace space v1
+} // namespace chap16_7_1
+} // namespace TPLCXX17
 ```
 この実装だと、加算を $$ n - 1 $$ 回行いますから、時間計算量を$$ O(N) $$、空間計算量を $$ O(1) $$ というように書きます。これは、ビッグオー記法(O 記法)と言います。O は order で、ここでは次数を意味するものです。
 $$ O(N - 1) $$ ではないのかと思われるかもしれませんが、ビッグオー記法では一番規模の大きな計算だけを残し、さらに係数を $$ 1 $$ とするようにして記述する慣習があります。これは、分かりやすさの他に、相対誤差が殆ど無いことに起因します。
@@ -27,17 +45,52 @@ $$ (n + 1) \dfrac{n}{2} $$
 総和の式を逆順にして、$$ S = n + (n - 1) + (n - 2) + ... + 2 + 1 $$ とします。次に、$$ S $$ を二倍します。すると $$ 2S = (n + (n - 1) + (n - 2) + ... + 2 + 1) + (1 + 2 + ... + (n - 2) + (n - 1) + n) $$ ですね。置き換えると、$$ 2S = (1 + n) + (2 + n - 1) + ... + (n - 1 + 2) + (n + 1) $$ です。この式はさらに置き換えることが出来、$$ 2S = (n + 1) + (n + 1) + ... + (n + 1) + (n + 1) $$ であり $$ 2S = \underbrace{(n + 1) + (n + 1) + ... + (n + 1) + (n + 1)}_{n} $$ なので、$$ 2S = n(n + 1) $$ となります。つまり、$$ S $$ は $$ n (n + 1) / 2 $$ となりますね。  
 こちらの実装は次のようになるでしょう。
 ```cpp
-int sum(int n)
+namespace TPLCXX17 {
+namespace chap16_7_1 {
+//! version 2 namespace
+namespace v2 {
+/**
+ * @brief 1 から @a n までの総和を総和の公式を利用して求めます
+ * @param n unsigned int 型の整数値
+ * @return 1 から @a n までの総和を返します
+ * @code
+ * void sum_sample()
+ * {
+ *      [[maybe_unused]] int r = TPLCXX17::chap16_7_1::v2::sum(10);
+ * }
+ * @endcode
+*/
+unsigned int sum(unsigned int n)
 {
     return n * (n + 1) / 2;
 }
+
+} // namespace v2
+} // namespace chap16_7_1
+} // namespace TPLCXX17
 ```
 この実装ではご覧の通り、加算、積算、除算で計算し終えます。ですから時間計算量は、$$ O(3) $$ ... ではなく前述した通り $$ O(1) $$ と書きます。空間計算量も $$ O(1) $$ ですね。<br>
 もう一つ例を取り上げてみましょう。例えば $$ n $$ 以下の素数を全て見つけ出す時、どのように計算を行うと良いでしょうか？
 愚直な実装は次のようになるでしょう($$ n $$ は下記コード`n`に対応しています)。
 ```cpp
 #include <cmath>
-
+namespace TPLCXX17 {
+namespace chap16_7_1 {
+namespace v1 {
+/**
+ * @brief @a n より小さい素数値を総当たりによって @a oiter に全て出力します
+ * @param n unsigned int 型の整数値
+ * @param oiter 出力イテレータ
+ * @return 出力イテレータを返します
+ * @code
+ * #include <vector>
+ * void primes_sample()
+ * {
+ *      std::vector<unsigned int> res;
+ *      TPLCXX17::chap16_7_1::v1::primes(42, std::back_inserter(res));
+ * }
+ * @endcode
+*/
 template <class OutputIterator>
 OutputIterator primes(unsigned int n, OutputIterator oiter)
 {
@@ -54,14 +107,12 @@ OutputIterator primes(unsigned int n, OutputIterator oiter)
     }
     return oiter;
 }
-```
-この実装は $$ 1 $$ から`n`まで順々に素数判定を行うアルゴリズムを少し最適化したものです。尚次のように利用する事を想定しています。
-```cpp
-#include <vector>
 
-std::vector<unsigned int> res;
-primes(n, std::back_inserter(res));
+} // namespace v1
+} // namespace chap16_7_1
+} // namespace TPLCXX17
 ```
+この実装は $$ 1 $$ から`n`まで順々に素数判定を行うアルゴリズムを少し最適化したものです。
 $$ 2 $$ 以外の素数は奇数ですから、`(1)`の通り奇数のみを調査対象としています。また、任意の値 $$ a $$ が合成数である場合は、必ず $$ \sqrt{a} $$ より小さい素因数を持つはずです。念のため説明しておきましょう。$$ N $$ が合成数とします。よって $$ N = ab $$(但し $$ 1 \lt a \leq b \land a, b \in \mathbb{Z} $$) となります。つまり、$$ N = ab \geq a^{2} $$ ですから $$ \sqrt{N} \geq a $$ となるのです。これを証明 (a) としておきましょう。さて、という事は、$$ a $$ が素数であるかは $$ \sqrt{a} $$ 以下の素数で mod 演算を行えば良い事となります。
 さらに、`(1)`で奇数のみを対象としていますから、$$ 3 $$ から開始して、以降奇数のみで mod 演算を行えば良い事となります。これらは`(2)`に対応しています。`(3)`で mod 演算を行い、割り切れた時点で、`k`に`false`をセットしてループを抜けます。
 ところで、このアルゴリズムはどのような計算量となるでしょうか。
@@ -70,7 +121,23 @@ $$ a $$ が素数かを判定するのに最大 $$ \sqrt{a} $$ 回くらい(前�
 ```cpp
 #include <cmath>
 #include <vector>
-
+namespace TPLCXX17 {
+namespace chap16_7_1 {
+namespace v2 {
+/**
+ * @brief @a n より小さい素数値をエラトステネスの篩によって @a oiter に全て出力します
+ * @param n unsigned int 型の整数値
+ * @param oiter 出力イテレータ
+ * @return 出力イテレータを返します
+ * @code
+ * #include <vector>
+ * void primes_sample()
+ * {
+ *      std::vector<unsigned int> res;
+ *      TPLCXX17::chap16_7_1::v2::primes(42, std::back_inserter(res));
+ * }
+ * @endcode
+*/
 template <class OutputIterator>
 OutputIterator primes(unsigned int n, OutputIterator oiter)
 {
@@ -89,6 +156,10 @@ OutputIterator primes(unsigned int n, OutputIterator oiter)
     }
     return oiter;
 }
+
+} // namespace v2
+} // namespace chap16_7_1
+} // namespace TPLCXX17
 ```
 このアルゴリズムは、先ほどの証明 (a) を併用して $$ \sqrt{n} $$ 以下の素数の倍数(自身を除く)を全て篩い落とすことで、素数を得るアルゴリズムです。例えば、$$ n = 30 $$、$$ A $$ を残っている素数集合とした時、篩い落としの様子は次の通りです。
 1. $$ A = \{2, 3 ... , 30\} $$
@@ -114,36 +185,49 @@ OutputIterator primes(unsigned int n, OutputIterator oiter)
 ```cpp
 #include <algorithm>
 #include <functional>
-
+namespace TPLCXX17 {
+namespace chap16_7_1 {
+namespace v1 {
+/**
+ * @brief 範囲を選択ソートします
+ * @param first 範囲の最初のイテレータ
+ * @param last 範囲の最後 + 1 のイテレータ
+ * @param comp bool 値へ文脈変換可能な比較関数オブジェクト
+ * @return なし
+ * @code
+ * #include<numeric>
+ * #include <random>
+ * 
+ * void selection_sort_sample()
+ * {
+ *      std::vector<int> v(10);
+ *      std::iota(std::begin(v), std::end(v), mt);
+ *      std::random_device seed;
+ *      std::mt19937 mt(seed());
+ *      std::shuffle(std::begin(v), std::end(v), mt);
+ * 
+ *      TPLCXX17::chap16_7_1::v1::selection_sort(std::begin(v), std::end(v)); // less than
+ *      TPLCXX17::chap16_7_1::v1::selection_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
+ * }
+ * @endcode
+*/
 template <class ForwardIterator, class Compare>
-ForwardIterator selection_sort(ForwardIterator first, ForwardIterator last, Compare comp)
+void selection_sort(ForwardIterator first, ForwardIterator last, Compare comp)
 {
     for (ForwardIterator iter = first; iter != last; ++iter) {
         std::iter_swap(iter, std::min_element(iter, last, comp));
     }
-    return first;
 }
-
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 template <class ForwardIterator>
-ForwardIterator selection_sort(ForwardIterator first, ForwardIterator last)
+void selection_sort(ForwardIterator first, ForwardIterator last)
 {
-    return selection_sort(first, last, std::less<>());
+    selection_sort(first, last, std::less<>());
 }
-```
-これは次のように利用する事を想定しています。
-```cpp
-#include <numeric>
-#include <random>
-
-std::vector<int> v(10);
-std::iota(std::begin(v), std::end(v), 0);
-
-std::random_device seed;
-std::mt19937 mt(seed());
-std::shuffle(std::begin(v), std::end(v), mt);
-
-selection_sort(std::begin(v), std::end(v)); // less than
-selection_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
+#endif
+} // namespace v1
+} // namespace chap16_7_1
+} // namespace TPLCXX17
 ```
 選択ソートは、1 つのデータの位置を確定するために、$$ (n - 1) $$ 回の比較(上記コードでは、`std::min_element`がその役割を担っています)が必要です。
 1 つのデータが確定していくごとに、次の比較対象のデータが 1 つずつ減っていきます。これは、次のように表す事ができます。<br>
@@ -158,36 +242,60 @@ $$ \displaystyle \sum_{i=1}^{n-1} i = \frac{n(n-1)}{2} = \frac{n^2-n}{2} $$
 ```cpp
 #include <algorithm>
 #include <functional>
-
+namespace TPLCXX17 {
+namespace chap16_7_1 {
+namespace v1 {
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 template <class ForwardIterator, class Compare>
 void iter_swap_if(ForwardIterator x, ForwardIterator y, Compare comp)
 {
     if (comp(*x, *y)) std::iter_swap(x, y);
 }
+#endif
 
+/**
+ * @brief 範囲をバブルソートします
+ * @param first 範囲の最初のイテレータ
+ * @param last 範囲の最後 + 1 のイテレータ
+ * @param comp bool 値へ文脈変換可能な比較関数オブジェクト
+ * @return なし
+ * @code
+ * #include<numeric>
+ * #include <random>
+ * 
+ * void bubble_sort_sample()
+ * {
+ *      std::vector<int> v(10);
+ *      std::iota(std::begin(v), std::end(v), mt);
+ *      std::random_device seed;
+ *      std::mt19937 mt(seed());
+ *      std::shuffle(std::begin(v), std::end(v), mt);
+ * 
+ *      TPLCXX17::chap16_7_1::v1::bubble_sort(std::begin(v), std::end(v)); // less than
+ *      TPLCXX17::chap16_7_1::v1::bubble_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
+ * }
+ * @endcode
+*/
 template <class ForwardIterator, class Compare>
-ForwardIterator bubble_sort(ForwardIterator first, ForwardIterator last, Compare comp)
+void bubble_sort(ForwardIterator first, ForwardIterator last, Compare comp)
 {
     for (ForwardIterator i = first; i != last; ++i) {
         for (ForwardIterator j = first; j < i; ++j) {
             iter_swap_if(i, j, comp);
         }
     }
-    return first;
 }
-
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 template <class ForwardIterator>
-ForwardIterator bubble_sort(ForwardIterator first, ForwardIterator last)
+void bubble_sort(ForwardIterator first, ForwardIterator last)
 {
-    return bubble_sort(first, last, std::less<>());
+    bubble_sort(first, last, std::less<>());
 }
-```
-利用は先ほどと同様に行えます。
-```cpp
-// .... (略)
+#endif
 
-bubble_sort(std::begin(v), std::end(v)); // less than
-bubble_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
+} // namespace v1
+} // namespace chap16_7_1
+} // namespace TPLCXX17
 ```
 要素の一番目と二番目を比較して順番が逆であれば入れ替え(上記コードでこの比較処理と入れ替えは、`iter_swap_if`が担っています。)、次に二番目と三番目に対して同様にして比較、入れ替えを行い、次に三番目と... というように最後まで実行すると、最後の値が最小または最大となり、その値の位置が確定します。そして再度確定した値以外で、全ての値の位置が確定するまで同様の処理を繰り返します。至極単純ですが、これがバブルソートというアルゴリズムです。<br>
 尚前述した通り、バブルソートはよくこの計算量オーダー(時間計算量)のアルゴリズムとして分類されますが、前述した選択ソートよりも低速です。比較回数はバブルソート、選択ソート共に同じですが、交換回数は選択ソートの方が少ないためです。また、選択ソートは非安定ソートであることに対してバブルソートは安定ソートです。<br>
@@ -196,8 +304,21 @@ bubble_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
 #include <algorithm>
 #include <functional>
 #include <iterator>
+namespace TPLCXX17 {
+namespace chap16_7_1 {
+namespace v1 {
 
-struct linear_search_insert {
+/**
+ * @class search_insert
+ * @brief 線形探索による探索と挿入を行う関数オブジェクト
+*/
+struct search_insert {
+    /**
+     * @param first 範囲の最初の BidirectionalIterator コンセプトを満たすイテレータ
+     * @param iter イテレート中における現在のイテレータ
+     * @param comp bool 値へ文脈変換可能な比較関数オブジェクト
+     * @return なし
+    */
     template <class BidirectionalIterator, class Compare>
     void operator()(BidirectionalIterator first, BidirectionalIterator iter, Compare comp)
     {
@@ -211,35 +332,56 @@ struct linear_search_insert {
     }
 };
 
+/**
+ * @brief 範囲を挿入ソートします
+ * @param first 範囲の最初のイテレータ
+ * @param last 範囲の最後 + 1 のイテレータ
+ * @param comp bool 値へ文脈変換可能な比較関数オブジェクト
+ * @param search_inserter 挿入位置の検索を行い、挿入を実行する関数オブジェクト
+ * @return なし
+ * @code
+ * #include<numeric>
+ * #include <random>
+ * 
+ * void insertion_sort_sample()
+ * {
+ *      std::vector<int> v(10);
+ *      std::iota(std::begin(v), std::end(v), mt);
+ *      std::random_device seed;
+ *      std::mt19937 mt(seed());
+ *      std::shuffle(std::begin(v), std::end(v), mt);
+ * 
+ *      TPLCXX17::chap16_7_1::v1::insertion_sort(std::begin(v), std::end(v)); // less than
+ *      TPLCXX17::chap16_7_1::v1::insertion_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
+ * }
+ * @endcode
+*/
 template <class BidirectionalIterator, class Compare, class SearchInserter>
-ForwardIterator insertion_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp, SearchInserter search_inserter)
+void insertion_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp, SearchInserter search_inserter)
 {
     for (ForwardIterator i = std::next(first, 1); i != last; ++i) {
         if (!comp(*std::next(i, -1), *i)) { // (1)
             search_inserter(first, i, comp);
         }
    }
-    return first;
 }
-
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 template <class BidirectionalIterator, class Compare>
-ForwardIterator insertion_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp)
+void insertion_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp)
 {
-    return insertion_sort(first, last, comp, linear_search_insert());
+    insertion_sort(first, last, comp, search_insert());
 }
 
 template <class BidirectionalIterator>
-ForwardIterator insertion_sort(BidirectionalIterator first, BidirectionalIterator last)
+insertion_sort(BidirectionalIterator first, BidirectionalIterator last)
 {
-    return insertion_sort(first, last, std::less<>(), linear_search_insert());
+    insertion_sort(first, last, std::less<>(), search_insert());
 }
-```
-利用は先ほどと同様に行えます。
-```cpp
-// .... (略)
+#endif
 
-insertion_sort(std::begin(v), std::end(v)); // less than
-insertion_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
+} // namespace v1
+} // namespace chap16_7_1
+} // namespace TPLCXX17
 ```
 アルゴリズムの流れを次に示します。$$ a_{0}, a_{1}, a_{2}, \cdots, a_{5} = 3, 1, 4, 1, 5, 9 $$ という数列に対して昇順で挿入ソートを行います。
 
@@ -252,7 +394,7 @@ insertion_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
 7. 末尾に到達したため、ソートが完了しました。
 
 このようにして選択ソートは行われます。処理内容にもある通り、たまたまソート済みであった場合には一切処理をせず次のステップに進む事ができます。上記コードではコメント`(1)`の判定がそれに対応します。また、このソートは安定ソートです。しかしながら、このソートの一連の流れにある挿入位置の決定処理(4. のような処理)において適切にその位置を決定しなければ、安定ソートでなくなってしまいます。<br>
-上記コードでは、この挿入位置の決定に、線形探索を利用しており、コード中`linear_search_insert`関数オブジェクトがそれに値します。この場合の挿入ソートの時間計算量は、$$ O(n^{2}) $$ となります。<br>
+上記コードでは、この挿入位置の決定に、線形探索を利用しており、コード中`search_insert`関数オブジェクトがそれに値します。この場合の挿入ソートの時間計算量は、$$ O(n^{2}) $$ となります。<br>
 しかしながら、この検索部分には少し改善の余地が残されています。検索を行う範囲は、上記処理の通り、すでに挿入ソートの過程内でソート済みです。ソート済みの範囲に対しては、二分探索が有効なのです。二分探索については下記 $$ O(logN) $$ で説明します。
 
 ### $$ O(N logN) $$
@@ -265,9 +407,34 @@ insertion_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
 というように行います。
 ```cpp
 #include <algorithm>
-
+namespace TPLCXX17 {
+namespace chap16_7_1 {
+namespace v1 {
+/**
+ * @brief 範囲をマージソートします
+ * @param first 範囲の最初のイテレータ
+ * @param last 範囲の最後 + 1 のイテレータ
+ * @param comp bool 値へ文脈変換可能な比較関数オブジェクト
+ * @return なし
+ * @code
+ * #include<numeric>
+ * #include <random>
+ * 
+ * void merge_sort_sample()
+ * {
+ *      std::vector<int> v(10);
+ *      std::iota(std::begin(v), std::end(v), mt);
+ *      std::random_device seed;
+ *      std::mt19937 mt(seed());
+ *      std::shuffle(std::begin(v), std::end(v), mt);
+ * 
+ *      TPLCXX17::chap16_7_1::v1::merge_sort(std::begin(v), std::end(v)); // less than
+ *      TPLCXX17::chap16_7_1::v1::merge_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
+ * }
+ * @endcode
+*/
 template <class RandomAccessIterator, class Compare>
-RandomAccessIterator merge_sort(RandomAccessIterator first, RandomAccessIterator last, Compare comp)
+void merge_sort(RandomAccessIterator first, RandomAccessIterator last, Compare comp)
 {
     if (last - first > 1) {
         RandomAccessIterator middle = first + (last - first) / 2;
@@ -275,21 +442,17 @@ RandomAccessIterator merge_sort(RandomAccessIterator first, RandomAccessIterator
         merge_sort(middle, last, comp);
         std::inplace_merge(first, middle, last, comp);
     }
-    return first;
 }
-
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 template <class RandomAccessIterator>
-RandomAccessIterator merge_sort(RandomAccessIterator first, RandomAccessIterator last)
+void merge_sort(RandomAccessIterator first, RandomAccessIterator last)
 {
-    return merge_sort(first, last, std::less<>());
+    merge_sort(first, last, std::less<>());
 }
-```
-次のように利用する事を想定しています。
-```cpp
-// ... (略)
-
-merge_sort(std::begin(v), std::end(v)); // less than
-merge_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
+#endif
+} // namespace v1
+} // namespace chap16_7_1
+} // namespace TPLCXX17
 ```
 再帰によってデータ列を細分化して、マージソートの実際のマージ部分を`std::inplace_merge`に任せています。その名の通り、この関数は追加の作業記憶領域を必要としないため、この実装の空間計算量は $$ 0 $$ です。しかし、$$ O(n) $$ の空間計算量を必要とする実装も一般的に見られます。また、データ列に対するそれぞれのマージ操作は並列化が容易である特徴があります。また、安定なソートを実装できます。
 
@@ -297,7 +460,32 @@ merge_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
 ```cpp
 #include <algorithm>
 #include <functional>
-
+namespace TPLCXX17 {
+namespace chap16_7_1 {
+namespace v1 {
+/**
+ * @brief 範囲の先頭をピボットとしてクイックソートを行います
+ * @param first 範囲の最初のイテレータ
+ * @param last 範囲の最後 + 1 のイテレータ
+ * @param comp bool 値へ文脈変換可能な比較関数オブジェクト
+ * @return なし
+ * @code
+ * #include<numeric>
+ * #include <random>
+ * 
+ * void quick_sort_sample()
+ * {
+ *      std::vector<int> v(10);
+ *      std::iota(std::begin(v), std::end(v), mt);
+ *      std::random_device seed;
+ *      std::mt19937 mt(seed());
+ *      std::shuffle(std::begin(v), std::end(v), mt);
+ * 
+ *      TPLCXX17::chap16_7_1::v1::quick_sort(std::begin(v), std::end(v)); // less than
+ *      TPLCXX17::chap16_7_1::v1::quick_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
+ * }
+ * @endcode
+*/
 template <class BidirectionalIterator, class Compare>
 void quick_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp)
 {
@@ -313,11 +501,20 @@ void quick_sort(BidirectionalIterator first, BidirectionalIterator last, Compare
     quick_sort(first, l, comp);
     quick_sort(++l, last, comp);
 }
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+template <class BidirectionalIterator>
+void quick_sort(BidirectionalIterator first, BidirectionalIterator last)
+{
+    quick_sort(first, last, std::less<>());
+}
+#endif
 
-/*
- * std::partition による実装
- *
+} // namespace v1
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+namespace v2 {
+
+// std::partition による実装
 template <class BidirectionalIterator, class Compare>
 void quick_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp)
 {
@@ -329,32 +526,64 @@ void quick_sort(BidirectionalIterator first, BidirectionalIterator last, Compare
     quick_sort(first, std::next(split, -1), comp);
     quick_sort(split, last, comp);
 }
-
- *
- *
- */
- 
 template <class BidirectionalIterator>
 void quick_sort(BidirectionalIterator first, BidirectionalIterator last)
 {
     quick_sort(first, last, std::less<>());
 }
-```
-次のように利用する事を想定しています。
-```cpp
-// ... (略)
 
-quick_sort(std::begin(v), std::end(v)); // less than
-quick_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
+} //namespace v2
+#endif
+} // namespace chap16_7_1
+} // namespace TPLCXX17
 ```
 クイックソートは、ランダムなデータに対しては有効的ですが、すでにソート済みであったり、並び順が全く逆だったとき(例えば昇順に並び替えようとするデータ列が降順であった場合)、時間計算量が $$ O(n ^ {2}) $$ になってしまいます。クイックソートの高速さは初めのピボット選択が大きな鍵を握っている特性があるため、ピボットの選択方法を工夫する必要があります。上記の実装では、無条件でデータ列の一番先頭をピボットとしており、ピボットの選択方法としてはあまりにも愚直でよろしくありません。ピボットの選択方法には、乱数から選択する、データ列の中間を選択する、データ列から最初、中間、最後の要素を取り出してその中央値を選択するといった方法があります。特に最後のものは median-of-three と言われます。下記コードは、それを利用したクイックソートの実装です。
 ```cpp
+namespace TPLCXX17 {
+namespace chap16_7_1 {
+namespace v2 {
+/**
+ * @brief median-of-three を得ます
+ * @param x @a operator< によって比較可能な値
+ * @param y @a operator< によって比較可能な値
+ * @param z @a operator< によって比較可能な値
+ * @return median-of-three を返します
+ * @code
+ * void med3_sample()
+ * {
+ *      [[maybe_unused]] auto r = TPLCXX17::chap16_7_1::v2::med3(4, 2, 3); // 3
+ * }
+ * @endcode
+ */
 template <class T>
 const T& med3(const T& x, const T& y, const T& z) // median-of-three を得る
 {
     return std::max(std::min(x, y), std::min(std::max(x, y), z)); 
 }
 
+/**
+ * @brief median-of-three によってピボットを選択し、クイックソートを行います
+ * @param first 範囲の最初のイテレータ
+ * @param last 範囲の最後 + 1 のイテレータ
+ * @param comp bool 値へ文脈変換可能な比較関数オブジェクト
+ * @return なし
+ * @code
+ * #include<numeric>
+ * #include <random>
+ * 
+ * void quick_sort_sample()
+ * {
+ *      std::vector<int> v(10);
+ *      std::iota(std::begin(v), std::end(v), mt);
+ *      std::random_device seed;
+ *      std::mt19937 mt(seed());
+ *      std::shuffle(std::begin(v), std::end(v), mt);
+ * 
+ *      TPLCXX17::chap16_7_1::v2::quick_sort(std::begin(v), std::end(v)); // less than
+ *      TPLCXX17::chap16_7_1::v2::quick_sort(std::begin(v), std::end(v), std::greater<>()); // greater than
+ * }
+ * @endcode
+ */
 template <class BidirectionalIterator, class Compare>
 void quick_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp)
 {
@@ -370,11 +599,16 @@ void quick_sort(BidirectionalIterator first, BidirectionalIterator last, Compare
     quick_sort(lower, last, comp);
 }
 
-// ... 同じオーバーロード(略)
+// ... v1::quick_sort と同じ comp なしのバージョンのオーバーロード(略)
+
+} // namespace v2
+} // namespace chap16_7_1
+} // namespace TPLCXX17
 ```
 median-of-three によって万事解決のように思えますが、これでも尚最悪の時間計算量は $$ O(N^{2}) $$ のままです。どのような場合でなりうるかというと、多くの等しい値の並ぶデータ列に対するソートです。例えば昇順ソートをするとして、入力データが全て同等のあったとします。ソートの過程で、左側のパーティションが空のまま、そして右側のパーティションから 1 つずつ要素が削除されていきます。これが $$ O(N^{2}) $$ の時間計算量を要する事となってしまうのです。この問題は、[Dutch national flag problem(直訳すると、オランダ国旗問題)](https://en.wikipedia.org/wiki/Dutch_national_flag_problem)とも言われます。これを回避するために、ピボットより小さい値、ピボットに等しい値、ピボットより大きい値の3つのグループに値を分離した 3-way クイックソートと言われるクイックソートもあります。クイックソートは、このようにピボットの選択方法、分割の仕方などの他にも、様々な工夫がされた亜種が存在しています。全てを説明するのは本項の範囲を超えるため特に触れませんが、興味のある方は是非調べてみましょう。<br>
 尚、クイックソートは C 標準ライブラリで用意されています。それを次のように利用する事ができます。
 ```cpp
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include <cstdlib>
 
 template <class T>
@@ -391,21 +625,137 @@ struct less {
 
 typedef decltype(v)::value_type value_type;
 std::qsort(std::data(v), v.size(), sizeof(value_type), less<value_type>()());
+#endif
 ```
-
 ### $$ O(N) $$
 データ数 N から線形探索を行うといったアルゴリズムがこの計算量オーダーとなります。
 
 ### $$ O(logN) $$
 挿入ソートの説明の最後で挙げた二分探索がこの計算量オーダーです。二分探索とは、すでにソート済みのデータ列に対して、全体を半分ずつ分けて、別れた片方を検索の対象とするといった処理を反復的に行う探索アルゴリズムです。
 ```cpp
-// draftdraftdraft
+#include <iterator>
+namespace TPLCXX17 {
+namespace chap16_7_1 {
+namespace v1 {
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+template <class ForwardIterator, class T, class Compare>
+ForwardIterator lower_bound(ForwardIterator first, ForwardIterator last, const T& val, Compare comp)
+{
+    typedef typename std::iterator_traits<ForwardIterator>::difference_type diff_type;
+    
+    for (diff_type len = std::distance(first, last); len > 0;) {
+        diff_type half = len >> 1; // == len / 2
+        ForwardIterator mid = first;
+        std::advance(mid, half);
+
+        if (comp(*mid, val)) {
+            first = mid;
+            ++first;
+            len -= half - 1;
+        } else {
+            len = half;
+        }
+    }
+    return first;
+}
+#endif
+
+/**
+ * @brief 指定された要素以上の値が現れる最初のイテレータを取得します。この関数は std::lower_bound と同等です
+ * @param first 範囲の最初のイテレータ
+ * @param last 範囲の最後 + 1 のイテレータ
+ * @param val 検索対象の値
+ * @return @p [first, last] 内のイテレータが @a val 以上の要素のうち最初のものを指すイテレータを返します。@a val 以上の要素がない場合 @a last を返します
+ * @code
+ * #include <vector>
+ * #include <numeric>
+ *
+ * void lower_bound_sample()
+ * {
+ *      std::vector<int> v(10);
+ *      std::iota(std::begin(v), std::end(v), 0);
+ *      auto iter = TPLCXX17::chap16_7_1::v1::lower_bound(std::begin(v), std::end(v), 4);
+ * }
+ * @endcode
+*/
+template <class ForwardIterator, class T>
+ForwardIterator lower_bound(ForwardIterator first, ForwardIterator last, const T& val)
+{
+    return v1::lower_bound(first, last, val, std::less<T>());
+}
+
+/**
+ * @brief 二分探索によって要素が範囲内に存在するかどうか @a comp を利用して判定します。この関数は std::binary_search と同等です
+ * @param first 範囲の最初のイテレータ
+ * @param last 範囲の最後のイテレータ
+ * @param val 検索対象の値
+ * @param comp bool 値へ文脈変換可能な比較関数オブジェクト
+ * @return @a val と同等の値が @p [first, last] にある場合は true 、そうでない場合は false を返します
+ * @code
+ * #include <vector>
+ * #include <numeric>
+ *
+ * void binary_search_sample()
+ * {
+ *      std::vector<int> v(10);
+ *      std::iota(std::begin(v), std::end(v), 0);
+ *      bool res = TPLCXX17::chap16_7_1::v1::binary_search(std::begin(v), std::end(v), 4);
+ * }
+ * @endcode
+*/
+template <class ForwardIterator, class T, class Compare>
+bool binary_search(ForwardIterator first, ForwardIterator last, const T& val, Compare comp)
+{
+    ForwardIterator iter = v1::lower_bound(first, last, val, comp);
+    return iter != last && !comp(val, *iter); // == 見つかった && それは val よりも大きくないまたは小さくない
+}
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+template <class ForwardIterator, class T>
+bool binary_search(ForwardIterator first, ForwardIterator last, const T& val)
+{
+    return TPLCXX17::chap16_7_1::v1::binary_search(first, last, val, std::less<T>());
+}
+#endif
+
+} // namespace v1
+} // namespace chap16_7_1
+} // namespace TPLCXX17
 ```
 尚、挿入ソートの検索(探索)で二分探索を行うソートは、二分挿入ソートと呼ばれます。以下はその実装ですが、前述の挿入ソートのコードを利用すると、次の通り探索アルゴリズムを注入できるようにしておいたため、加えるコードは二分挿入の内容しか必要ありません。
 ```cpp
 #include <algorithm>
+namespace TPLCXX17 {
+namespace chap16_7_1 {
+namespace v2 {
 
-struct binary_search_insert {
+/**
+ * @class search_insert
+ * @brief 二分探索による探索と挿入を行う関数オブジェクト。@a v1::insertion_sort に対して利用します。
+ * @code
+ * #include <vector>
+ * #include <numeric>
+ * #include <random>
+ * 
+ * void insertion_sort_sample()
+ * {
+ *      std::vector<int> v(10);
+ *      std::iota(std::begin(v), std::end(v), mt);
+ *      std::random_device seed;
+ *      std::mt19937 mt(seed());
+ *      std::shuffle(std::begin(v), std::end(v), mt);
+ * 
+ *      TPLCXX17::chap16_7_1::v1::insertion_sort(std::begin(v), std::end(v), std::less<>(), v2::binary_search_insert()); // less than
+ *      TPLCXX17::chap16_7_1::v1::insertion_sort(std::begin(v), std::end(v), std::greater<>(), v2::binary_search_insert()); // greater than
+ * }
+ * @endcode
+*/
+struct search_insert {
+    /**
+     * @param first 範囲の最初の BidirectionalIterator コンセプトを満たすイテレータ
+     * @param iter イテレート中における現在のイテレータ
+     * @param comp bool 値へ文脈変換可能な比較関数オブジェクト
+     * @return なし
+    */
     template <class ForwardIterator, class Compare>
     void operator()(ForwardIterator first, ForwardIterator iter, Compare comp)
     {
@@ -413,17 +763,20 @@ struct binary_search_insert {
     }
 };
 
-insertion_sort(std::begin(v), std::end(v), std::less<>(), binary_search_insert()); // less than
-insertion_sort(std::begin(v), std::end(v), std::greater<>(), binary_search_insert()); // greater than
+} // namespace v2
+} // namespace chap16_7_1
+} // namespace TPLCXX17
 ```
 尚、二分挿入ソートそのものの計算量オーダーは $$ O(N^{2}) $$ です。
 
 ### $$ O(1) $$
-どのようなデータ長、サイズであっても一定時間で計算が完了するオーダーです。配列の添え字アクセスは代表的なものの 1 つです。
+どのようなデータ長、サイズであっても一定時間で計算が完了するオーダーです。配列の添え字アクセスやハッシュテーブルによるデータ検索、連結リストへの追加、削除などが代表的です。
 <br><br>
 さて、ここまで様々な計算量とそれに主に分類されるアルゴリズムなどを見てみました。なんとなく計算量がどういうものかは分かったが、あまり実感がわかないという方は、特に計時間計算量においては、ハードウェア寄りの低レイヤーな視点から考えると、とても実感が湧きやすく良いでしょう。例えば、1 GHz の CPU では一秒間に約 10 億の命令が実行できます。加算は大抵単一の命令として組み込まれる事が多いです(実際には、加算一つ行うのにも動作周波数に合わせて命令の読み込み、解読、実行、書き込みといった処理が 1 つ 1 つ 1 クロックずつ行われます。が、これらの処理は CPU 内の別々の部分で並列処理されるため・・・というように、厳密に考えればそれほど単純ではありませんが、大体の見積もりとしては十分でしょう。また、どのような機械語命令が用意されているのかは、ご利用のアーキテクチャのマニュアルを参照しましょう)。クロック数と時間計算量を直接結びつけると、より現実的にどれだけの時間を要することになるのか、簡単な予測をすることもできますし、直感的に捉えやすくなるでしょう。
 
 
-## 16.7.2 計算理論におけるクラス
+## 16.7.2 計算量理論における複雑性クラス
+本項では、計算複雑性理論について取り上げます。ここまで、アルゴリズムや計算量の説明にいくつか計算問題や課題を取り上げました。それらの解法の複雑性を数学的に扱い、計算機科学的視点で計算問題全般を各複雑性クラスに分類します。そうする事で、
 
+計算分野の一つであるのが計算複雑性理論です。
 
