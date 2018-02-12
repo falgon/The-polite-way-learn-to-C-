@@ -1,5 +1,4 @@
 function extract (){
-#    echo "/**\n* @defgroup 167 16.7 第16章/16.7 アルゴリズムと計算量理論\n* @brief 16.7.1 で利用されたサンプルコードです\n*/\n/*@{*/" > ${D1671}
     echo "/**\n* @defgroup $2\n* @brief $3\n*/\n/*@{*/" > $1
     sed -n '/^```/,/^```/ p' < ../Chap16/167-computational-complexity-theory.md | sed '/^```/ d' >> $1
     echo "/*@}*/" >> $1
