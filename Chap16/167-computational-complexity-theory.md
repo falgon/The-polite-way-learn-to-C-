@@ -195,7 +195,7 @@ namespace v1 {
  * @param comp bool 値へ文脈変換可能な比較関数オブジェクト
  * @return なし
  * @code
- * #include<numeric>
+ * #include <numeric>
  * #include <random>
  * 
  * void selection_sort_sample()
@@ -260,7 +260,7 @@ void iter_swap_if(ForwardIterator x, ForwardIterator y, Compare comp)
  * @param comp bool 値へ文脈変換可能な比較関数オブジェクト
  * @return なし
  * @code
- * #include<numeric>
+ * #include <numeric>
  * #include <random>
  * 
  * void bubble_sort_sample()
@@ -340,7 +340,7 @@ struct search_insert {
  * @param search_inserter 挿入位置の検索を行い、挿入を実行する関数オブジェクト
  * @return なし
  * @code
- * #include<numeric>
+ * #include <numeric>
  * #include <random>
  * 
  * void insertion_sort_sample()
@@ -417,7 +417,7 @@ namespace v1 {
  * @param comp bool 値へ文脈変換可能な比較関数オブジェクト
  * @return なし
  * @code
- * #include<numeric>
+ * #include <numeric>
  * #include <random>
  * 
  * void merge_sort_sample()
@@ -470,7 +470,7 @@ namespace v1 {
  * @param comp bool 値へ文脈変換可能な比較関数オブジェクト
  * @return なし
  * @code
- * #include<numeric>
+ * #include <numeric>
  * #include <random>
  * 
  * void quick_sort_sample()
@@ -568,7 +568,7 @@ const T& med3(const T& x, const T& y, const T& z) // median-of-three を得る
  * @param comp bool 値へ文脈変換可能な比較関数オブジェクト
  * @return なし
  * @code
- * #include<numeric>
+ * #include <numeric>
  * #include <random>
  * 
  * void quick_sort_sample()
