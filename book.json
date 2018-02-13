@@ -3,10 +3,16 @@
     "title": "The polite way learn to C++17",
     "description": "Japanese C++17 documents for beginner.",
     "language": "ja",
-    "plugins": ["mathjax"],
+    "plugins": ["mathjax","-sharing", "hide-published-with"],
     "pluginsCongig": {
         "mathjax":{
             "forceSVG": true
         }
-    }
+    },
+    "link": {
+        "sidebar": {
+            "本書で利用されるサンプル実装のドキュメントはこちら": "https://falgon.github.io/ThePoliteWayLearnToCpp17/"
+        }
+    },
+    "gitbook": ">= 3.0.0"
 }
