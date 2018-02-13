@@ -1,3 +1,12 @@
 {
-    "plugins": ["mathjax"]
+    "author": "roki",
+    "title": "The polite way learn to C++17",
+    "description": "Japanese C++17 documents for beginner.",
+    "language": "ja",
+    "plugins": ["mathjax"],
+    "pluginsCongig": {
+        "mathjax":{
+            "forceSVG": true
+        }
+    }
 }
