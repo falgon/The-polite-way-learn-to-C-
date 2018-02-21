@@ -23,7 +23,10 @@
 C++ における`float`型とは、**単精度浮動小数点数型**と言われる浮動小数点型であり、前述した通りビット列によって実数を表現します。
 その表現方法は、国際標準規格 **IEEE Standard for Floating-Point Arithmetic (ANSI/IEEE Std 754-2008)**(以下これを IEEE 754 と称します)として 5 種類定められており、以下に示す形式は、同国際標準規格のうちの 1 つである、**binary32** という形式です。一般的な実装では、C++ における`float`型はこの形式に則って実装されます。
 
-$$ \overbrace{\overbrace{\underbrace{1}_{符号部({\bf s}ign)}}^{1bit}\\overbrace{\underbrace{10000010}_{指数部({\bf e}xponent)}}^{8bit}\\overbrace{\underbrace{01100100000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
+$$ \overbrace{
+\overbrace{\underbrace{1}_{符号部({\bf s}ign)}}^{1bit}\
+\overbrace{\underbrace{10000010}_{指数部({\bf e}xponent)}}^{8bit}\
+\overbrace{\underbrace{01100100000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
 
 <br>
 IEEE 754 では上図のように、32 ビットを 3 つに分割し、一番右側を 0 ビット目とし、一番左側を 31 ビット目とします。なお、このビット列は、$$ -10.25 $$ を表します。各用語は次の通りです。
@@ -36,7 +39,10 @@ $$ -10.25 = \overbrace{-}^{符号}\overbrace{10.25}^{仮数} \times 10^{\overbra
 
 まずは符号部についてです。これはシンプルで、正ならば $$ 0 $$ が、負ならば $$ 1 $$ がこの部分に入ります。よって現時点では次のようになります。<br>
 
-$$ \overbrace{\overbrace{\underbrace{1}_{符号部({\bf s}ign)}}^{1bit}\\overbrace{\underbrace{\cdots}_{指数部({\bf e}xponent)}}^{8bit}\ \overbrace{\underbrace{\cdots}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
+$$ \overbrace{
+\overbrace{\underbrace{1}_{符号部({\bf s}ign)}}^{1bit}\
+\overbrace{\underbrace{\cdots}_{指数部({\bf e}xponent)}}^{8bit}\ 
+\overbrace{\underbrace{\cdots}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
 
 
 ### 仮数部
@@ -63,7 +69,7 @@ $$ 10.25 $$ の仮数部を求めるには
 1. $$ 10.25 $$ を $$ 10 $$ と $$ 0.25 $$ に分離する
 2. それぞれ 2 進に変換し、 $$ 10 = 1010_{(2)} $$、$$ 0.25 = 0.0100_{(2)} $$
 3. 合わせて、$$ 1010.0100_{(2)} $$
-4. 整数部分に $$ 1 $$ がくるように、小数点を移動する。この場合、$$ 1010.0100 $$ から 小数点の位置を左に 3 つずらすと整数部分に 1 がくるので、$$ 1.0100100 $$
+4. 整数部分に $$ 1 $$ がくるように、小数点を移動する。この場合、$$ 1010.0100_{(2)} $$ から 小数点の位置を左に 3 つずらすと整数部分に 1 がくるので、$$ 1.0100100_{(2)} $$
 5. 必ず整数部分に $$ 1 $$ がくるため、その分は無駄である。よって最初の整数部分を省く。$$ 0100100_{(2)} $$
 6. 空いている箇所は $$ 0 $$ を埋める
 
@@ -71,7 +77,10 @@ $$ 10.25 $$ の仮数部を求めるには
 その小数点の移動がどれだけ行われたかは、次で説明する指数部にて取り扱われるため、ちゃんと表現することができるのです。<br>
 ここまでで、次のようになりました。
 
-$$ \overbrace{\overbrace{\underbrace{1}_{符号部({\bf s}ign)}}^{1bit}\\overbrace{\underbrace{\cdots}_{指数部({\bf e}xponent)}}^{8bit}\\overbrace{\underbrace{01100100000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
+$$ \overbrace{
+\overbrace{\underbrace{1}_{符号部({\bf s}ign)}}^{1bit}\
+\overbrace{\underbrace{\cdots}_{指数部({\bf e}xponent)}}^{8bit}\
+\overbrace{\underbrace{01100100000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
 <br>
 仮数部の表現は、仮数部の直前に小数点があるかのような前提で行われている事がわかります。
 また 5 によって、仮数部で表現されるビット列の一つ上の桁に暗黙の 1 ビットがあるとみなせるため(これをいわゆるケチ表現と言ったりします)、実際の仮数部のビット数は 23 ビットですが、実質的には 24 ビット相当の精度で表現する事ができるという事です。<br>
@@ -84,7 +93,10 @@ $$ \overbrace{\overbrace{\underbrace{1}_{符号部({\bf s}ign)}}^{1bit}\\overbra
 このようにある値を一定の基準値からの間隔で表した値をオフセットまたはオフセット値、そのような形態の表現をオフセット表現と言います。また、このときの $$ 127 $$ をバイアス値といったりします。<br>
 $$ 011_{2} $$ に対してバイアス値 $$ 127 = 01111111_{(2)} $$ を加えると、$$ 130 = 10000010_{(2)} $$ となります。この値を指数部に入れ、次のようになりました。<br>
 
-$$ \overbrace{\overbrace{\underbrace{1}_{符号部({\bf s}ign)}}^{1bit}\\overbrace{\underbrace{10000010}_{指数部({\bf e}xponent)}}^{8bit}\\overbrace{\underbrace{01100100000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
+$$ \overbrace{
+\overbrace{\underbrace{1}_{符号部({\bf s}ign)}}^{1bit}\
+\overbrace{\underbrace{10000010}_{指数部({\bf e}xponent)}}^{8bit}\
+\overbrace{\underbrace{01100100000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
 
 <br>
 というわけで、$$ 10.25 $$ を IEEE 754 準拠の浮動小数点数に変換する事ができました。
@@ -94,18 +106,26 @@ $$ \overbrace{\overbrace{\underbrace{1}_{符号部({\bf s}ign)}}^{1bit}\\overbra
 ### まとめ
 練習として別の値でも IEEE 754 準拠の値を求めて見ましょう。例として $$ 25.625 $$ を変換して見ます。符号部は正ですから、まずは次のようになるはずです。<br>
 
-$$ \overbrace{\overbrace{\underbrace{0}_{符号部({\bf s}ign)}}^{1bit}\\overbrace{\underbrace{\cdots}_{指数部({\bf e}xponent)}}^{8bit}\ \overbrace{\underbrace{\cdots}_{仮数部({\bf f}raction)}}^{23bit}
-}^{32 bit} $$
+$$ \overbrace{
+\overbrace{\underbrace{0}_{符号部({\bf s}ign)}}^{1bit}\
+\overbrace{\underbrace{\cdots}_{指数部({\bf e}xponent)}}^{8bit}\ 
+\overbrace{\underbrace{\cdots}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
 
 <br>
 次に、$$ 25.625 $$ を $$ 25 $$ と $$ 0.625 $$ に分離します。それぞれ $$ 25 = 11001_{(2)} , 0.625 = 0.101_{(2)} $$ です。
 合わせると $$ 11001.101_{(2)} $$ ですが、整数部分が先頭になるように小数点を移動させます。4 つ移動させれば良いので $$ 1.1001101_{(2)} $$ となります。
 このとき、整数部分の $$ 1 $$ を除いて、仮数部は次のようになります。<br>
 
-$$ \overbrace{\overbrace{\underbrace{0}_{符号部({\bf s}ign)}}^{1bit}\\overbrace{\underbrace{\cdots}_{指数部({\bf e}xponent)}}^{8bit}\\overbrace{\underbrace{10011010000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
+$$ \overbrace{
+\overbrace{\underbrace{0}_{符号部({\bf s}ign)}}^{1bit}\
+\overbrace{\underbrace{\cdots}_{指数部({\bf e}xponent)}}^{8bit}\
+\overbrace{\underbrace{10011010000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
 <br>
 指数部には先ほど移動させた $$ 4 $$ を表現します。バイアス値である $$ 127 $$ を加えて $$ 131 = 100000011_{(2)} $$ です。よって<br>
-$$ \overbrace{\overbrace{\underbrace{0}_{符号部({\bf s}ign)}}^{1bit}\\overbrace{\underbrace{10000011}_{指数部({\bf e}xponent)}}^{8bit}\\overbrace{\underbrace{10011010000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
+$$ \overbrace{
+\overbrace{\underbrace{0}_{符号部({\bf s}ign)}}^{1bit}\
+\overbrace{\underbrace{10000011}_{指数部({\bf e}xponent)}}^{8bit}\
+\overbrace{\underbrace{10011010000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
 <br>
 となります。<br>
 さてここまで仮数部をもとめるのに、「小数点を移動する」と述べてきました。
@@ -116,7 +136,10 @@ $$ \overbrace{\overbrace{\underbrace{0}_{符号部({\bf s}ign)}}^{1bit}\\overbra
 指数部が全て $$ 1 $$ であるときに、無限を表現すると前述しました。また、全てのビットが 0 だと当然 $$ 0.0 $$ ですので、それらを除いた実際の数値として扱える範囲を、実際に確認してみましょう。
 まずは正の数における最小値です。<br>
 
-$$ \overbrace{\overbrace{\underbrace{0}_{符号部({\bf s}ign)}}^{1bit}\\overbrace{\underbrace{00000001}_{指数部({\bf e}xponent)}}^{8bit}\\overbrace{\underbrace{00000000000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
+$$ \overbrace{
+\overbrace{\underbrace{0}_{符号部({\bf s}ign)}}^{1bit}\
+\overbrace{\underbrace{00000001}_{指数部({\bf e}xponent)}}^{8bit}\
+\overbrace{\underbrace{00000000000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
 
 この指数部に着目します。
 
