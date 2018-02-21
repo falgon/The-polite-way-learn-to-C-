@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['quick_5fsort',['quick_sort',['../namespace_t_p_l_c_x_x17_1_1chap16__7__1_1_1v1.html#ad30be180a8086daae440eea8a09be1b1',1,'TPLCXX17::chap16_7_1::v1::quick_sort()'],['../namespace_t_p_l_c_x_x17_1_1chap16__7__1_1_1v2.html#afb67d4fa108c08db0623cfc06c33dd3b',1,'TPLCXX17::chap16_7_1::v2::quick_sort()']]]
+  ['point_5fcompute',['point_compute',['../class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a5b4283190fa72d351991d03a491d4060',1,'TPLCXX17::chap16_8_1::v1::simply_fixed_point']]],
+  ['primes',['primes',['../namespace_t_p_l_c_x_x17_1_1chap16__7__1_1_1v1.html#ab74a1a6faa1988316aed5d2d68e49eb5',1,'TPLCXX17::chap16_7_1::v1::primes()'],['../namespace_t_p_l_c_x_x17_1_1chap16__7__1_1_1v2.html#a17e41e8dce5ea14323c16293d0d7c6d5',1,'TPLCXX17::chap16_7_1::v2::primes()']]]
 ];

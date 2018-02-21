@@ -34,6 +34,8 @@ var menudata={children:[
 {text:"クラス索引",url:"classes.html"},
 {text:"クラスメンバ",url:"functions.html",children:[
 {text:"全て",url:"functions.html"},
-{text:"関数",url:"functions_func.html"}]}]},
+{text:"関数",url:"functions_func.html"},
+{text:"型定義",url:"functions_type.html"},
+{text:"関連関数",url:"functions_rela.html"}]}]},
 {text:"ファイル",url:"files.html",children:[
 {text:"ファイル一覧",url:"files.html"}]}]}

@@ -33,7 +33,7 @@ unsigned int sum(unsigned int n)
     return k;
 }
 
-} // namespace space v1
+} // namespace v1
 } // namespace chap16_7_1
 } // namespace TPLCXX17
 ```

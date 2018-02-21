@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['primes',['primes',['../namespace_t_p_l_c_x_x17_1_1chap16__7__1_1_1v1.html#ab74a1a6faa1988316aed5d2d68e49eb5',1,'TPLCXX17::chap16_7_1::v1::primes()'],['../namespace_t_p_l_c_x_x17_1_1chap16__7__1_1_1v2.html#a17e41e8dce5ea14323c16293d0d7c6d5',1,'TPLCXX17::chap16_7_1::v2::primes()']]]
+  ['operator_28_29',['operator()',['../struct_t_p_l_c_x_x17_1_1chap16__7__1_1_1v1_1_1search__insert.html#af4f08824d7680d19fc9a34d4204e6eb3',1,'TPLCXX17::chap16_7_1::v1::search_insert::operator()()'],['../struct_t_p_l_c_x_x17_1_1chap16__7__1_1_1v2_1_1search__insert.html#a9d6288085e28bdfad51847c4d9ec2460',1,'TPLCXX17::chap16_7_1::v2::search_insert::operator()()']]],
+  ['operator_3c_3c',['operator&lt;&lt;',['../class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#ab1da3818d7d04c76dc59be6a1a2df480',1,'TPLCXX17::chap16_8_1::v1::simply_fixed_point']]],
+  ['operator_3d',['operator=',['../class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#ad451ca05f34ebf1c164fb70d88e00d92',1,'TPLCXX17::chap16_8_1::v1::simply_fixed_point']]]
 ];
