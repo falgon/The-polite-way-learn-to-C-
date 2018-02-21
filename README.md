@@ -1,7 +1,7 @@
 # ![](/assets/cooltext217357454332119.png)
 
 ## What's this ?
-These are Japanese C++17 documents for beginners.
+The Japanese C++17 documents for beginners.
 
 ## Build
 * GitBook: https://www.gitbook.com/book/roki/thepolitewaylearntocpp17/
