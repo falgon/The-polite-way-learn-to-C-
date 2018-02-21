@@ -73,5 +73,6 @@
   * [16.5 式の評価順序](Chap16/165-order_of_eval.md)
   * [16.6 補数](Chap16/166-complement.md)
   * [16.7 アルゴリズムと計算量理論](Chap16/167-computational-complexity-theory.md)
+  * [16.8 float のしくみ](/Chap16/168-float.md)
   * [16.x 次期 C++ バージョン C++20 について](Chap16/cxx20.md)
 * [方針と注釈](comments.md)

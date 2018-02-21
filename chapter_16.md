@@ -11,4 +11,5 @@
 5. [評価の順序](/Chap16/165-order_of_eval.md)
 6. [補数](/Chap16/166-complement.md)
 7. [アルゴリズムと計算量理論](/Chap16/167-computational-complexity-theory.md)
-8. [次期C++標準 C++20 つまみ食い](/Chap16/cxx20.md)
+8. [float のしくみ](/Chap16/168-float.md)
+9. [次期C++標準 C++20 つまみ食い](/Chap16/cxx20.md)
