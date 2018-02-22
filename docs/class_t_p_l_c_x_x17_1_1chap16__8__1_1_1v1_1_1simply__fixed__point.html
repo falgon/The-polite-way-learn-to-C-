@@ -62,11 +62,12 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="namespace_t_p_l_c_x_x17.html">TPLCXX17</a></li><li class="navelem"><a class="el" href="namespace_t_p_l_c_x_x17_1_1chap16__8__1.html">chap16_8_1</a></li><li class="navelem"><a class="el" href="namespace_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1.html">v1</a></li><li class="navelem"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html">simply_fixed_point</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespace_t_p_l_c_x_x17.html">TPLCXX17</a></li><li class="navelem"><b>chap16_8_1</b></li><li class="navelem"><b>v1</b></li><li class="navelem"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html">simply_fixed_point</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">クラス</a> &#124;
 <a href="#pub-types">公開型</a> &#124;
 <a href="#pub-methods">公開メンバ関数</a> &#124;
 <a href="#pub-static-methods">静的公開メンバ関数</a> &#124;
@@ -77,7 +78,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>シンプルな符号なし固定小数型をシミュレートしたクラス  
+<p>簡素化された符号なし固定小数点数型のシミュレートクラス  
  <a href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#details">[詳解]</a></p>
 
 <p><code>#include &lt;<a class="el" href="_t_p_l_c_x_x17__1681_8hpp_source.html">TPLCXX17_1681.hpp</a>&gt;</code></p>
@@ -86,7 +87,7 @@ $(function() {
 公開型</h2></td></tr>
 <tr class="memitem:a5d56069d707795d5a1c05b5f02ddb7fb"><td class="memItemLeft" align="right" valign="top"><a id="a5d56069d707795d5a1c05b5f02ddb7fb"></a>
 typedef std::uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a5d56069d707795d5a1c05b5f02ddb7fb">value_type</a></td></tr>
-<tr class="memdesc:a5d56069d707795d5a1c05b5f02ddb7fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">32 ビット符号なし整数型を用いる事とした <br /></td></tr>
+<tr class="memdesc:a5d56069d707795d5a1c05b5f02ddb7fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">32 ビット符号なし領域を用います <br /></td></tr>
 <tr class="separator:a5d56069d707795d5a1c05b5f02ddb7fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -95,40 +96,46 @@ typedef std::uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a clas
 constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a45d4fa4c998f3ac559ac1b53a5bac9bf">simply_fixed_point</a> ()=default</td></tr>
 <tr class="memdesc:a45d4fa4c998f3ac559ac1b53a5bac9bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">デフォルトコンストラクタ <br /></td></tr>
 <tr class="separator:a45d4fa4c998f3ac559ac1b53a5bac9bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a42b56a4582a148c64bdbf4bdd067780d"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
-<tr class="memitem:a42b56a4582a148c64bdbf4bdd067780d"><td class="memTemplItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a42b56a4582a148c64bdbf4bdd067780d">simply_fixed_point</a> (T x)</td></tr>
-<tr class="memdesc:a42b56a4582a148c64bdbf4bdd067780d"><td class="mdescLeft">&#160;</td><td class="mdescRight">コンストラクタ  <a href="#a42b56a4582a148c64bdbf4bdd067780d">[詳解]</a><br /></td></tr>
-<tr class="separator:a42b56a4582a148c64bdbf4bdd067780d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad451ca05f34ebf1c164fb70d88e00d92"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
-<tr class="memitem:ad451ca05f34ebf1c164fb70d88e00d92"><td class="memTemplItemLeft" align="right" valign="top">constexpr <a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html">simply_fixed_point</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#ad451ca05f34ebf1c164fb70d88e00d92">operator=</a> (T x) noexcept</td></tr>
-<tr class="memdesc:ad451ca05f34ebf1c164fb70d88e00d92"><td class="mdescLeft">&#160;</td><td class="mdescRight">代入演算子  <a href="#ad451ca05f34ebf1c164fb70d88e00d92">[詳解]</a><br /></td></tr>
-<tr class="separator:ad451ca05f34ebf1c164fb70d88e00d92"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a620315d0cf9ad133fa1a4dac96ffbeaa"><td class="memItemLeft" align="right" valign="top">constexpr void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a620315d0cf9ad133fa1a4dac96ffbeaa">assign_point</a> (<a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a5d56069d707795d5a1c05b5f02ddb7fb">value_type</a> x) noexcept</td></tr>
-<tr class="memdesc:a620315d0cf9ad133fa1a4dac96ffbeaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">小数代入用の関数  <a href="#a620315d0cf9ad133fa1a4dac96ffbeaa">[詳解]</a><br /></td></tr>
-<tr class="separator:a620315d0cf9ad133fa1a4dac96ffbeaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe10f6498b64caf80c7015b479c496cc"><td class="memTemplParams" colspan="2">template&lt;class T , std::enable_if_t&lt; is_integral&lt; T &gt;::value, std::nullptr_t &gt;  = nullptr&gt; </td></tr>
+<tr class="memitem:abe10f6498b64caf80c7015b479c496cc"><td class="memTemplItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#abe10f6498b64caf80c7015b479c496cc">simply_fixed_point</a> (T x)</td></tr>
+<tr class="memdesc:abe10f6498b64caf80c7015b479c496cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">整数部コンストラクタ  <a href="#abe10f6498b64caf80c7015b479c496cc">[詳解]</a><br /></td></tr>
+<tr class="separator:abe10f6498b64caf80c7015b479c496cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe10f6498b64caf80c7015b479c496cc"><td class="memTemplParams" colspan="2">template&lt;class T , std::enable_if_t&lt; std::negation&lt; is_integral&lt; T &gt;&gt;::value, std::nullptr_t &gt;  = nullptr&gt; </td></tr>
+<tr class="memitem:abe10f6498b64caf80c7015b479c496cc"><td class="memTemplItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#abe10f6498b64caf80c7015b479c496cc">simply_fixed_point</a> (T x)</td></tr>
+<tr class="memdesc:abe10f6498b64caf80c7015b479c496cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">固定小数点型を受け付けるコンストラクタ  <a href="#abe10f6498b64caf80c7015b479c496cc">[詳解]</a><br /></td></tr>
+<tr class="separator:abe10f6498b64caf80c7015b479c496cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a718c2c4ccf8ed1f98324d0904fcbe44b"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
+<tr class="memitem:a718c2c4ccf8ed1f98324d0904fcbe44b"><td class="memTemplItemLeft" align="right" valign="top">constexpr std::enable_if_t&lt; is_integral&lt; T &gt;::value, <a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html">simply_fixed_point</a> &amp; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a718c2c4ccf8ed1f98324d0904fcbe44b">operator=</a> (T x)</td></tr>
+<tr class="memdesc:a718c2c4ccf8ed1f98324d0904fcbe44b"><td class="mdescLeft">&#160;</td><td class="mdescRight">整数部代入演算子  <a href="#a718c2c4ccf8ed1f98324d0904fcbe44b">[詳解]</a><br /></td></tr>
+<tr class="separator:a718c2c4ccf8ed1f98324d0904fcbe44b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a0a2d3eec7b778761cf2e8d67b2189a"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
+<tr class="memitem:a1a0a2d3eec7b778761cf2e8d67b2189a"><td class="memTemplItemLeft" align="right" valign="top">constexpr std::enable_if_t&lt; std::negation&lt; is_integral&lt; T &gt; &gt;::value, <a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html">simply_fixed_point</a> &amp; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a1a0a2d3eec7b778761cf2e8d67b2189a">operator=</a> (T x)</td></tr>
+<tr class="memdesc:a1a0a2d3eec7b778761cf2e8d67b2189a"><td class="mdescLeft">&#160;</td><td class="mdescRight">固定小数点型を受け付けるコンストラクタ  <a href="#a1a0a2d3eec7b778761cf2e8d67b2189a">[詳解]</a><br /></td></tr>
+<tr class="separator:a1a0a2d3eec7b778761cf2e8d67b2189a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 静的公開メンバ関数</h2></td></tr>
-<tr class="memitem:a5b4283190fa72d351991d03a491d4060"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a5d56069d707795d5a1c05b5f02ddb7fb">value_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a5b4283190fa72d351991d03a491d4060">point_compute</a> (double x)</td></tr>
-<tr class="memdesc:a5b4283190fa72d351991d03a491d4060"><td class="mdescLeft">&#160;</td><td class="mdescRight">double 型から固定小数型の値に変換するヘルパ関数です  <a href="#a5b4283190fa72d351991d03a491d4060">[詳解]</a><br /></td></tr>
-<tr class="separator:a5b4283190fa72d351991d03a491d4060"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a41b4261688d0bbc4b37b996c235f56ee"><td class="memTemplParams" colspan="2">template&lt;typename FloatingPoint &gt; </td></tr>
+<tr class="memitem:a41b4261688d0bbc4b37b996c235f56ee"><td class="memTemplItemLeft" align="right" valign="top">static constexpr std::enable_if_t&lt; std::is_floating_point&lt; FloatingPoint &gt;::value, <a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a5d56069d707795d5a1c05b5f02ddb7fb">value_type</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a41b4261688d0bbc4b37b996c235f56ee">convert_fixed_point</a> (FloatingPoint x)</td></tr>
+<tr class="memdesc:a41b4261688d0bbc4b37b996c235f56ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">浮動小数点数型から固定小数点型の値に変換するヘルパ関数  <a href="#a41b4261688d0bbc4b37b996c235f56ee">[詳解]</a><br /></td></tr>
+<tr class="separator:a41b4261688d0bbc4b37b996c235f56ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 フレンド</h2></td></tr>
 <tr class="memitem:ab1da3818d7d04c76dc59be6a1a2df480"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#ab1da3818d7d04c76dc59be6a1a2df480">operator&lt;&lt;</a> (std::ostream &amp;os, const <a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html">simply_fixed_point</a> &amp;this_)</td></tr>
-<tr class="memdesc:ab1da3818d7d04c76dc59be6a1a2df480"><td class="mdescLeft">&#160;</td><td class="mdescRight">標準出力ライブラリライクなシフト演算子のオーバーロード  <a href="#ab1da3818d7d04c76dc59be6a1a2df480">[詳解]</a><br /></td></tr>
+<tr class="memdesc:ab1da3818d7d04c76dc59be6a1a2df480"><td class="mdescLeft">&#160;</td><td class="mdescRight">標準出力ライブラリライクなシフト演算のオーバーロード  <a href="#ab1da3818d7d04c76dc59be6a1a2df480">[詳解]</a><br /></td></tr>
 <tr class="separator:ab1da3818d7d04c76dc59be6a1a2df480"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">詳解</h2>
-<div class="textblock"><p>シンプルな符号なし固定小数型をシミュレートしたクラス </p>
-<div class="fragment"><div class="line"><span class="keywordtype">int</span> main()</div><div class="line">{</div><div class="line">     std::uint16_t v = 42;</div><div class="line">     <a class="code" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a45d4fa4c998f3ac559ac1b53a5bac9bf">simply_fixed_point</a> fp(42_); <span class="comment">// 整数 42 で初期化</span></div><div class="line">     std::cout &lt;&lt; fp &lt;&lt; std::endl; <span class="comment">// 42</span></div><div class="line"></div><div class="line">     fp.assign_point(<a class="code" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a5b4283190fa72d351991d03a491d4060">simply_fixed_point::point_compute</a>(1.23)); <span class="comment">// 浮動小数点数 1.23 を固定小数点数に変換し代入</span></div><div class="line">     std::cout &lt;&lt; fp &lt;&lt; std::endl; <span class="comment">// 1.23047</span></div><div class="line">}</div></div><!-- fragment --> </div><h2 class="groupheader">構築子と解体子</h2>
-<a id="a42b56a4582a148c64bdbf4bdd067780d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a42b56a4582a148c64bdbf4bdd067780d">&#9670;&nbsp;</a></span>simply_fixed_point()</h2>
+<div class="textblock"><p>簡素化された符号なし固定小数点数型のシミュレートクラス </p>
+<div class="fragment"><div class="line"><span class="keywordtype">int</span> main()</div><div class="line">{</div><div class="line">    <a class="code" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html">TPLCXX17::chap16_8_1::v1::simply_fixed_point</a> fp(static_cast&lt;std::uint16_t&gt;(42));</div><div class="line">    std::cout &lt;&lt; fp &lt;&lt; std::endl; <span class="comment">// 42</span></div><div class="line"></div><div class="line">    fp = <a class="code" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a41b4261688d0bbc4b37b996c235f56ee">TPLCXX17::chap16_8_1::v1::simply_fixed_point::convert_fixed_point</a>(1.23);</div><div class="line">    std::cout &lt;&lt; fp &lt;&lt; std::endl; <span class="comment">// 1.23047</span></div><div class="line">}</div></div><!-- fragment --> </div><h2 class="groupheader">構築子と解体子</h2>
+<a id="abe10f6498b64caf80c7015b479c496cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe10f6498b64caf80c7015b479c496cc">&#9670;&nbsp;</a></span>simply_fixed_point() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class T &gt; </div>
+template&lt;class T , std::enable_if_t&lt; is_integral&lt; T &gt;::value, std::nullptr_t &gt;  = nullptr&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -148,65 +155,29 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>コンストラクタ </p>
+<p>整数部コンストラクタ </p>
 <dl class="params"><dt>引数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">x</td><td>24 ビット以下の符号なしデータ型 T。問答無用でそれが 24 ビット以下の数値であるとみなす </td></tr>
+    <tr><td class="paramname">x</td><td>is_integral に沿うデータ型 T。SFINAE で失敗しなかった場合、それが問答無用で 24 ビット以下の整数値であるとみなします。 </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<h2 class="groupheader">関数詳解</h2>
-<a id="a620315d0cf9ad133fa1a4dac96ffbeaa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a620315d0cf9ad133fa1a4dac96ffbeaa">&#9670;&nbsp;</a></span>assign_point()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr void TPLCXX17::chap16_8_1::v1::simply_fixed_point::assign_point </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a5d56069d707795d5a1c05b5f02ddb7fb">value_type</a>&#160;</td>
-          <td class="paramname"><em>x</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>小数代入用の関数 </p>
-<dl class="params"><dt>引数</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">x</td><td>固定小数型の値 </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>戻り値</dt><dd>なし </dd></dl>
-
-</div>
-</div>
-<a id="ad451ca05f34ebf1c164fb70d88e00d92"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad451ca05f34ebf1c164fb70d88e00d92">&#9670;&nbsp;</a></span>operator=()</h2>
+<a id="abe10f6498b64caf80c7015b479c496cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe10f6498b64caf80c7015b479c496cc">&#9670;&nbsp;</a></span>simply_fixed_point() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class T &gt; </div>
+template&lt;class T , std::enable_if_t&lt; std::negation&lt; is_integral&lt; T &gt;&gt;::value, std::nullptr_t &gt;  = nullptr&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr <a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html">simply_fixed_point</a>&amp; TPLCXX17::chap16_8_1::v1::simply_fixed_point::operator= </td>
+          <td class="memname">constexpr TPLCXX17::chap16_8_1::v1::simply_fixed_point::simply_fixed_point </td>
           <td>(</td>
           <td class="paramtype">T&#160;</td>
           <td class="paramname"><em>x</em></td><td>)</td>
@@ -215,34 +186,37 @@ template&lt;class T &gt; </div>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>代入演算子 </p>
+<p>固定小数点型を受け付けるコンストラクタ </p>
 <dl class="params"><dt>引数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">x</td><td>24 ビット以下の符号なしデータ型 T。問答無用でそれが 24 ビット以下の数値であるとみなす </td></tr>
+    <tr><td class="paramname">x</td><td>is_integral に沿わないデータ型 T。SFINAE で失敗しなかった場合、それが問答無用で固定小数点型の形式にビット列が並んでいるものとみなします。 </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="a5b4283190fa72d351991d03a491d4060"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5b4283190fa72d351991d03a491d4060">&#9670;&nbsp;</a></span>point_compute()</h2>
+<h2 class="groupheader">関数詳解</h2>
+<a id="a41b4261688d0bbc4b37b996c235f56ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a41b4261688d0bbc4b37b996c235f56ee">&#9670;&nbsp;</a></span>convert_fixed_point()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<div class="memtemplate">
+template&lt;typename FloatingPoint &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static constexpr <a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a5d56069d707795d5a1c05b5f02ddb7fb">value_type</a> TPLCXX17::chap16_8_1::v1::simply_fixed_point::point_compute </td>
+          <td class="memname">static constexpr std::enable_if_t&lt;std::is_floating_point&lt;FloatingPoint&gt;::value, <a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a5d56069d707795d5a1c05b5f02ddb7fb">value_type</a>&gt; TPLCXX17::chap16_8_1::v1::simply_fixed_point::convert_fixed_point </td>
           <td>(</td>
-          <td class="paramtype">double&#160;</td>
+          <td class="paramtype">FloatingPoint&#160;</td>
           <td class="paramname"><em>x</em></td><td>)</td>
           <td></td>
         </tr>
@@ -254,14 +228,86 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>double 型から固定小数型の値に変換するヘルパ関数です </p>
+<p>浮動小数点数型から固定小数点型の値に変換するヘルパ関数 </p>
 <dl class="params"><dt>引数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">x</td><td>浮動小数点数型 </td></tr>
+    <tr><td class="paramname">x</td><td>浮動小数点数型の値 </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>戻り値</dt><dd><em>x</em> を固定小数型の値に変換した値 </dd></dl>
+<dl class="section return"><dt>戻り値</dt><dd><em>x</em> を固定小数点型に変換した値 </dd></dl>
+
+</div>
+</div>
+<a id="a718c2c4ccf8ed1f98324d0904fcbe44b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a718c2c4ccf8ed1f98324d0904fcbe44b">&#9670;&nbsp;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class T &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr std::enable_if_t&lt;is_integral&lt;T&gt;::value, <a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html">simply_fixed_point</a>&amp;&gt; TPLCXX17::chap16_8_1::v1::simply_fixed_point::operator= </td>
+          <td>(</td>
+          <td class="paramtype">T&#160;</td>
+          <td class="paramname"><em>x</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>整数部代入演算子 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">x</td><td>is_integral に沿うデータ型 T。SFINAE で失敗しなかった場合、それが問答無用で 24 ビット以下の整数値であるとみなします。 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a1a0a2d3eec7b778761cf2e8d67b2189a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a0a2d3eec7b778761cf2e8d67b2189a">&#9670;&nbsp;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class T &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr std::enable_if_t&lt;std::negation&lt;is_integral&lt;T&gt; &gt;::value, <a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html">simply_fixed_point</a>&amp;&gt; TPLCXX17::chap16_8_1::v1::simply_fixed_point::operator= </td>
+          <td>(</td>
+          <td class="paramtype">T&#160;</td>
+          <td class="paramname"><em>x</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>固定小数点型を受け付けるコンストラクタ </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">x</td><td>is_integral に沿わないデータ型 T。SFINAE で失敗しなかった場合、それが問答無用で固定小数点型の形式にビット列が並んでいるものとみなします。 </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -300,11 +346,11 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>標準出力ライブラリライクなシフト演算子のオーバーロード </p>
+<p>標準出力ライブラリライクなシフト演算のオーバーロード </p>
 <dl class="params"><dt>引数</dt><dd>
   <table class="params">
     <tr><td class="paramname">os</td><td>std::ostream のオブジェクト </td></tr>
-    <tr><td class="paramname">this_</td><td><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html" title="シンプルな符号なし固定小数型をシミュレートしたクラス ">simply_fixed_point</a> のオブジェクト </td></tr>
+    <tr><td class="paramname">this_</td><td><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html" title="簡素化された符号なし固定小数点数型のシミュレートクラス ">simply_fixed_point</a> のオブジェクト </td></tr>
   </table>
   </dd>
 </dl>

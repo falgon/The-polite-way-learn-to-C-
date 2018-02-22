@@ -47,93 +47,116 @@ C++17 には、固定小数点を表現する型は標準では用意されて�
 
 //! TPLCXX17 namespace
 namespace TPLCXX17 {
-//! chapter 16.8.1 namespace
+////! chapter 16.8.1 namespace
 namespace chap16_8_1 {
-//! version 1 namespace
+////! version 1 namespace
 namespace v1 {
+
 /**
  * @class simply_fixed_point
- * @brief シンプルな符号なし固定小数型をシミュレートしたクラス
+ * @brief 簡素化された符号なし固定小数点数型のシミュレートクラス
  * @code
  * int main()
  * {
- *      std::uint16_t v = 42;
- *      simply_fixed_point fp(42_); // 整数 42 で初期化
- *      std::cout << fp << std::endl; // 42
+ *     TPLCXX17::chap16_8_1::v1::simply_fixed_point fp(static_cast<std::uint16_t>(42));
+ *     std::cout << fp << std::endl; // 42
  *
- *      fp.assign_point(simply_fixed_point::point_compute(1.23)); // 浮動小数点数 1.23 を固定小数点数に変換し代入
- *      std::cout << fp << std::endl; // 1.23047
+ *     fp = TPLCXX17::chap16_8_1::v1::simply_fixed_point::convert_fixed_point(1.23);
+ *     std::cout << fp << std::endl; // 1.23047
  * }
  * @endcode
  */
 class simply_fixed_point {
+    // 1 バイトは 8 ビットでなければならない
+    static_assert(CHAR_BIT == 8);
 public:
-    //! 32 ビット符号なし整数型を用いる事とした
+    //! 32 ビット符号なし領域を用います
     typedef std::uint32_t value_type;
-
+private:  
+    //! 小数部のビットサイズを表します。
+    inline static constexpr value_type fractional_size = 8;
+    
+    /**
+     * @class is_integral
+     * @brief コンストラクタで SFINAE を行うためのヘルパーです
+     */
+    template <class T>
+    struct is_integral
+        : std::conjunction<std::is_unsigned<T>, std::bool_constant<(sizeof(T) <= (sizeof(value_type) * CHAR_BIT - fractional_size) / CHAR_BIT)>> {};
+public:
     /**
      * @brief デフォルトコンストラクタ
      */
     constexpr explicit simply_fixed_point() = default;
-    /**
-     * @brief コンストラクタ
-     * @param x 24 ビット以下の符号なしデータ型 T。問答無用でそれが 24 ビット以下の数値であるとみなす
-     */
-    template <class T, std::enable_if_t<std::conjunction_v<std::is_unsigned<T>, std::bool_constant<(sizeof(T) <= 24 / CHAR_BIT)>>, std::nullptr_t> = nullptr>
-    constexpr explicit simply_fixed_point(T x) : data_(std::move(x))
-    {
-        data_ <<= fractional_part; // 8 ビット分開ける
-    }
-    /**
-     * @brief 代入演算子
-     * @param x 24 ビット以下の符号なしデータ型 T。問答無用でそれが 24 ビット以下の数値であるとみなす
-     */
-    template <class T, std::enable_if_t<(sizeof(T) <= 24 / CHAR_BIT), std::nullptr_t> = nullptr>
-    constexpr simply_fixed_point& operator=(T x) noexcept
-    {
-        data_ = std::move(x);
-        data_ <<= fractional_part; // 8 ビット分開ける
-        return *this;
-    }
-    /**
-     * @brief 小数代入用の関数
-     * @param x 固定小数型の値
-     * @return なし
-     */
-    constexpr void assign_point(value_type x) noexcept
-    {
-        data_ = std::move(x);
-    }
-    /**
-     * @brief double 型から固定小数型の値に変換するヘルパ関数です
-     * @param x 浮動小数点数型
-     * @return @a x を固定小数型の値に変換した値
-     */
-    static constexpr value_type point_compute(double x)
-    {
-        // 2 の fractional_part 乗をかけた値を入れる
-        return static_cast<value_type>(std::round(x * std::pow(2, fractional_part)));
-    }
-private:
-    //! 整数部 24 ビット、小数部 8 ビットの固定小数型とみなす
-    value_type data_ = 0; 
-    
-    //! 小数部は 8 ビット
-    inline static constexpr value_type fractional_part = 8; 
 
     /**
-     * @brief 標準出力ライブラリライクなシフト演算子のオーバーロード
-     * @param os std::ostream のオブジェクト
-     * @param this_ simply_fixed_point のオブジェクト
-     * @return @a os
+     * @brief 整数部コンストラクタ
+     * @param x is_integral に沿うデータ型 T。SFINAE で失敗しなかった場合、それが問答無用で 24 ビット以下の整数値であるとみなします。
      */
-    friend std::ostream& operator<<(std::ostream& os, const simply_fixed_point& this_)
+    template <class T, std::enable_if_t<is_integral<T>::value, std::nullptr_t> = nullptr>
+    constexpr explicit simply_fixed_point(T x) : data_(std::move(x))
     {
-        return os << this_.data_ / std::pow(2, fractional_part); 
+        data_ <<= fractional_size;
     }
+
+    /**
+     * @brief 固定小数点型を受け付けるコンストラクタ
+     * @param x is_integral に沿わないデータ型 T。SFINAE で失敗しなかった場合、それが問答無用で固定小数点型の形式にビット列が並んでいるものとみなします。
+     */
+     template <class T, std::enable_if_t<std::negation<is_integral<T>>::value, std::nullptr_t> = nullptr>
+     constexpr explicit simply_fixed_point(T x) : data_(std::move(x)) {}
+
+     /**
+      * @brief 整数部代入演算子
+      * @param x is_integral に沿うデータ型 T。SFINAE で失敗しなかった場合、それが問答無用で 24 ビット以下の整数値であるとみなします。
+      */
+     template <class T>
+     constexpr std::enable_if_t<is_integral<T>::value, simply_fixed_point&> 
+     operator=(T x)
+     {
+         data_ = std::move(x);
+         data_ <<= fractional_size;
+         return *this;
+     }
+
+     /**
+      * @brief 固定小数点型を受け付けるコンストラクタ
+      * @param x is_integral に沿わないデータ型 T。SFINAE で失敗しなかった場合、それが問答無用で固定小数点型の形式にビット列が並んでいるものとみなします。
+      */
+     template <class T>
+     constexpr std::enable_if_t<std::negation<is_integral<T>>::value, simply_fixed_point&> 
+     operator=(T x)
+     {
+         data_ = std::move(x);
+         return *this;
+     }
+
+     /**
+      * @brief 浮動小数点数型から固定小数点型の値に変換するヘルパ関数
+      * @param x 浮動小数点数型の値
+      * @return @a x を固定小数点型に変換した値
+      */
+     template <typename FloatingPoint>
+     static constexpr std::enable_if_t<std::is_floating_point<FloatingPoint>::value, value_type> 
+     convert_fixed_point(FloatingPoint x)
+     {
+         // 2 の fractional_size 乗かけた値
+         return static_cast<value_type>(std::round(x * std::pow(2, fractional_size)));
+     }
 private:
-    // CHAR_BIT は 8 ビットでなければならない。
-    static_assert(CHAR_BIT == 8);
+     /**
+      * @brief 標準出力ライブラリライクなシフト演算のオーバーロード
+      * @param os std::ostream のオブジェクト
+      * @param this_ simply_fixed_point のオブジェクト
+      * @return @a os
+      */
+     friend std::ostream& operator<<(std::ostream& os, const simply_fixed_point& this_)
+     {
+         return os << this_.data_ / std::pow(2, fractional_size);
+     }
+
+     //! 整数部と小数部にわけた固定小数点の領域として使います
+     value_type data_ = 0;
 };
 
 } // namespace v1
@@ -153,7 +176,7 @@ C++ における`float`型とは、**単精度浮動小数点数型**と言わ�
 $$ \overbrace{
 \overbrace{\underbrace{1}_{符号部({\bf s}ign)}}^{1bit}\
 \overbrace{\underbrace{10000010}_{指数部({\bf e}xponent)}}^{8bit}\
-\overbrace{\underbrace{01100100000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
+\overbrace{\underbrace{01001000000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
 
 <br>
 各用語は次の通り対応します。<br>
@@ -190,21 +213,21 @@ $$ \overbrace{
 2. それぞれ 2 進に変換し、 $$ 10 = 1010_{(2)} $$、$$ 0.25 = 0.0100_{(2)} $$
 3. 合わせて、$$ 1010.0100_{(2)} $$
 4. 整数部分に $$ 1 $$ がくるように、小数点を移動する。この場合、$$ 1010.0100_{(2)} $$ から 小数点の位置を左に 3 つずらすと整数部分に 1 がくるので、$$ 1.0100100_{(2)} $$
-5. 必ず整数部分に $$ 1 $$ がくるため、その分は無駄である。よって最初の整数部分を省く。$$ 0100100_{(2)} $$
-6. 空いている箇所は $$ 0 $$ を埋める
+5. 必ず整数部分に $$ 1 $$ がくるため、これを省き、あるものとして認識する。$$ 0100100_{(2)} $$
+6. 空いている箇所に$$ 0 $$ を埋める
 
 この手順は、より形式的に要約すると次のようになります。
 
 1. $$ 10.25 = 1010.0100_{(2)} $$ を $$ 1.0100100_{(2)} \times 2^{3} = 1.0100100_{(2)} \times 10^{11}_{(2)} $$ という仮数と指数表現の形に変換する
-2. 必ず整数部分に $$ 1 $$ がくるため、これを省き、あるものとして認識する
-3. 空いている箇所は $$ 0 $$ を埋める
+2. 必ず整数部分に $$ 1 $$ がくるため、これを省き、あるものとして認識する。$$ 0100100_{(2)} $$
+3. 空いている箇所に $$ 0 $$ を埋める
 
 ここまでで、次のようになりました。
 
 $$ \overbrace{
 \overbrace{\underbrace{1}_{符号部({\bf s}ign)}}^{1bit}\
 \overbrace{\underbrace{\cdots}_{指数部({\bf e}xponent)}}^{8bit}\
-\overbrace{\underbrace{01100100000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
+\overbrace{\underbrace{01001000000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
 <br>
 仮数部の表現は、前述した通り仮数部の直前に小数点があるという前提で行われています。
 また 5 によって、仮数部で表現されるビット列の一つ上の桁に暗黙の 1 ビットがあるとみなせるため(これをいわゆるケチ表現と言ったりします)、実際の仮数部のビット数は 23 ビットですが、実質的には 24 ビット相当の精度で表現する事ができるという事です。なお 5 などでは、必ず整数部分に $$ 1 $$ がくると述べていますが、これには一点例外があり、変換する値が $$ 0 $$ であった場合が該当します。
@@ -222,10 +245,10 @@ $$ 011_{2} $$ に対してバイアス値 $$ 127 = 01111111_{(2)} $$ を加え�
 $$ \overbrace{
 \overbrace{\underbrace{1}_{符号部({\bf s}ign)}}^{1bit}\
 \overbrace{\underbrace{10000010}_{指数部({\bf e}xponent)}}^{8bit}\
-\overbrace{\underbrace{01100100000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
+\overbrace{\underbrace{01001000000000000000000}_{仮数部({\bf f}raction)}}^{23bit}}^{32 bit} $$
 
 <br>
-というわけで、$$ -10.25 $$ を IEEE 754 準拠の浮動小数点数に変換する事ができました。なお、指数部にも一点例外があり、全て 1 である場合(255である場合)は無限大($$ infty $$)を表現します。<br>
+というわけで、$$ -10.25 $$ を IEEE 754 準拠の浮動小数点数に変換する事ができました。なお、指数部に関しても一点例外があり、指数部の全てのビットが 1 である場合(255である場合)は、無限大($$ \infty $$)を表現します。<br>
 
 ### まとめ
 冒頭で $$ -10.25 $$ という数値を $$ \overbrace{-}^{符号}\overbrace{1.025}^{仮数} \times 10^{\overbrace{{1}}^{指数}} $$ と表現したように、IEEE 754 も 2 進数上でこのように仮数と指数を組み合わせて利用することで、値を表現します。
@@ -241,7 +264,7 @@ $$ \overbrace{
 <br>
 次に、$$ 25.625 = 11001.101_{(2)} $$ を指数と仮数で表現していきます。
 冒頭で述べた通り、2 進数上で数値は一桁あがるごとに $$ 2 $$ 乗、下がるごとに $$ -2 $$ 乗になりますから、指数もそれに応じて表現できます。
-つまり、$$ 1.1001101_{(2)} \times 2^{4} = 1.1001101_{(2)} \times 2^{100}_{(2)} $$ ということです。
+つまり、$$ 1.1001101_{(2)} \times 2^{4} = 1.1001101_{(2)} \times 2^{100_{(2)}}_{(2)} $$ ということです。
 仮数部に実際に入る値は、先頭の 1 ビットを取り除きますから、現時点で次のようになります。
 
 $$ \overbrace{

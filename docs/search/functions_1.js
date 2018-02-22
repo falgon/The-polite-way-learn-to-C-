@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['binary_5fsearch',['binary_search',['../namespace_t_p_l_c_x_x17_1_1chap16__7__1_1_1v1.html#a36f5be51af514883b9950fedab230a87',1,'TPLCXX17::chap16_7_1::v1']]],
-  ['bubble_5fsort',['bubble_sort',['../namespace_t_p_l_c_x_x17_1_1chap16__7__1_1_1v1.html#ae208daeb0cdfc5eedd07d20d4f10fe32',1,'TPLCXX17::chap16_7_1::v1']]]
+  ['convert_5ffixed_5fpoint',['convert_fixed_point',['../class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a41b4261688d0bbc4b37b996c235f56ee',1,'TPLCXX17::chap16_8_1::v1::simply_fixed_point']]]
 ];
