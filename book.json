@@ -7,6 +7,9 @@
     "pluginsCongig": {
         "mathjax":{
             "forceSVG": true
+        },
+        "search": {
+            "maxIndexSize": 100000
         }
     },
     "link": {
