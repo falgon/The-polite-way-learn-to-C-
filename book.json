@@ -3,7 +3,7 @@
     "title": "The polite way learn to C++17",
     "description": "Japanese C++17 documents for beginner.",
     "language": "ja",
-    "plugins": ["mathjax","-sharing", "hide-published-with"],
+    "plugins": ["mathjax-full", "-sharing", "hide-published-with"],
     "pluginsCongig": {
         "mathjax":{
             "forceSVG": true
