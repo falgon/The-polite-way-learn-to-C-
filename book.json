@@ -9,7 +9,7 @@
             "forceSVG": true
         },
         "search": {
-            "maxIndexSize": 100000
+            "maxIndexSize": 10000
         }
     },
     "link": {
