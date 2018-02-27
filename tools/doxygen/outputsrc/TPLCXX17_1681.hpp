@@ -126,4 +126,83 @@ private:
 } // namespace v1
 } // namespace chap16_8_1
 } // namespace TPLCXX17
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#include <iostream>
+#include <bitset>
+#include <cstring>
+#include <climits>
+#include <limits>
+
+int main()
+{
+    typedef float floating_point;
+    static_assert(std::numeric_limits<floating_point>::is_iec559);
+    
+    floating_point a = 25.625f;
+    std::uint32_t dst;
+    std::memcpy(&dst, &a, sizeof dst);
+    std::cout << std::bitset<sizeof(std::uint32_t) * CHAR_BIT>(dst) << std::endl;
+}
+#endif
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+float a = 25.625f;
+std::cout << std::bitset<sizeof(float) * CHAR_BIT>(*reinterpret_cast<unsigned long*>(&a)) << std::endl; // strict aliasing ルール違反
+
+#endif
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#include <iostream>
+#include <bitset>
+#include <limits>
+#include <cstring>
+#include <climits>
+#include <cmath>
+
+struct print_bit {
+    constexpr explicit print_bit(float f) : data_(std::move(f)) {}
+private:
+    float data_;
+
+    friend std::ostream& operator<<(std::ostream& os, const print_bit& this_)
+    {
+        static_assert(std::numeric_limits<float>::is_iec559);
+        std::uint32_t ui;
+        std::memcpy(&ui, &this_.data_, sizeof ui);
+        return os << std::bitset<sizeof ui * CHAR_BIT>(ui);
+    }
+};
+
+std::string round_style()
+{
+    if constexpr (constexpr std::float_round_style fs = std::numeric_limits<float>::round_style; fs == std::round_toward_zero) {
+        return "toward zero";
+    } else if constexpr (fs == std::round_to_nearest) {
+        return "to nearest";
+    } else if constexpr (fs == std::round_toward_infinity) {
+        return "toward infinity";
+    } else if constexpr (fs == std::round_toward_neg_infinity) {
+        return "toward negative infinity";
+    } else {
+        return "indeterminate";
+    }
+}
+
+int main()
+{
+    // 丸め方式を出力
+    std::cout << round_style() << std::endl; // 筆者の環境では to nearest
+
+    const float f1 = std::pow(2, 23); // 2 の 23 乗
+    // 1 は正常に足される
+    std::cout << print_bit(f1 + 1.f) << std::endl;  // 01001010100000000000000000000001
+    // 丸め方式によって実際の値は変わり得るものの正常には足されない
+    std::cout << print_bit(f1 + 0.5f) << std::endl; // 01001011000000000000000000000000
+
+    const float f2 = std::pow(2, 24); // 2 の 24 乗
+    // 単に出力
+    std::cout << print_bit(f2) << std::endl; // 01001011100000000000000000000000
+    // 丸め方式によって実際の値は変わり得るものの正常には足されない
+    std::cout << print_bit(f2 + 1) << std::endl; // 01001011100000000000000000000000
+}
+#endif
 /*@}*/

@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "module": "commonjs",
+        "target": "es2017",
+        "sourceMap": false,
+        "types": ["node"],
+        "preserveConstEnums": true,
+        "noEmitOnError": true,
+        "noUnusedParameters": true,
+        "noUnusedLocals": true,
+        "removeComments": true
+    },
+    "include": [
+        "./src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}
