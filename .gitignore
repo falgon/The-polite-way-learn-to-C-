@@ -1,1 +1,7 @@
+.DS_Store
 latex
+node_modules
+dist
+t.cpp
+*.bk
+_book

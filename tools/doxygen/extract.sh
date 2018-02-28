@@ -1,9 +1,9 @@
 #!/bin/sh
 
 function extract (){
-    echo "/**\n* @addtogroup $2\n* @brief $3\n*/\n/*@{*/" > $1
-    sed -n '/^```/,/^```/ p' < $4 | sed '/^```/ d' >> $1
-    echo "/*@}*/" >> $1
+    echo "/**\n* @addtogroup $2\n* @brief $3\n*/\n/*@{*/" > "./outputsrc/$1"
+    sed -n '/^```cpp/,/^```/ p' < $4 | sed '/^```/ d' >> "./outputsrc/$1"
+    echo "/*@}*/" >> "./outputsrc/$1"
 }
 
 D1671="TPLCXX17_1671.hpp"
@@ -11,7 +11,7 @@ D1671_Description="167\t16.7\t第16章/16.7\tアルゴリズムと計算複雑�
 D1671_Brief="16.7.1\tで利用されたサンプルコードです"
 D1671_PATH="../Chap16/167-computational-complexity-theory.md"
 
-extract $D1671 $D1671_Description $D1671_Brief $D1671_PATH
+#extract $D1671 $D1671_Description $D1671_Brief $D1671_PATH
 
 D1681="TPLCXX17_1681.hpp"
 D1681_Description="168\t16.8\t第16章/16.8\tfloatのしくみ"
