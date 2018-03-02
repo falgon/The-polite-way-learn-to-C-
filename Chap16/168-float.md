@@ -328,7 +328,7 @@ IEEE 754 binary32 の表現方法は、非常に広い範囲の数値を表現�
 $$ 8.00\cdots=\overbrace{
 \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit}
 \overbrace{\underbrace{10000010}_{({\bf e}xponent)}}^{8bit}
-\overbrace{\underbrace{00000000000000000000000}_{{\bf f}raction)}}^{23bit}}^{32bit} $$<br>
+\overbrace{\underbrace{00000000000000000000000}_{({\bf f}raction)}}^{23bit}}^{32bit} $$<br>
 ```mr 4.00 \cdots ```mrend と ```mr 8.00 \cdots ```mrend の中間値は、どれだけのパターンで表現することができますでしょうか。同じく、23 ビットのパターンで表します。<br>
 
 最後に、```mr 2\times 10^{9} = 20 ```mrend 億と ```mr 4\times 10^{9} = 40 ```mrend 億を同じ形式にして見て見ます。
@@ -548,18 +548,7 @@ Theoretical valueの合計に、最近接偶数丸め方式の値の合計の方
 Relative error が ```mr 0.001 ```mrendであるとき、小さく、また大きく見積もるとき、公式にあてはめると ```mr 19999 \times 0.001 = 19.999 ```mrend のAbsolute error があることがわかり、それぞれ ```mr 1 - 19.999 = -18.999 ```mrend、```mr 1 + 19.999 = 20.999 ```mrend であることがわかります。このような誤差範囲の広さがある演算結果は、到底あてにできるものではありません。<br>
 このようなほぼ等しい数値は、上位桁が等しく、下位桁だけ異なるという状態になっているはずです。そこで減算を行うと、上位桁は相殺され ```mr 0 ```mrend になります。そして、わずかな下位桁だけの差が結果として現れる事になります。このとき、正規化によって、現れた下位桁の後ろ側に ```mr 0 ```mrend を詰められることになります。この詰められた値 ```mr 0 ```mrend は計算によって導かれた値ではありませんが、**それが正常に計算された結果として ```mr 0 ```mrend なのか、桁落ちによって作られた ```mr 0 ```mrend なのかは、計算結果だけを見ても区別することはできません**。このようにして、本来保持していた有意な数値の桁数が減ってしまうことを**桁落ち**と言います。<br>
 
-$$ \left( 10000 = \overbrace{
-\overbrace{\underbrace{0}_{\bf s}ign)}}^{1bit}
-\overbrace{\underbrace{10001100}_{({\bf e}xponent)}}^{8bit}
-\overbrace{\underbrace{00111000100000000000000}_{\bf f}raction)}}^{23bit}}^{32bit} \right)-
-\left(9999 = \overbrace{
-\overbrace{\underbrace{0}_{\bf s}ign)}}^{1bit}
-\overbrace{\underbrace{01000110}_{({\bf e}xponent)}}^{8bit}
-\overbrace{\underbrace{000111000011110000000000}_{\bf f}raction)}}^{23bit}}^{32bit}\right) = 
-\left(1 = \overbrace{
-\overbrace{\underbrace{0}_{\bf s}ign)}}^{1bit}
-\overbrace{\underbrace{01111111}_{({\bf e}xponent)}}^{8bit}
-\overbrace{\underbrace{00000000000000000000000}_{\bf f}raction)}}^{23bit}}^{32bit}\right) $$ <br>
+```mr \left( 10000 = \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{10001100}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{00111000100000000000000}_{({\bf f}raction)}}^{23bit}}^{32bit} \right)- \left(9999 = \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{01000110}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{000111000011110000000000}_{({\bf f}raction)}}^{23bit}}^{32bit}\right) = \left(1 = \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{01111111}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{00000000000000000000000}_{({\bf f}raction)}}^{23bit}}^{32bit}\right) ```mrend <br>
 ご覧の通り、有効桁数が ```mr 0 ```mrend になってしまいました。この計算結果だけを見たとき、それが桁落ちとして詰められた値なのかそうでないのか区別できないことが重大な問題です。
 つまり、有効桁数の減少は、計算精度(信頼性)の悪化そのものです。そして一度減った有効桁数はもう回復することはできません。<br>
 これを防ぐためには、減算そのものを行わないことが一番ですが、そのようなわけにもいかないケースでは、ほぼ等しい数値間の減算を避けるようなプログラムを書くことで回避するしかないのです。<br>
