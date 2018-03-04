@@ -162,8 +162,10 @@ private:
 } // namespace chap16_8_1
 } // namespace TPLCXX17
 ```
-固定小数型の特徴は、表現できる幅が非常に狭く、値が増えても精度は一定であるという点です。<br>
-上述の固定小数点型における実装では、![](../assets/formula/168-float.md/15.png) までの小数点しか扱う事ができません。また、Number part は残りの ![](../assets/formula/168-float.md/16.png) 種類のビットパターンでしか表せません。
+固定小数型の特徴は、**表現できる幅が非常に狭く、値が増えても精度は一定であるという点です**。<br>
+上述の固定小数点型における形態では、![](../assets/formula/168-float.md/15.png) までの小数点しか扱う事ができません。また、Number part は残りの ![](../assets/formula/168-float.md/16.png) 種類のビットパターンしか表せません。
+しかしながら、精度はどのような値になっても一定であるため、これから説明する浮動小数点数と比較すると、これは良くもあり、悪くもあると言えるでしょう。
+なお上記の実装では簡単のため、符号部のない固定小数点となっていますが、符号部も取り扱った[筆者による実装例](https://github.com/falgon/SrookCppLibraries/tree/master/srook/numeric/fixed_point)や、現在のところ標準には搭載されていませんが、[C++ 標準化委員会に提出された固定小数点型の提案](https://github.com/johnmcfarlane/fixed_point/blob/develop/doc/p0037.md)やその[サンプル実装](https://github.com/johnmcfarlane/fixed_point/tree/develop/include/sg14)などを見ることができます。
 
 ## 16.8.2 float の中身
 固定小数点型では、表せる数値の範囲が狭くなってしまうことがわかりました。ここからは、C++ にも標準で搭載されている浮動小数点数型について説明していきます。<br>
@@ -345,7 +347,7 @@ binary32 の表現方法の必然として、大きな値を扱うためには�
 指数が 1 つあがれば値は爆発的に増加します。これまで述べてきた通り、仮数部は、その指数値間の値を表現しなければなりません。
 これらの事から、値を上げていくと、やがて 23 ビットのみでは(つまり 830 万通りでは)その指数値間の値を表現できるどこかで近似的に保持していくこととなり、最終的には整数単位ですら表現できなくなることがわかります。<br>
 
-次のグラフは、![](../assets/formula/168-float.md/112.png) から ![](../assets/formula/168-float.md/113.png) の間の精度を元に点でプロットしたものです。![](../assets/formula/168-float.md/114.png) より二つの値の差異は ![](../assets/formula/168-float.md/115.png) です。これを ![](../assets/formula/168-float.md/116.png) で分割して表現しますから ![](../assets/formula/168-float.md/117.png) の精度でこの間を表現できることになります(IEEE 754 binary32 実装の`float`型の環境において、`std::numeric_limits<float>::epsilon()`(`epsilon`という名前の定義は、後述しています)とすることで、同様の値を取得できます)。この値を**誤差幅**(また後に説明するAbsolute error )といいます。ここから考えられるように、またグラフからもわかるように、これは点でのプロットを行なったグラフですが、点があまりにも高密度であるためほぼ線のように見えています。
+次のグラフは、![](../assets/formula/168-float.md/112.png) から ![](../assets/formula/168-float.md/113.png) の間の精度を元に点でプロットしたものです。![](../assets/formula/168-float.md/114.png) より二つの値の差異は ![](../assets/formula/168-float.md/115.png) です。これを ![](../assets/formula/168-float.md/116.png) で分割して表現しますから ![](../assets/formula/168-float.md/117.png) の精度でこの間を表現できることになります(IEEE 754 binary32 実装の`float`型の環境において、`std::numeric_limits<float>::epsilon()`(`epsilon`という名前の定義は、後述しています)とすることで、同様の値を取得できます)。この値を**誤差幅**(また後に説明する Absolute error )といいます。ここから考えられるように、またグラフからもわかるように、これは点でのプロットを行なったグラフですが、点があまりにも高密度であるためほぼ線のように見えています。
 
 ![](../assets/168/epsilon.png)
 
@@ -499,59 +501,84 @@ Theoretical valueの合計に、最近接偶数丸め方式の値の合計の方
 <br>さて、このとき誤差幅は 1 と 2 両方とも ![](../assets/formula/168-float.md/182.png) kg です。しかし、2 よりも 1 の方が大きい誤差であるように思えます。
 ![](../assets/formula/168-float.md/183.png) kg の物体の重さを ![](../assets/formula/168-float.md/184.png) kg も計り間違えることは重大な誤差です。
 しかし、![](../assets/formula/168-float.md/185.png) kg の物体の重さを ![](../assets/formula/168-float.md/186.png) kg 計り間違えることは、前述した事例よりも重大ではないように思えます。
-このように、誤差をスケール(数字の大きさ、桁数）に関係なく、Theoretical valueからの幅だけで表すことを、主に**Absolute error (absolute error)**と言います。
-反して、スケールを考慮して比率で表された誤差を**Relative error (relative error)**と言います。Absolute error とRelative error には次のような関係があります。<br>
+このように、誤差をスケール(数字の大きさ、桁数）に関係なく、Theoretical valueからの幅だけで表すことを、主に** Absolute error**と言います。
+反して、スケールを考慮して比率で表された誤差を** Relative error**と言います。 Absolute error と  Relative error には次のような関係があります。<br>
 
 ![](../assets/formula/168-float.md/187.png)<br>
-式中の ![](../assets/formula/168-float.md/188.png) は要するにAbsolute error となります。<br>
-この関係を利用して 1, 2 の事例をそれぞれRelative error で表すと、
+![](../assets/formula/168-float.md/188.png)<br>
+これら二つの式は、分かりやすいよう単に変形しているだけで、それぞれ同じ事実を示しています。<br>
+この関係を利用して 1, 2 の事例をそれぞれ Relative error で表すと、
 1 は ![](../assets/formula/168-float.md/189.png)(![](../assets/formula/168-float.md/190.png)) の誤差、2 は ![](../assets/formula/168-float.md/191.png)(![](../assets/formula/168-float.md/192.png))の誤差であると言え、両者の誤差の比率を伺うことができます。<br><br>
-これらの概念を浮動小数点数と交えると、浮動小数点数の説明はより明確になります。浮動小数点数は、上のプロット図や説明からもわかるように、離散的に値が存在すると言え、表現可能な数値の間には隙間でできることがわかりました。<br>
+これらの概念を浮動小数点数と交えると、浮動小数点数の説明はより明確になります。浮動小数点数は、上のプロット図や説明からもわかるように、離散的に値が存在すると言え、表現可能な数値の間には隙間ができることがわかりました。<br>
 これに対してこの隙間は、「指数部が大きくなるにつれて絶対的な距離は大きくなるが、相対的な距離はほぼ等しい特徴がある」と説明できます。
 この間隔を、**マシンイプシロン (machine epsilon)**と言います。この値は、前述した通り`std::numeric_limits<float>::epsilon()`によって取得することができ、これは`FLT_EPSILON`という定義済みマクロに対応しています。
 
 ## 16.8.7 傾向と対策
 浮動小数点数では、どのような演算を行っても必ず誤差がでるということが分かりました。また、これまでの説明から誤差幅の大きさは値が大きくなるほど大きくなっていくということが分かりました。
-さらに、誤差にはスケールの違いがあり、Absolute error とRelative error というそれぞれの考え方で、それが何を示しているのかを明確に伝えることができるということが分かりました。
+さらに、誤差にはスケールの違いがあり、 Absolute error と Relative error というそれぞれの考え方で、それが何を示しているのかを明確に伝えることができるということが分かりました。
 
 ここでは、今まで説明してきた浮動小数点数の特性から、各演算における誤差をどの程度見積る必要があるのかについて説明します。
 これを知ることは、可能な限り誤差を抑えたコードを書くために有益であるはずです。<br>
 
 ### 加算
 ![](../assets/formula/168-float.md/193.png) について考えます。
-このとき、各 ![](../assets/formula/168-float.md/194.png) が ![](../assets/formula/168-float.md/195.png) のAbsolute error を持っている場合、演算結果から取得できる ![](../assets/formula/168-float.md/196.png) は ![](../assets/formula/168-float.md/197.png) の最大Absolute error を持っていることになります。<br>
-つまり、加算の結果のもつAbsolute error は、元の値のAbsolute error の和となることが言えます。
-例えば、各 ![](../assets/formula/168-float.md/198.png) のRelative error が ![](../assets/formula/168-float.md/199.png) であるとき、各 ![](../assets/formula/168-float.md/200.png) は ![](../assets/formula/168-float.md/201.png) または ![](../assets/formula/168-float.md/202.png) の値となります(上記Relative error の公式にあてはめるとこの通りになります)。
-よって結果は ![](../assets/formula/168-float.md/203.png)、![](../assets/formula/168-float.md/204.png)、![](../assets/formula/168-float.md/205.png) のうちのどれかとなるでしょう。
-これは、同じRelative error をもつ数値同士の加算の結果におけるRelative error は同じになるということがいえます。
-何故なのかは少し考えてみればすぐわかるはずです。同じスケール上の誤差値があるとき、その数値同士を足して結果として数値そのものが増えたとしても、誤差における比率は一定であるからです。
-さらに異なるRelative error 、つまり異なるスケールを互いにもつ数値同士の加算においては、これを適用できないこともわかるはずです。<br>
+このとき、各 ![](../assets/formula/168-float.md/194.png) が ![](../assets/formula/168-float.md/195.png) の Absolute error を持っている場合、演算結果から取得できる ![](../assets/formula/168-float.md/196.png) は ![](../assets/formula/168-float.md/197.png) の Absolute error を持っていることになります。<br>
+つまり、加算の結果のもつ Absolute error は、元の値の Absolute error の和となることが言えます。
+例えば、各 ![](../assets/formula/168-float.md/198.png) の Relative error ![](../assets/formula/168-float.md/199.png) が ![](../assets/formula/168-float.md/200.png) であるとき、各 ![](../assets/formula/168-float.md/201.png) は ![](../assets/formula/168-float.md/202.png) または ![](../assets/formula/168-float.md/203.png) となります(前述の公式にあてはめると、この通りになります)。
+よって結果は ![](../assets/formula/168-float.md/204.png)、![](../assets/formula/168-float.md/205.png)、![](../assets/formula/168-float.md/206.png) のうちのどれかとなるでしょう。
+この結果から、同じ Relative error をもつ数値同士の加算の結果における Relative error は同じになるということがいえます
+(例えば、![](../assets/formula/168-float.md/207.png) という式があるとき、![](../assets/formula/168-float.md/208.png) が ![](../assets/formula/168-float.md/209.png) の Absolute error を持つとした場合、 ![](../assets/formula/168-float.md/210.png) の Relative error は ![](../assets/formula/168-float.md/211.png) です。
+対して、![](../assets/formula/168-float.md/212.png) が ![](../assets/formula/168-float.md/213.png) の Absolute error を持つとした場合、 Relative error は同じく ![](../assets/formula/168-float.md/214.png) です。
+このように同じ Relative error を持つ数値同士の加算の結果値の Relative error は、元の値と同じ Relative error となります。)。
+さらに異なる Relative error 、つまり異なるスケールを互いにもつ数値同士の加算においては、これを適用できないこともわかるはずです。
+
 明確にするため、これをより数学的に説明します。<br>
-量 ![](../assets/formula/168-float.md/206.png) の実験値として ![](../assets/formula/168-float.md/207.png) 各実験値のAbsolute error  ![](../assets/formula/168-float.md/208.png)(数学、物理学において ![](../assets/formula/168-float.md/209.png) は差を表すときに用いられることがあります)があるとき、これらの量から誤差付きの量 ![](../assets/formula/168-float.md/210.png) を算出し、各誤差 ![](../assets/formula/168-float.md/211.png) が ![](../assets/formula/168-float.md/212.png)(![](../assets/formula/168-float.md/213.png))に影響を与えるとき、誤差が**伝播する**といいます。
-前述したとおりAbsolute error は、![](../assets/formula/168-float.md/214.png) という加法によって、![](../assets/formula/168-float.md/215.png) のAbsolute error  ![](../assets/formula/168-float.md/216.png) に対し次のように伝播します。<br>
-![](../assets/formula/168-float.md/217.png)<br>
-このとき、量 ![](../assets/formula/168-float.md/218.png) を大きく見積もった場合、すなわち ![](../assets/formula/168-float.md/219.png) を大きく見積もった場合、
-![](../assets/formula/168-float.md/220.png) と表せ、量 ![](../assets/formula/168-float.md/221.png) を最も大きく見積もった場合の値を ![](../assets/formula/168-float.md/222.png) としたとき、![](../assets/formula/168-float.md/223.png) と見積もることができます。
-また、量 ![](../assets/formula/168-float.md/224.png) を小さく見積もった場合、すなわち ![](../assets/formula/168-float.md/225.png) を小さく見積もった場合、
-![](../assets/formula/168-float.md/226.png) と表せ、量 ![](../assets/formula/168-float.md/227.png) を最も小さく見積もった場合の値を ![](../assets/formula/168-float.md/228.png) としたとき、![](../assets/formula/168-float.md/229.png) と見積もることができます。
+量 ![](../assets/formula/168-float.md/215.png) の実験値として ![](../assets/formula/168-float.md/216.png) 各実験値の Absolute error  ![](../assets/formula/168-float.md/217.png)(数学、物理学において ![](../assets/formula/168-float.md/218.png) は差を表すときに用いられることがあります)があるとき、これらの量から誤差付きの量 ![](../assets/formula/168-float.md/219.png) を算出し、各誤差 ![](../assets/formula/168-float.md/220.png) が ![](../assets/formula/168-float.md/221.png)(![](../assets/formula/168-float.md/222.png))に影響を与えるとき、誤差が**伝播する**といいます。
+前述したとおり Absolute error は、![](../assets/formula/168-float.md/223.png) という加法によって、![](../assets/formula/168-float.md/224.png) の Absolute error  ![](../assets/formula/168-float.md/225.png) に対し次のように伝播します。<br>
+![](../assets/formula/168-float.md/226.png)<br>
+このとき、量 ![](../assets/formula/168-float.md/227.png) を大きく見積もった場合、すなわち ![](../assets/formula/168-float.md/228.png) を大きく見積もった場合、
+![](../assets/formula/168-float.md/229.png) と表せ、量 ![](../assets/formula/168-float.md/230.png) を最も大きく見積もった場合の値を ![](../assets/formula/168-float.md/231.png) としたとき、![](../assets/formula/168-float.md/232.png) と見積もることができます。
+また、量 ![](../assets/formula/168-float.md/233.png) を小さく見積もった場合、すなわち ![](../assets/formula/168-float.md/234.png) を小さく見積もった場合、
+![](../assets/formula/168-float.md/235.png) と表せ、量 ![](../assets/formula/168-float.md/236.png) を最も小さく見積もった場合の値を ![](../assets/formula/168-float.md/237.png) としたとき、![](../assets/formula/168-float.md/238.png) と見積もることができます。
+
+さらに ![](../assets/formula/168-float.md/239.png) であるとき、
+![](../assets/formula/168-float.md/240.png) がなりたち、
+部分式 ![](../assets/formula/168-float.md/241.png) は Theoretical value の集合値であることは明らかですから 
+![](../assets/formula/168-float.md/242.png) 、 ![](../assets/formula/168-float.md/243.png) と表せます。よって、
+![](../assets/formula/168-float.md/244.png) がなりたちます(全ての元の値が同じ Relative error を持つ場合、その加算結果の Relative error は元の値の Relative error と同じである)。
 
 ### 減算
-![](../assets/formula/168-float.md/230.png) について考えます。
-このとき、![](../assets/formula/168-float.md/231.png) が ![](../assets/formula/168-float.md/232.png) のAbsolute error を持っている場合、![](../assets/formula/168-float.md/233.png) は ![](../assets/formula/168-float.md/234.png) のAbsolute error をもっていると分かります。
-減算の場合も、このAbsolute error は加わります。すなわち、![](../assets/formula/168-float.md/235.png) の結果である ![](../assets/formula/168-float.md/236.png) は ![](../assets/formula/168-float.md/237.png) のAbsolute error を持っています。<br>
-例えば、Absolute error  ![](../assets/formula/168-float.md/238.png) が ![](../assets/formula/168-float.md/239.png) であるとき、この演算における最大誤差が発生するパターンは ![](../assets/formula/168-float.md/240.png) が ![](../assets/formula/168-float.md/241.png)、![](../assets/formula/168-float.md/242.png) が ![](../assets/formula/168-float.md/243.png) であった場合と、![](../assets/formula/168-float.md/244.png) が ![](../assets/formula/168-float.md/245.png)、![](../assets/formula/168-float.md/246.png) が ![](../assets/formula/168-float.md/247.png) であった場合でしょう。結果としてそれぞれ ![](../assets/formula/168-float.md/248.png)、![](../assets/formula/168-float.md/249.png) となり、Absolute error は ![](../assets/formula/168-float.md/250.png) というように加わっていることが分かります。<br>
-加算の場合と同じく数学的に説明します。話を単純化するため、量 ![](../assets/formula/168-float.md/251.png) を ![](../assets/formula/168-float.md/252.png) とします。
-量 ![](../assets/formula/168-float.md/253.png) を大きく見積もった場合、![](../assets/formula/168-float.md/254.png) としたとき、![](../assets/formula/168-float.md/255.png) と見積もることができます。
-小さく見積もった場合、![](../assets/formula/168-float.md/256.png) としたとき、![](../assets/formula/168-float.md/257.png) と見積もることができます。<br>
+![](../assets/formula/168-float.md/245.png) について考えます。
+このとき、![](../assets/formula/168-float.md/246.png) が ![](../assets/formula/168-float.md/247.png) の Absolute error を持っている場合、![](../assets/formula/168-float.md/248.png) は ![](../assets/formula/168-float.md/249.png) の Absolute error をもっていると分かります。
+減算の場合も、この Absolute error は加わります。すなわち、![](../assets/formula/168-float.md/250.png) の結果である ![](../assets/formula/168-float.md/251.png) は ![](../assets/formula/168-float.md/252.png) の Absolute error を持っています。<br>
+例えば、Relative error  ![](../assets/formula/168-float.md/253.png) が ![](../assets/formula/168-float.md/254.png) であるとき、この演算における最大誤差が発生するパターンは ![](../assets/formula/168-float.md/255.png) が ![](../assets/formula/168-float.md/256.png)、![](../assets/formula/168-float.md/257.png) が ![](../assets/formula/168-float.md/258.png) であった場合と、![](../assets/formula/168-float.md/259.png) が ![](../assets/formula/168-float.md/260.png)、![](../assets/formula/168-float.md/261.png) が ![](../assets/formula/168-float.md/262.png) であった場合でしょう。結果としてそれぞれ ![](../assets/formula/168-float.md/263.png)、![](../assets/formula/168-float.md/264.png) となり、 Absolute error は ![](../assets/formula/168-float.md/265.png) というように加わっていることが分かります。<br>
+加算の場合と同じく数学的に説明します。話を単純化するため、量 ![](../assets/formula/168-float.md/266.png) を ![](../assets/formula/168-float.md/267.png) とします。
+量 ![](../assets/formula/168-float.md/268.png) を大きく見積もった場合、![](../assets/formula/168-float.md/269.png) としたとき、![](../assets/formula/168-float.md/270.png) と見積もることができます。
+小さく見積もった場合、![](../assets/formula/168-float.md/271.png) としたとき、![](../assets/formula/168-float.md/272.png) と見積もることができます。<br>
 
-浮動小数点数の演算において、減算は最も誤差を含んでしまう演算です。これを体感するために、![](../assets/formula/168-float.md/258.png) について考えてみます。このときのAbsolute error は ![](../assets/formula/168-float.md/259.png) です。
-Relative error が ![](../assets/formula/168-float.md/260.png)であるとき、小さく、また大きく見積もるとき、公式にあてはめると ![](../assets/formula/168-float.md/261.png) のAbsolute error があることがわかり、それぞれ ![](../assets/formula/168-float.md/262.png)、![](../assets/formula/168-float.md/263.png) であることがわかります。このような誤差範囲の広さがある演算結果は、到底あてにできるものではありません。<br>
-このようなほぼ等しい数値は、上位桁が等しく、下位桁だけ異なるという状態になっているはずです。そこで減算を行うと、上位桁は相殺され ![](../assets/formula/168-float.md/264.png) になります。そして、わずかな下位桁だけの差が結果として現れる事になります。このとき、正規化によって、現れた下位桁の後ろ側に ![](../assets/formula/168-float.md/265.png) を詰められることになります。この詰められた値 ![](../assets/formula/168-float.md/266.png) は計算によって導かれた値ではありませんが、**それが正常に計算された結果として ![](../assets/formula/168-float.md/267.png) なのか、桁落ちによって作られた ![](../assets/formula/168-float.md/268.png) なのかは、計算結果だけを見ても区別することはできません**。このようにして、本来保持していた有意な数値の桁数が減ってしまうことを**桁落ち**と言います。<br>
+浮動小数点数の演算において、減算は最も誤差を含んでしまう演算です。これを体感するために、![](../assets/formula/168-float.md/273.png) について考えてみます。このときの Absolute error は ![](../assets/formula/168-float.md/274.png) です。
+ Relative error が ![](../assets/formula/168-float.md/275.png)であるとき、小さく、また大きく見積もるとき、公式にあてはめると ![](../assets/formula/168-float.md/276.png) の Absolute error があることがわかり、それぞれ ![](../assets/formula/168-float.md/277.png)、![](../assets/formula/168-float.md/278.png) であることがわかります。このような誤差範囲の広さがある演算結果は、到底あてにできるものではありません。<br>
+このようなほぼ等しい数値は、上位桁が等しく、下位桁だけ異なるという状態になっているはずです。そこで減算を行うと、上位桁は相殺され ![](../assets/formula/168-float.md/279.png) になります。そして、わずかな下位桁だけの差が結果として現れる事になります。このとき、正規化によって、現れた下位桁の後ろ側に ![](../assets/formula/168-float.md/280.png) を詰められることになります。この詰められた値 ![](../assets/formula/168-float.md/281.png) は計算によって導かれた値ではありませんが、**それが正常に計算された結果として ![](../assets/formula/168-float.md/282.png) なのか、このような正規化によって作られた ![](../assets/formula/168-float.md/283.png) であるのかは、計算結果だけを見ても区別することはできません**。このようにして、本来保持していた有意な数値の桁数が減ってしまうことを**桁落ち**と言います。<br>
 
-![](../assets/formula/168-float.md/269.png) <br>
-ご覧の通り、有効桁数が ![](../assets/formula/168-float.md/270.png) になってしまいました。この計算結果だけを見たとき、それが桁落ちとして詰められた値なのかそうでないのか区別できないことが重大な問題です。
+![](../assets/formula/168-float.md/284.png) <br>
+ご覧の通り、有効桁数が ![](../assets/formula/168-float.md/285.png) になってしまいました。重要なのは、繰り返しになりますが、この計算結果だけを見たとき、それが桁落ちとして詰められた値なのかそうでないのかが区別できないということです。
 つまり、有効桁数の減少は、計算精度(信頼性)の悪化そのものです。そして一度減った有効桁数はもう回復することはできません。<br>
 これを防ぐためには、減算そのものを行わないことが一番ですが、そのようなわけにもいかないケースでは、ほぼ等しい数値間の減算を避けるようなプログラムを書くことで回避するしかないのです。<br>
-なお、「減算」というくくりで桁落ちについて説明しましたが、これは、「マイナス符号のついた加算」でも当然ながら起こることです。
-よって浮動小数点数型の変数の中身がまるで何かわからない場合における加算も、同じようなリスクがあるということを留意しておきましょう。
+なお、「減算」というくくりで桁落ちについて説明しましたが、これは、**マイナス符号のついた加算**でも当然ながら起こることです。
+よって**浮動小数点数型の変数の中身がまるで何かわからない場合における加算も、同じようなリスクがある**ということを留意しておく必要があります。
+
+### 乗算
+![](../assets/formula/168-float.md/286.png) について考えます。
+このとき、![](../assets/formula/168-float.md/287.png) が ![](../assets/formula/168-float.md/288.png) の Absolute error を持っている場合、![](../assets/formula/168-float.md/289.png) は ![](../assets/formula/168-float.md/290.png) の Absolute error をもっていると分かります。
+同じようにして、![](../assets/formula/168-float.md/291.png) は ![](../assets/formula/168-float.md/292.png) の Absolute error を持っていることがいえます。
+この演算についての最小値は ![](../assets/formula/168-float.md/293.png) で最大値は ![](../assets/formula/168-float.md/294.png) です。 最小値と最大値の幅は、![](../assets/formula/168-float.md/295.png) 、つまり Theoretical value からは ![](../assets/formula/168-float.md/296.png) の幅があることが分かります。
+このように元のそれぞれの値に対して Absolute error は増加していることが分かります。しかし、結論から言えば、乗算は加算や減算と異なり、元の値から値そのものの絶対値が大きくなる演算であるため Relative error の観点から見るに誤差があまり大きくなることはありません。ただし加算、減算は元の値の Relative error を引き継ぐことに対して、乗算では Relative error が加わるという特徴があります。<br>
+
+このときの Relative error ![](../assets/formula/168-float.md/297.png) を $$ 0.001 $$ としたとき、式にそのまま値を代入して結果は大体 ![](../assets/formula/168-float.md/298.png) から ![](../assets/formula/168-float.md/299.png) くらいまでで、その幅は ![](../assets/formula/168-float.md/300.png) 、Theoretical value から考えると ![](../assets/formula/168-float.md/301.png) の幅があることが分かります。
+このとき、元の値(![](../assets/formula/168-float.md/302.png) と ![](../assets/formula/168-float.md/303.png))それぞれの Relative error と結果の Relative error が異なっていることに気づきます。<br>
+結果の Theoretical value はもちろん ![](../assets/formula/168-float.md/304.png) ですが、Relative error が もし ![](../assets/formula/168-float.md/305.png) であるならば、最小で ![](../assets/formula/168-float.md/306.png) 最大で ![](../assets/formula/168-float.md/307.png) の間になるはずです。
+これはつまり**乗算では Relative error が加わる**ということを示しています。<br>
+
+### 除算
+![](../assets/formula/168-float.md/308.png) について考えます。最小値は ![](../assets/formula/168-float.md/309.png) 、最大値は ![](../assets/formula/168-float.md/310.png) と見積もることができます。Relative error ![](../assets/formula/168-float.md/311.png) としたとき、それぞれ ![](../assets/formula/168-float.md/312.png) と ![](../assets/formula/168-float.md/313.png) となり結果値の Relative error は ![](../assets/formula/168-float.md/314.png) であることがわかります。除算も乗算と同じく Relative error が加わる特徴がありますが、加算、減算と比べて誤差の増加は少なといえます。
 
