@@ -29,7 +29,7 @@
 <br>
 
 2 進数でfractional part 分を表すことができることがわかりました。じゃあそれならば、整数型と同じようにして、ある一定の部分から下を小数として解釈し、そうでない部分を整数として解釈するようにして、単にビット列を並べれば良いじゃないかと思うかもしれません。
-それは、まさに**固定小数点**と呼ばれる形態です。固定小数点とは、整数型を構成するビット列を、Number part とfractional part に分けることで実現します。
+それは、まさに**固定小数点**と呼ばれる形態です。固定小数点とは、整数型を構成するビット列を、Number part と fractional part に分ける(符号部も扱う場合はそれに 1 ビットを費やします)ことで実現します。
 例えば、```mr 32 ```mrend ビットのデータ型でこれを表現しようとした例が次の通りです。<br>
 
 ```mr \overbrace{\underbrace{\overbrace{\underbrace{0\lor 1}_{2^{23}}\cdots\underbrace{0 \lor 1}_{2^{2}}\underbrace{0 \lor 1}_{2^{1}}\underbrace{0 \lor 1}_{2^{0}}}^{24bit}}_{Number part }.\underbrace{\overbrace{\underbrace{0 \lor 1}_{2^{-1}}\underbrace{0 \lor 1}_{2^{-2}}\underbrace{0 \lor 1}_{2^{-3}}\cdots\underbrace{0 \lor 1}_{2^{-8}}}^{8bit}}_{fractional part }}^{32bit} ```mrend
