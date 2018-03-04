@@ -162,8 +162,10 @@ private:
 } // namespace chap16_8_1
 } // namespace TPLCXX17
 ```
-固定小数型の特徴は、表現できる幅が非常に狭く、値が増えても精度は一定であるという点です。<br>
+固定小数型の特徴は、**表現できる幅が非常に狭く、値が増えても精度は一定であるという点です**。<br>
 上述の固定小数点型における形態では、```mr 2^{-8} ```mrend までの小数点しか扱う事ができません。また、Number part は残りの ```mr 2^{24} ```mrend 種類のビットパターンしか表せません。
+しかしながら、精度はどのような値になっても一定であるため、これから説明する浮動小数点数と比較すると、これは良くもあり、悪くもあると言えるでしょう。
+なお上記の実装では簡単のため、符号部のない固定小数点となっていますが、符号部も取り扱った[筆者による実装例](https://github.com/falgon/SrookCppLibraries/tree/master/srook/numeric/fixed_point)や、現在のところ標準には搭載されていませんが、[C++ 標準化委員会に提出された固定小数点型の提案](https://github.com/johnmcfarlane/fixed_point/blob/develop/doc/p0037.md)やその[サンプル実装](https://github.com/johnmcfarlane/fixed_point/tree/develop/include/sg14)などを見ることができます。
 
 ## 16.8.2 float の中身
 固定小数点型では、表せる数値の範囲が狭くなってしまうことがわかりました。ここからは、C++ にも標準で搭載されている浮動小数点数型について説明していきます。<br>
@@ -345,7 +347,7 @@ binary32 の表現方法の必然として、大きな値を扱うためには�
 指数が 1 つあがれば値は爆発的に増加します。これまで述べてきた通り、仮数部は、その指数値間の値を表現しなければなりません。
 これらの事から、値を上げていくと、やがて 23 ビットのみでは(つまり 830 万通りでは)その指数値間の値を表現できるどこかで近似的に保持していくこととなり、最終的には整数単位ですら表現できなくなることがわかります。<br>
 
-次のグラフは、```mr 1.00 \cdots ```mrend から ```mr 2.00 \cdots ```mrend の間の精度を元に点でプロットしたものです。```mr 2.00 - 1.00 ```mrend より二つの値の差異は ```mr 1.00 \cdots ```mrend です。これを ```mr 2^{23} ```mrend で分割して表現しますから ```mr 1.00 \div 2^{23} = 1.19209e-07 ```mrend の精度でこの間を表現できることになります(IEEE 754 binary32 実装の`float`型の環境において、`std::numeric_limits<float>::epsilon()`(`epsilon`という名前の定義は、後述しています)とすることで、同様の値を取得できます)。この値を**誤差幅**(また後に説明するAbsolute error )といいます。ここから考えられるように、またグラフからもわかるように、これは点でのプロットを行なったグラフですが、点があまりにも高密度であるためほぼ線のように見えています。
+次のグラフは、```mr 1.00 \cdots ```mrend から ```mr 2.00 \cdots ```mrend の間の精度を元に点でプロットしたものです。```mr 2.00 - 1.00 ```mrend より二つの値の差異は ```mr 1.00 \cdots ```mrend です。これを ```mr 2^{23} ```mrend で分割して表現しますから ```mr 1.00 \div 2^{23} = 1.19209e-07 ```mrend の精度でこの間を表現できることになります(IEEE 754 binary32 実装の`float`型の環境において、`std::numeric_limits<float>::epsilon()`(`epsilon`という名前の定義は、後述しています)とすることで、同様の値を取得できます)。この値を**誤差幅**(また後に説明する Absolute error )といいます。ここから考えられるように、またグラフからもわかるように、これは点でのプロットを行なったグラフですが、点があまりにも高密度であるためほぼ線のように見えています。
 
 ![](../assets/168/epsilon.png)
 
@@ -499,59 +501,84 @@ Theoretical valueの合計に、最近接偶数丸め方式の値の合計の方
 <br>さて、このとき誤差幅は 1 と 2 両方とも ```mr 1 ```mrend kg です。しかし、2 よりも 1 の方が大きい誤差であるように思えます。
 ```mr 1 ```mrend kg の物体の重さを ```mr 1 ```mrend kg も計り間違えることは重大な誤差です。
 しかし、```mr 1024 ```mrend kg の物体の重さを ```mr 1 ```mrend kg 計り間違えることは、前述した事例よりも重大ではないように思えます。
-このように、誤差をスケール(数字の大きさ、桁数）に関係なく、Theoretical valueからの幅だけで表すことを、主に**Absolute error (absolute error)**と言います。
-反して、スケールを考慮して比率で表された誤差を**Relative error (relative error)**と言います。Absolute error とRelative error には次のような関係があります。<br>
+このように、誤差をスケール(数字の大きさ、桁数）に関係なく、Theoretical valueからの幅だけで表すことを、主に** Absolute error**と言います。
+反して、スケールを考慮して比率で表された誤差を** Relative error**と言います。 Absolute error と  Relative error には次のような関係があります。<br>
 
-```mr Relative error  = \dfrac{Measured value - Theoretical value(True value)}{Theoretical value(True value)} ```mrend<br>
-式中の ```mr Measured value - Theoretical value(True value) ```mrend は要するにAbsolute error となります。<br>
-この関係を利用して 1, 2 の事例をそれぞれRelative error で表すと、
+```mr Relative\ error = \dfrac{Measured\ value - Theoretical\ value(True\ value) = Absolute\ error}{Theoretical\ value(True\ value)} ```mrend<br>
+```mr Absolute\ error = Theoretical\ value(True\ value) \times Relative\ error ```mrend<br>
+これら二つの式は、分かりやすいよう単に変形しているだけで、それぞれ同じ事実を示しています。<br>
+この関係を利用して 1, 2 の事例をそれぞれ Relative error で表すと、
 1 は ```mr 1 ```mrend(```mr 100% ```mrend) の誤差、2 は ```mr 0.001 ```mrend(```mr 0.001 % ```mrend)の誤差であると言え、両者の誤差の比率を伺うことができます。<br><br>
-これらの概念を浮動小数点数と交えると、浮動小数点数の説明はより明確になります。浮動小数点数は、上のプロット図や説明からもわかるように、離散的に値が存在すると言え、表現可能な数値の間には隙間でできることがわかりました。<br>
+これらの概念を浮動小数点数と交えると、浮動小数点数の説明はより明確になります。浮動小数点数は、上のプロット図や説明からもわかるように、離散的に値が存在すると言え、表現可能な数値の間には隙間ができることがわかりました。<br>
 これに対してこの隙間は、「指数部が大きくなるにつれて絶対的な距離は大きくなるが、相対的な距離はほぼ等しい特徴がある」と説明できます。
 この間隔を、**マシンイプシロン (machine epsilon)**と言います。この値は、前述した通り`std::numeric_limits<float>::epsilon()`によって取得することができ、これは`FLT_EPSILON`という定義済みマクロに対応しています。
 
 ## 16.8.7 傾向と対策
 浮動小数点数では、どのような演算を行っても必ず誤差がでるということが分かりました。また、これまでの説明から誤差幅の大きさは値が大きくなるほど大きくなっていくということが分かりました。
-さらに、誤差にはスケールの違いがあり、Absolute error とRelative error というそれぞれの考え方で、それが何を示しているのかを明確に伝えることができるということが分かりました。
+さらに、誤差にはスケールの違いがあり、 Absolute error と Relative error というそれぞれの考え方で、それが何を示しているのかを明確に伝えることができるということが分かりました。
 
 ここでは、今まで説明してきた浮動小数点数の特性から、各演算における誤差をどの程度見積る必要があるのかについて説明します。
 これを知ることは、可能な限り誤差を抑えたコードを書くために有益であるはずです。<br>
 
 ### 加算
 ```mr 1 + 1 ```mrend について考えます。
-このとき、各 ```mr 1 ```mrend が ```mr \pm{e} ```mrend のAbsolute error を持っている場合、演算結果から取得できる ```mr 2 ```mrend は ```mr \pm{2e} ```mrend の最大Absolute error を持っていることになります。<br>
-つまり、加算の結果のもつAbsolute error は、元の値のAbsolute error の和となることが言えます。
-例えば、各 ```mr 1 ```mrend のRelative error が ```mr 0.1 ```mrend であるとき、各 ```mr 1 ```mrend は ```mr 0.9 ```mrend または ```mr 1.1 ```mrend の値となります(上記Relative error の公式にあてはめるとこの通りになります)。
+このとき、各 ```mr 1 ```mrend が ```mr \pm{e} ```mrend の Absolute error を持っている場合、演算結果から取得できる ```mr 2 ```mrend は ```mr \pm{2e} ```mrend の Absolute error を持っていることになります。<br>
+つまり、加算の結果のもつ Absolute error は、元の値の Absolute error の和となることが言えます。
+例えば、各 ```mr 1 ```mrend の Relative error ```mr e ```mrend が ```mr 0.1 ```mrend であるとき、各 ```mr 1 ```mrend は ```mr 0.9 ```mrend または ```mr 1.1 ```mrend となります(前述の公式にあてはめると、この通りになります)。
 よって結果は ```mr 1.8 ```mrend、```mr 2 ```mrend、```mr 2.2 ```mrend のうちのどれかとなるでしょう。
-これは、同じRelative error をもつ数値同士の加算の結果におけるRelative error は同じになるということがいえます。
-何故なのかは少し考えてみればすぐわかるはずです。同じスケール上の誤差値があるとき、その数値同士を足して結果として数値そのものが増えたとしても、誤差における比率は一定であるからです。
-さらに異なるRelative error 、つまり異なるスケールを互いにもつ数値同士の加算においては、これを適用できないこともわかるはずです。<br>
+この結果から、同じ Relative error をもつ数値同士の加算の結果における Relative error は同じになるということがいえます
+(例えば、```mr 3 + 2 ```mrend という式があるとき、```mr 3 ```mrend が ```mr \pm{0.3} ```mrend の Absolute error を持つとした場合、 ```mr 3 ```mrend の Relative error は ```mr 0.1 ```mrend です。
+対して、```mr 2 ```mrend が ```mr \pm{0.2} ```mrend の Absolute error を持つとした場合、 Relative error は同じく ```mr 0.1 ```mrend です。
+このように同じ Relative error を持つ数値同士の加算の結果値の Relative error は、元の値と同じ Relative error となります。)。
+さらに異なる Relative error 、つまり異なるスケールを互いにもつ数値同士の加算においては、これを適用できないこともわかるはずです。
+
 明確にするため、これをより数学的に説明します。<br>
-量 ```mr A, B, C, \cdots ```mrend の実験値として ```mr a, b, c \cdots ```mrend 各実験値のAbsolute error  ```mr \delta a, \delta b, \delta c, \cdots (\gt 0) ```mrend(数学、物理学において ```mr \delta ```mrend は差を表すときに用いられることがあります)があるとき、これらの量から誤差付きの量 ```mr Z = z \pm{\delta z} ```mrend を算出し、各誤差 ```mr \delta a, \delta b, \delta c \cdots (\gt 0) ```mrend が ```mr Z ```mrend(```mr \delta z ```mrend)に影響を与えるとき、誤差が**伝播する**といいます。
-前述したとおりAbsolute error は、```mr Z = A + B + C + \cdots ```mrend という加法によって、```mr z ```mrend のAbsolute error  ```mr \delta z ```mrend に対し次のように伝播します。<br>
-```mr \delta z \geq \delta a + \delta b + \delta c + \cdots ```mrend<br>
+量 ```mr A, B, C, \cdots ```mrend の実験値として ```mr a, b, c \cdots ```mrend 各実験値の Absolute error  ```mr \delta a, \delta b, \delta c, \cdots (\gt 0) ```mrend(数学、物理学において ```mr \delta ```mrend は差を表すときに用いられることがあります)があるとき、これらの量から誤差付きの量 ```mr Z = z \pm{\delta z} ```mrend を算出し、各誤差 ```mr \delta a, \delta b, \delta c \cdots (\gt 0) ```mrend が ```mr Z ```mrend(```mr \delta z ```mrend)に影響を与えるとき、誤差が**伝播する**といいます。
+前述したとおり Absolute error は、```mr Z = A + B + C + \cdots ```mrend という加法によって、```mr z ```mrend の Absolute error  ```mr \delta z ```mrend に対し次のように伝播します。<br>
+```mr \delta z \leq \delta a + \delta b + \delta c + \cdots ```mrend<br>
 このとき、量 ```mr Z ```mrend を大きく見積もった場合、すなわち ```mr A + B + C + \cdots ```mrend を大きく見積もった場合、
 ```mr (a + \delta a) + (b + \delta b) + (c + \delta c) + \cdots = (a + b + c + \cdots) + (\delta a + \delta b + \delta c + \cdots) ```mrend と表せ、量 ```mr Z ```mrend を最も大きく見積もった場合の値を ```mr z + \delta z_{max} ```mrend としたとき、```mr \delta z_{max} = \delta a + \delta b + \delta c + \cdots ```mrend と見積もることができます。
 また、量 ```mr Z ```mrend を小さく見積もった場合、すなわち ```mr A + B + C + \cdots ```mrend を小さく見積もった場合、
 ```mr (a - \delta a) + (b - \delta b) + (c - \delta c) + \cdots = (a + b + c + \cdots) - (\delta a + \delta b + \delta c + \cdots) ```mrend と表せ、量 ```mr Z ```mrend を最も小さく見積もった場合の値を ```mr z - \delta z_{min} ```mrend としたとき、```mr \delta z_{min} = \delta a + \delta b + \delta c + \cdots ```mrend と見積もることができます。
 
+さらに ```mr \underbrace{\dfrac{\delta a}{a} = \dfrac{\delta b}{b} = \dfrac{\delta c}{c} = \cdots}_{n} ```mrend であるとき、
+```mr \delta z = \underbrace{a \dfrac{\delta a}{a} + b \dfrac{\delta a}{a} + c \dfrac{\delta a}{a} + \cdots}_{n} = \dfrac{\delta a}{a}(\underbrace{a + b + c + \cdots}_{n}) ```mrend がなりたち、
+部分式 ```mr (\underbrace{a + b + c + \cdots}_{n}) ```mrend は Theoretical value の集合値であることは明らかですから 
+```mr (\underbrace{a + b + c + \cdots}_{n}) = z ```mrend 、 ```mr \delta z = \dfrac{\delta a}{a} \times z ```mrend と表せます。よって、
+```mr \dfrac{\delta z}{z} = \dfrac{\delta a}{a} ```mrend がなりたちます(全ての元の値が同じ Relative error を持つ場合、その加算結果の Relative error は元の値の Relative error と同じである)。
+
 ### 減算
 ```mr 2 - 1 ```mrend について考えます。
-このとき、```mr 1 ```mrend が ```mr \pm{e} ```mrend のAbsolute error を持っている場合、```mr 2 ```mrend は ```mr 2e ```mrend のAbsolute error をもっていると分かります。
-減算の場合も、このAbsolute error は加わります。すなわち、```mr 2 - 1 ```mrend の結果である ```mr 1 ```mrend は ```mr \pm{3e} ```mrend のAbsolute error を持っています。<br>
-例えば、Absolute error  ```mr e ```mrend が ```mr \pm{0.001} ```mrend であるとき、この演算における最大誤差が発生するパターンは ```mr 2 ```mrend が ```mr 2.002 ```mrend、```mr 1 ```mrend が ```mr 0.999 ```mrend であった場合と、```mr 2 ```mrend が ```mr 1.998 ```mrend、```mr 1 ```mrend が ```mr 1.001 ```mrend であった場合でしょう。結果としてそれぞれ ```mr 1.003 ```mrend、```mr 0.997 ```mrend となり、Absolute error は ```mr 2e + 1e = 3e ```mrend というように加わっていることが分かります。<br>
+このとき、```mr 1 ```mrend が ```mr \pm{e} ```mrend の Absolute error を持っている場合、```mr 2 ```mrend は ```mr 2e ```mrend の Absolute error をもっていると分かります。
+減算の場合も、この Absolute error は加わります。すなわち、```mr 2 - 1 ```mrend の結果である ```mr 1 ```mrend は ```mr \pm{3e} ```mrend の Absolute error を持っています。<br>
+例えば、Relative error  ```mr e ```mrend が ```mr \pm{0.001} ```mrend であるとき、この演算における最大誤差が発生するパターンは ```mr 2 ```mrend が ```mr 2.002 ```mrend、```mr 1 ```mrend が ```mr 0.999 ```mrend であった場合と、```mr 2 ```mrend が ```mr 1.998 ```mrend、```mr 1 ```mrend が ```mr 1.001 ```mrend であった場合でしょう。結果としてそれぞれ ```mr 1.003 ```mrend、```mr 0.997 ```mrend となり、 Absolute error は ```mr 2e + 1e = 3e ```mrend というように加わっていることが分かります。<br>
 加算の場合と同じく数学的に説明します。話を単純化するため、量 ```mr Z ```mrend を ```mr A - B ```mrend とします。
 量 ```mr Z ```mrend を大きく見積もった場合、```mr Z = z + \delta z_{max}, A = (a + \delta a), B = (b - \delta b) ```mrend としたとき、```mr \delta z_{max} = \delta a + \delta b ```mrend と見積もることができます。
 小さく見積もった場合、```mr Z = z + \delta z_{min}, A = (a - \delta a), B = (a + \delta) ```mrend としたとき、```mr \delta z_{min} = \delta a + \delta b ```mrend と見積もることができます。<br>
 
-浮動小数点数の演算において、減算は最も誤差を含んでしまう演算です。これを体感するために、```mr 10000 - 9999 ```mrend について考えてみます。このときのAbsolute error は ```mr 10000e + 9999e = 19999e ```mrend です。
-Relative error が ```mr 0.001 ```mrendであるとき、小さく、また大きく見積もるとき、公式にあてはめると ```mr 19999 \times 0.001 = 19.999 ```mrend のAbsolute error があることがわかり、それぞれ ```mr 1 - 19.999 = -18.999 ```mrend、```mr 1 + 19.999 = 20.999 ```mrend であることがわかります。このような誤差範囲の広さがある演算結果は、到底あてにできるものではありません。<br>
-このようなほぼ等しい数値は、上位桁が等しく、下位桁だけ異なるという状態になっているはずです。そこで減算を行うと、上位桁は相殺され ```mr 0 ```mrend になります。そして、わずかな下位桁だけの差が結果として現れる事になります。このとき、正規化によって、現れた下位桁の後ろ側に ```mr 0 ```mrend を詰められることになります。この詰められた値 ```mr 0 ```mrend は計算によって導かれた値ではありませんが、**それが正常に計算された結果として ```mr 0 ```mrend なのか、桁落ちによって作られた ```mr 0 ```mrend なのかは、計算結果だけを見ても区別することはできません**。このようにして、本来保持していた有意な数値の桁数が減ってしまうことを**桁落ち**と言います。<br>
+浮動小数点数の演算において、減算は最も誤差を含んでしまう演算です。これを体感するために、```mr 10000 - 9999 ```mrend について考えてみます。このときの Absolute error は ```mr 10000e + 9999e = 19999e ```mrend です。
+ Relative error が ```mr 0.001 ```mrendであるとき、小さく、また大きく見積もるとき、公式にあてはめると ```mr 19999 \times 0.001 = 19.999 ```mrend の Absolute error があることがわかり、それぞれ ```mr 1 - 19.999 = -18.999 ```mrend、```mr 1 + 19.999 = 20.999 ```mrend であることがわかります。このような誤差範囲の広さがある演算結果は、到底あてにできるものではありません。<br>
+このようなほぼ等しい数値は、上位桁が等しく、下位桁だけ異なるという状態になっているはずです。そこで減算を行うと、上位桁は相殺され ```mr 0 ```mrend になります。そして、わずかな下位桁だけの差が結果として現れる事になります。このとき、正規化によって、現れた下位桁の後ろ側に ```mr 0 ```mrend を詰められることになります。この詰められた値 ```mr 0 ```mrend は計算によって導かれた値ではありませんが、**それが正常に計算された結果として ```mr 0 ```mrend なのか、このような正規化によって作られた ```mr 0 ```mrend であるのかは、計算結果だけを見ても区別することはできません**。このようにして、本来保持していた有意な数値の桁数が減ってしまうことを**桁落ち**と言います。<br>
 
 ```mr \left( 10000 = \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{10001100}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{00111000100000000000000}_{({\bf f}raction)}}^{23bit}}^{32bit} \right)- \left(9999 = \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{01000110}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{000111000011110000000000}_{({\bf f}raction)}}^{23bit}}^{32bit}\right) = \left(1 = \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{01111111}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{00000000000000000000000}_{({\bf f}raction)}}^{23bit}}^{32bit}\right) ```mrend <br>
-ご覧の通り、有効桁数が ```mr 0 ```mrend になってしまいました。この計算結果だけを見たとき、それが桁落ちとして詰められた値なのかそうでないのか区別できないことが重大な問題です。
+ご覧の通り、有効桁数が ```mr 0 ```mrend になってしまいました。重要なのは、繰り返しになりますが、この計算結果だけを見たとき、それが桁落ちとして詰められた値なのかそうでないのかが区別できないということです。
 つまり、有効桁数の減少は、計算精度(信頼性)の悪化そのものです。そして一度減った有効桁数はもう回復することはできません。<br>
 これを防ぐためには、減算そのものを行わないことが一番ですが、そのようなわけにもいかないケースでは、ほぼ等しい数値間の減算を避けるようなプログラムを書くことで回避するしかないのです。<br>
-なお、「減算」というくくりで桁落ちについて説明しましたが、これは、「マイナス符号のついた加算」でも当然ながら起こることです。
-よって浮動小数点数型の変数の中身がまるで何かわからない場合における加算も、同じようなリスクがあるということを留意しておきましょう。
+なお、「減算」というくくりで桁落ちについて説明しましたが、これは、**マイナス符号のついた加算**でも当然ながら起こることです。
+よって**浮動小数点数型の変数の中身がまるで何かわからない場合における加算も、同じようなリスクがある**ということを留意しておく必要があります。
+
+### 乗算
+```mr 100 \times 10 ```mrend について考えます。
+このとき、```mr 1 ```mrend が ```mr \pm{e} ```mrend の Absolute error を持っている場合、```mr 100 ```mrend は ```mr 100e ```mrend の Absolute error をもっていると分かります。
+同じようにして、```mr 10 ```mrend は ```mr 10e ```mrend の Absolute error を持っていることがいえます。
+この演算についての最小値は ```mr (100 - 100e)(10 - 10e) = 100 \times 10(1-e)(1-e) = 1000(1 - 2e + e^{2}) ```mrend で最大値は ```mr (100 + 100e)(10 + 10e) = 100 \times 10(1+e)(1+e) = 1000(1 + 2e + e^{2}) ```mrend です。 最小値と最大値の幅は、```mr 1000(1 - 2e + e^{2}) - 1000(1 + 2e + e^{2}) = 4000e ```mrend 、つまり Theoretical value からは ```mr \pm{2000e} ```mrend の幅があることが分かります。
+このように元のそれぞれの値に対して Absolute error は増加していることが分かります。しかし、結論から言えば、乗算は加算や減算と異なり、元の値から値そのものの絶対値が大きくなる演算であるため Relative error の観点から見るに誤差があまり大きくなることはありません。ただし加算、減算は元の値の Relative error を引き継ぐことに対して、乗算では Relative error が加わるという特徴があります。<br>
+
+このときの Relative error ```mr e ```mrend を $$ 0.001 $$ としたとき、式にそのまま値を代入して結果は大体 ```mr 998 ```mrend から ```mr 1002 ```mrend くらいまでで、その幅は ```mr 4 ```mrend 、Theoretical value から考えると ```mr \pm{2} ```mrend の幅があることが分かります。
+このとき、元の値(```mr 100 ```mrend と ```mr 10 ```mrend)それぞれの Relative error と結果の Relative error が異なっていることに気づきます。<br>
+結果の Theoretical value はもちろん ```mr 1000 ```mrend ですが、Relative error が もし ```mr 0.001 ```mrend であるならば、最小で ```mr 999 ```mrend 最大で ```mr 1001 ```mrend の間になるはずです。
+これはつまり**乗算では Relative error が加わる**ということを示しています。<br>
+
+### 除算
+```mr 100 \div 10 ```mrend について考えます。最小値は ```mr (100 - 100e) \div (10 + 10e) = 10 \dfrac{1-e}{1+e} ```mrend 、最大値は ```mr (100 + 100e) \div (10 - 10e) = 10 \dfrac{1+e}{1-e} ```mrend と見積もることができます。Relative error ```mr e = 0.001 ```mrend としたとき、それぞれ ```mr 9.98 ```mrend と ```mr 10.02 ```mrend となり結果値の Relative error は ```mr \pm{2e} ```mrend であることがわかります。除算も乗算と同じく Relative error が加わる特徴がありますが、加算、減算と比べて誤差の増加は少なといえます。
 
