@@ -673,7 +673,8 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 この事実の証明には ![](../assets/formula/168-float.md/368.png) という事実を利用して話を進めます。
 これは、高校数学で扱われる無限等比級数の収束公式を利用したもので、
 ![](../assets/formula/168-float.md/369.png) のとき、無限等比級数 ![](../assets/formula/168-float.md/370.png) は収束し、その値は ![](../assets/formula/168-float.md/371.png) であるというものです
-(この事実を[幾何学的に示した図](https://ja.wikipedia.org/wiki/%E7%AD%89%E6%AF%94%E6%95%B0%E5%88%97#/media/File:Geometric_progression_convergence_diagram.svg)はとても有名です)。この証明は比較的簡単に行うことができますが、少し話が逸れ過ぎてしまうため本稿では取り上げません。もし気になるようでしたら[別ページにて証明しています](http://roki.hateblo.jp/entry/2018/03/27/Proof_of_infinite_geometric_series_)のでそちらをご覧ください。<br>
+[^1]。
+この証明は比較的簡単に行うことができますが、少し話が逸れ過ぎてしまうため本稿では取り上げません。もし気になるようでしたら[別ページにて証明しています](http://roki.hateblo.jp/entry/2018/03/27/Proof_of_infinite_geometric_series_)のでそちらをご覧ください。<br>
 さてこの事実に加えて、さらに ![](../assets/formula/168-float.md/372.png) であるとき、![](../assets/formula/168-float.md/373.png) がいえます。この関係を利用します。<br>
 
 ![](../assets/formula/168-float.md/374.png) とします。![](../assets/formula/168-float.md/375.png) を大きく見積もった場合の値は 
@@ -693,6 +694,8 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 ![](../assets/formula/168-float.md/388.png) がなりたちます。<br>
 この式と、量 ![](../assets/formula/168-float.md/389.png) を小さく見積もった場合の値 ![](../assets/formula/168-float.md/390.png) と比べると ![](../assets/formula/168-float.md/391.png) であることがいえます。
 これらは、誤差を持つ値同士の除算による結果値が、元の値の Relative error が大体加わった値であることを示します。
+
+[^1]: この事実を[幾何学的に示した図](https://ja.wikipedia.org/wiki/%E7%AD%89%E6%AF%94%E6%95%B0%E5%88%97#/media/File:Geometric_progression_convergence_diagram.svg)はとても有名です。
 
 
 ## 16.8.8 対策
@@ -740,5 +743,32 @@ for (int i = 0; i < 10000; ++i) {
 #endif
 ```
 
-## 16.8.9 倍精度浮動小数点数、拡張倍精度浮動小数点数
+## 16.8.9 半精度浮動小数点数、倍精度浮動小数点数、四倍精度浮動小数点数
 
+これまで説明してきた IEEE 754 binary32 単浮動小数点数に対して、全体の長さが半分となっている浮動小数点数があります。
+これを**半精度浮動小数点数**といい、IEEE 754 binary16 として標準化されています。<br>
+
+![](../assets/formula/168-float.md/393.png) <br>
+binary32 と比較して binary16 はデータ容量が少ないことからスループットの向上、またメモリ容量、ディスク容量が節約できることが見込め、
+人間の眼の輝度ダイナミックレンジの大半の部分を 16 ビット浮動小数点で抑えることができるため、ディープラーニングを利用した画像処理、画像認識などで利用が活発化しています。
+このような現状から、16 bit 浮動小数点数演算に対する、ハードウェアによる最適化などが進んでいます[^2]。
+しかしながら、[16 ビット浮動小数点数型の提案は過去にされているものの](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0303r0.pdf)、現状 C++17 には搭載されていないため、
+利用したい場合は現状外部ライブラリを利用するか自作する必要があります。<br>
+
+単精度浮動小数点数、半精度浮動小数点数に加えて、全体の長さが 64 ビットとなっている浮動小数点数があります。
+それを**倍精度浮動小数点数**といい、これは IEEE 754 binary64 として標準化されています。C++ 言語においては、`double`型に相当します。<br>
+
+![](../assets/formula/168-float.md/394.png)
+<br>
+仮数部が 52 ビット(ケチ表現によって実質 53 ビット)もあるため、IEEE 754 binary32 と比べて高い精度を実現することができます。これまで`float`型に関する様々な情報を`std::numeric_limits`を利用して取得していましたが、`double`型についても同じようにして(`std::numeric_limits<double>`)取得できます。<br>
+
+さらに、全体の長さが 128 ビットとなっている四倍精度浮動小数点数があります。これは、IEEE 754 binary128 として標準化されていますが、C++ 言語には搭載されていません。<br>
+
+![](../assets/formula/168-float.md/395.png)
+<br>
+また、倍精度浮動小数点数の全体のビット長と四倍精度浮動小数点数の全体のビット長の間の長さをもつような浮動小数点数を、**拡張倍精度浮動小数点数**と呼びます。
+これについては IEEE 754 は特別具体的な形式を定義はしておらず、その間にあるビット長の浮動小数点数であればそれをこのように言います。
+具体例としては、x87 の 80 ビット浮動小数点数などがあります。これは、非正規化数出ないときの仮数部の最上位ビットを省略しないという特徴があり、少し表現が異なる点に注意が必要です。
+
+
+[^2]: [1TFLOPSのNVIDIAモバイルSoC「Tegra X1」](https://pc.watch.impress.co.jp/docs/column/kaigai/683434.html#contents-section-3)
