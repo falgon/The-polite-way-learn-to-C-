@@ -249,7 +249,7 @@ IEEE 754 では上図のように、32 ビットを 3 つに分割し、一番�
 <br>
 次に、```mr 25.625 = 11001.101_{(2)} ```mrend を指数と仮数で表現していきます。
 冒頭で述べた通り、2 進数上で数値は一桁あがるごとに ```mr 2 ```mrend 乗、下がるごとに ```mr -2 ```mrend 乗になりますから、指数もそれに応じて表現できます。
-つまり、```mr 1.1001101_{(2)} \times 2^{4} = 1.1001101_{(2)} \times 2^{100_{(2)}}_{(2)} ```mrend ということです。
+つまり、```mr 1.1001101_{(2)} \times 2^{4} = 1.1001101_{(2)} \times 2^{100_{(2)}} ```mrend ということです。
 仮数部に実際に入る値は、先頭の 1 ビットを取り除きますから、現時点で次のようになります。
 
 ```mr \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{\cdots}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{10011010000000000000000}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend
@@ -310,19 +310,19 @@ C++ においてはそれぞれ`std::numeric_limits<float>::quiet_NaN()`とstd::
 
 まずはこの指数部に着目します。指数部は ```mr 1 ```mrend となっていますが、これはここまで説明してきた通り、バイアス値である ```mr 127 ```mrend を加えると ```mr 1 ```mrend になる値を意味します。
 よって、```mr -126 ```mrend です。
-また仮数部は、仮数部の説明で述べた通りケチ表現がされているため、つまり、```mr 1.\underbrace{\overbrace{\cdots}^{23bit}}_{({\bf f}raction)} ```mrend という表現であるため、値は ```mr 1 ```mrend です。
+また仮数部は、仮数部の説明で述べた通りケチ表現がされているため、つまり、```mr 1.\underbrace{\overbrace{0\lor 1\ 0\lor 1\cdots 0\lor 1\ 0\lor 1}^{23bit}}_{({\bf f}raction)} ```mrend という表現であるため、値は ```mr 1 ```mrend です。
 よってその値は、```mr 1.0 \times 2^{-126} \fallingdotseq 1.17549 \times 10^{-38} ```mrend となります。
 ところで、これよりも小さな値(`std::numeric_limits<float>::min()`よりも小さな値)、すなわち最小正規化数よりも絶対値が小さな値は問答無用で ```mr 0 ```mrend になってしまう(このようなことを一般に**アンダーフロー**といいます)のでしょうか。IEEE 754 は、これを突然 ```mr 0 ```mrend にアンダーフローをさせないために、最小正規化数よりも絶対値が小さな値に対しては例外的に、ここまでの説明とは少し異なった特別な解釈方法を用いてその値を表現する事としているのです(これは、gradual underflow、直訳して段階的なアンダーフローとも呼ばれます)。
 具体的には、指数部が ```mr 0 ```mrend 、仮数部が ```mr 0 ```mrend でないときを条件として、それが最小正規化数よりも下回った値であり、かつ正規化数とは異なる値の表現方法であることを示します。
 これを、**非正規化数 (Denormalized Number)**といいます。文字通り、これは正規化をしないで値を表現する方法です。最小正規化数を下回ったら、実際の指数部のビット列は ```mr 0 ```mrend ですが指数を ```mr -126 ```mrend (指数部における最小値。バイアス処理済みの値)として固定、解釈し、仮数部にそのまま固定小数点のように(ケチ表現などもせず)入れてしまうというようにします。すると、
 
-```mr \overbrace{ \overbrace{\underbrace{0 \lor 1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000000}_{({\bf e}xponent, means the minimum value of the exponent part )}}^{8bit} \overbrace{\underbrace{111\cdots 111}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend <br>
-```mr \overbrace{ \overbrace{\underbrace{0 \lor 1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000000}_{({\bf e}xponent, means the minimum value of the exponent part )}}^{8bit} \overbrace{\underbrace{111\cdots 110}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend <br>
+```mr \overbrace{ \overbrace{\underbrace{0 \lor 1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000000}_{({\bf e}xponent,\ means\ the\ minimum\ value\ of\ the\ exponent\ part )}}^{8bit} \overbrace{\underbrace{111\cdots 111}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend <br>
+```mr \overbrace{ \overbrace{\underbrace{0 \lor 1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000000}_{({\bf e}xponent,\ means\ the\ minimum\ value\ of\ the\ exponent\ part )}}^{8bit} \overbrace{\underbrace{111\cdots 110}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend <br>
 ```mr \cdots ```mrend<br>
-```mr \overbrace{ \overbrace{\underbrace{0 \lor 1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000000}_{({\bf e}xponent, means the minimum value of the exponent part )}}^{8bit} \overbrace{\underbrace{100\cdots 000}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend <br>
-```mr \overbrace{ \overbrace{\underbrace{0 \lor 1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000000}_{({\bf e}xponent, means the minimum value of the exponent part )}}^{8bit} \overbrace{\underbrace{011\cdots 111}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend <br>
+```mr \overbrace{ \overbrace{\underbrace{0 \lor 1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000000}_{({\bf e}xponent,\ means\ the\ minimum\ value\ of\ the\ exponent\ part )}}^{8bit} \overbrace{\underbrace{100\cdots 000}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend <br>
+```mr \overbrace{ \overbrace{\underbrace{0 \lor 1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000000}_{({\bf e}xponent,\ means\ the\ minimum\ value\ of\ the\ exponent\ part )}}^{8bit} \overbrace{\underbrace{011\cdots 111}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend <br>
 ```mr \cdots ```mrend<br>
-```mr \overbrace{ \overbrace{\underbrace{0 \lor 1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000000}_{({\bf e}xponent, means the minimum value of the exponent part )}}^{8bit} \overbrace{\underbrace{000\cdots 001}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend <br>のような表現ができるようになります。このとき、本来 ```mr 24 ```mrend ビットあるべき仮数部の長さが減ってしまっており、精度が低下していることがいえます。なお、非正規化数の最小の値は C++ において`std::numeric_limits<float>::denorm_min()`で取得することができ、`std::numeric_limits<float>::has_denorm`によって、環境が非正規化数をサポートしているか判定することができます。
+```mr \overbrace{ \overbrace{\underbrace{0 \lor 1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000000}_{({\bf e}xponent,\ means\ the\ minimum\ value\ of\ the\ exponent\ part )}}^{8bit} \overbrace{\underbrace{000\cdots 001}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend <br>のような表現ができるようになります。このとき、本来 ```mr 24 ```mrend ビットあるべき仮数部の長さが減ってしまっており、精度が低下していることがいえます。なお、非正規化数の最小の値は C++ において`std::numeric_limits<float>::denorm_min()`で取得することができ、`std::numeric_limits<float>::has_denorm`によって、環境が非正規化数をサポートしているか判定することができます。
 ```cpp
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -343,7 +343,7 @@ if constexpr (a == std::denorm_indeterminate) {
 
 | 値 | 非正規化数のサポート状況 |
 | -- | -- |
-| `std::denorm_indeterminate | 許可するか判定できない |
+| `std::denorm_indeterminate` | 許可するか判定できない |
 | `std::denorm_absent` | 許可しない |
 | `std::denorm_present` | 許可する |
 
@@ -363,7 +363,7 @@ if constexpr (a == std::denorm_indeterminate) {
 | -- | -- | -- |
 | ```mr \pm{0} ```mrend | ```mr 0 ```mrend | ```mr 0 ```mrend |
 | 非正規化数 | ```mr 0 ```mrend | ```mr 0 ```mrend 以外 |
-| 正規化数 | ```mr 1~126 ```mrend | 任意 |
+| 正規化数 | ```mr 1 \verb|~| 126 ```mrend | 任意 |
 | 無限大 | ```mr 126 ```mrend | ```mr 0 ```mrend |
 | NaN | ```mr 126 ```mrend | ```mr 0 ```mrend 以外 |
 
@@ -633,7 +633,7 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
  Relative error が ```mr 0.001 ```mrendであるとき、小さく、また大きく見積もるとき、公式にあてはめると ```mr 19999 \times 0.001 = 19.999 ```mrend の Absolute error があることがわかり、それぞれ ```mr 1 - 19.999 = -18.999 ```mrend、```mr 1 + 19.999 = 20.999 ```mrend であることがわかります。このような誤差範囲の広さがある演算結果は、到底あてにできるものではありません。<br>
 このようなほぼ等しい数値は、上位桁が等しく、下位桁だけ異なるという状態になっているはずです。そこで減算を行うと、上位桁は相殺され ```mr 0 ```mrend になります。そして、わずかな下位桁だけの差が結果として現れる事になります。このとき、正規化によって、現れた下位桁の後ろ側に ```mr 0 ```mrend を詰められることになります。この詰められた値 ```mr 0 ```mrend は計算によって導かれた値ではありませんが、**それが正常に計算された結果として ```mr 0 ```mrend なのか、このような正規化によって作られた ```mr 0 ```mrend であるのかは、計算結果だけを見ても区別することはできません**。このようにして、本来保持していた有意な数値の桁数が減ってしまうことを**桁落ち**と言います。<br>
 
-```mr \left( 10000 = \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{10001100}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{00111000100000000000000}_{({\bf f}raction)}}^{23bit}}^{32bit} \right)- \left(9999 = \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{01000110}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{000111000011110000000000}_{({\bf f}raction)}}^{23bit}}^{32bit}\right) = \left(1 = \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{01111111}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{00000000000000000000000}_{({\bf f}raction)}}^{23bit}}^{32bit}\right) ```mrend <br>
+```mr ( 10000 = \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{10001100}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{00111000100000000000000}_{({\bf f}raction)}}^{23bit}}^{32bit} )- (9999 = \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{01000110}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{000111000011110000000000}_{({\bf f}raction)}}^{23bit}}^{32bit}) = (1 = \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{01111111}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{00000000000000000000000}_{({\bf f}raction)}}^{23bit}}^{32bit}) ```mrend <br>
 ご覧の通り、有効桁数が ```mr 0 ```mrend になってしまいました。重要なのは、繰り返しになりますが、この計算結果だけを見たとき、それが桁落ちとして詰められた値なのかそうでないのかが区別できないということです。
 つまり、有効桁数の減少は、計算精度(信頼性)の悪化そのものです。そして一度減った有効桁数はもう回復することはできません。<br>
 これを防ぐためには、減算そのものを行わないことが一番ですが、そのようなわけにもいかないケースでは、ほぼ等しい数値間の減算を避けるようなプログラムを書くことで回避するしかないのです。<br>
@@ -655,15 +655,15 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 以下、数学的にこの事実を示します。<br>
 量 ```mr Z = A \times B = A \cdot B ```mrend とします。量 ```mr A \cdot B ```mrend を大きく見積もった場合、
 ```mr (a + \delta a) \cdot (b + \delta b) ```mrend を計算することとなります。それぞれを Relative error の形に変形すると 
-```mr (a + \delta a) \cdot (b + \delta b) = a \left( 1 + \dfrac{\delta a}{a} \right) \cdot b \left( 1 + \dfrac{\delta b}{b} \right) ```mrend となります。
+```mr (a + \delta a) \cdot (b + \delta b) = a ( 1 + \dfrac{\delta a}{a} ) \cdot b ( 1 + \dfrac{\delta b}{b} ) ```mrend となります。
 このときの Absolute error ```mr \delta a, \delta b ```mrend は Theoretical value ```mr a, b ```mrend に対しては小さな値であるという仮定をし、それを基に
-```mr \left( \dfrac{\delta a}{a} \right)^{2}, \left( \dfrac{\delta b}{b} \right)^{2}, \dfrac{\delta a}{a}\dfrac{\delta b}{b} \ll 1 ```mrend 
-という近似が成立するという仮定をしきます(```mr \ll ```mrend は十分に小さいことを示します。例えば ```mr |x| \\ll 1 ```mrend とした場合、```mr x^{2} ```mrend が ```mr 1^{2} ```mrend と比べて無視できることを意味します)。すると
-```mr a \left( 1 + \dfrac{\delta a}{a} \right) \cdot b \left(1 + \dfrac{\delta b}{b} \right) = ab \left(1 + \dfrac{\delta a}{a} + \dfrac{\delta b}{b} + \dfrac{\delta a}{a} \cdot \dfrac{\delta b}{b} \right) \approx ab \left{ 1 + \left( \dfrac{\delta a}{a} + \dfrac{\delta b}{b} \right) \right} ```mrend といえることになります。この式と、量 ```mr Z ```mrend を大きく見積もった場合の値 ```mr z + \delta z_{max} = z \left( 1 + \dfrac{\delta c_{max}}{c} \right) ```mrend を比べると ```mr \dfrac{\delta z_{max}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であるといえます。
+```mr ( \dfrac{\delta a}{a} )^{2}, ( \dfrac{\delta b}{b} )^{2}, \dfrac{\delta a}{a}\dfrac{\delta b}{b} \ll 1 ```mrend 
+という近似が成立するという仮定をしきます(```mr \ll ```mrend は十分に小さいことを示します)。例えば ```mr |x| \ll 1 ```mrend とした場合、```mr x^{2} ```mrend が ```mr 1^{2} ```mrend と比べて無視できることを意味します)。すると
+```mr a ( 1 + \dfrac{\delta a}{a} ) \cdot b (1 + \dfrac{\delta b}{b} ) = ab (1 + \dfrac{\delta a}{a} + \dfrac{\delta b}{b} + \dfrac{\delta a}{a} \cdot \dfrac{\delta b}{b} ) \approx ab { 1 + ( \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ) } ```mrend といえることになります。この式と、量 ```mr Z ```mrend を大きく見積もった場合の値 ```mr z + \delta z_{max} = z ( 1 + \dfrac{\delta z_{max}}{z} ) ```mrend を比べると ```mr \dfrac{\delta z_{max}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であるといえます。
 同様に、```mr A \cdot B ```mrend を小さく見積もった場合、
-```mr a \left(1 - \dfrac{\delta a}{a}\right) \cdot b \left(1-\dfrac{\delta b}{b}\right) = ab\left(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}\right)\approx ab\left{1-\left(\dfrac{\delta a}{a}+\dfrac{\delta b}{b}\right)\right} ```mrend といえます
+```mr a (1 - \dfrac{\delta a}{a}) \cdot b (1-\dfrac{\delta b}{b}) = ab(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b})\approx ab{1-(\dfrac{\delta a}{a}+\dfrac{\delta b}{b})} ```mrend といえます
 (因みに ```mr \approx ```mrend と ```mr \fallingdotseq ```mrend は同じ意味として使われますが、数学記号としては ```mr \approx ```mrend の方が[標準的に使われます](https://ja.wikipedia.org/wiki/%E6%95%B0%E5%AD%A6%E8%A8%98%E5%8F%B7%E3%81%AE%E8%A1%A8#.E9.9B.86.E5.90.88.E8.AB.96.E3.81.AE.E8.A8.98.E5.8F.B7))。<br>
-この式と、量 ```mr Z ```mrend を小さく見積もった場合の値 ```mr z + \delta z_{min} = z\left(1-\dfrac{\delta c_{min}}{c}\right) ```mrend を比べると、```mr \dfrac{\delta c_{min}}{c} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であるといえます。
+この式と、量 ```mr Z ```mrend を小さく見積もった場合の値 ```mr z + \delta z_{min} = z(1-\dfrac{\delta c_{min}}{c}) ```mrend を比べると、```mr \dfrac{\delta c_{min}}{c} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であるといえます。
 これは、誤差を持つ値同士の乗算による結果値が、元の値の Relative error が大体加わった値であることを示します。
 
 ### 除算
@@ -677,21 +677,21 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 さてこの事実に加えて、さらに ```mr x \ll 1 ```mrend であるとき、```mr \dfrac{1}{1-x} \approx 1 + x, \dfrac{1}{1+x} \approx 1 - x ```mrend がいえます。この関係を利用します。<br>
 
 ```mr Z = A \div B = A \cdot B^{-1} ```mrend とします。```mr A \cdot B^{-1} ```mrend を大きく見積もった場合の値は 
-```mr \dfrac{a\left(1 + \dfrac{\delta a}{a}\right)}{b\left(1-\dfrac{\delta b}{b}\right)} = \dfrac{a}{b}\left(1 + \dfrac{\delta a}{a}\right)\left(1-\dfrac{\delta b}{b}\right)^{-1} ```mrend です。
+```mr \dfrac{a(1 + \dfrac{\delta a}{a})}{b(1-\dfrac{\delta b}{b})} = \dfrac{a}{b}(1 + \dfrac{\delta a}{a})(1-\dfrac{\delta b}{b})^{-1} ```mrend です。
 これに先ほどの近似公式を用いて 
-```mr \dfrac{a}{b}\left(1 + \dfrac{\delta a}{a}\right)\left(1-\dfrac{\delta b}{b}\right)^{-1} \approx \dfrac{a}{b}\left(1+\dfrac{\delta a}{a}\right)\left(1+\dfrac{\delta b}{b}\right) = \dfrac{a}{b}\left(1+\dfrac{\delta a}{a}+\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}\right) ```mrend と表せます。
+```mr \dfrac{a}{b}(1 + \dfrac{\delta a}{a})(1-\dfrac{\delta b}{b})^{-1} \approx \dfrac{a}{b}(1+\dfrac{\delta a}{a})(1+\dfrac{\delta b}{b}) = \dfrac{a}{b}(1+\dfrac{\delta a}{a}+\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}) ```mrend と表せます。
 このとき、乗算のときと同様 Absolute error ```mr \delta a, \delta b ```mrend は Theoretical value ```mr a, b ```mrend に対しては小さな値であるという仮定をし、それを基に
-```mr \left( \dfrac{\delta a}{a} \right)^{2}, \left( \dfrac{\delta b}{b} \right)^{2}, \dfrac{\delta a}{a}\dfrac{\delta b}{b} \ll 1 ```mrend
+```mr ( \dfrac{\delta a}{a} )^{2}, ( \dfrac{\delta b}{b} )^{2}, \dfrac{\delta a}{a}\dfrac{\delta b}{b} \ll 1 ```mrend
 という近似が成立するという仮定をしきます。すると
-```mr \dfrac{a}{b}\left(1+\dfrac{\delta a}{a}+\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}\right) \approx ab\left{1+\left(\dfrac{\delta a}{a}+\dfrac{\delta b}{b}\right)\right} ```mrend がなりたちます。<br>
-この式と、量 ```mr Z ```mrend を大きく見積もった場合の値 ```mr z + \delta z_{max} = z \left(1+\dfrac{\delta z_{max}}{z}\right) ```mrend と比べると ```mr \dfrac{\delta z_{max}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であることがいえます。<br>
+```mr \dfrac{a}{b}(1+\dfrac{\delta a}{a}+\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}) \approx ab{1+(\dfrac{\delta a}{a}+\dfrac{\delta b}{b})} ```mrend がなりたちます。<br>
+この式と、量 ```mr Z ```mrend を大きく見積もった場合の値 ```mr z + \delta z_{max} = z (1+\dfrac{\delta z_{max}}{z}) ```mrend と比べると ```mr \dfrac{\delta z_{max}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であることがいえます。<br>
 さらに、 ```mr A \cdot B^{-1} ``` を小さく見積もった場合の値は、 
-```mr \dfrac{a\left(1 - \dfrac{\delta a}{a}\right)}{b\left(1+\dfrac{\delta b}{b}\right)} = \dfrac{a}{b}\left(1 - \dfrac{\delta a}{a}\right)\left(1+\dfrac{\delta b}{b}\right)^{-1} ```mrend です。
+```mr \dfrac{a(1 - \dfrac{\delta a}{a})}{b(1+\dfrac{\delta b}{b})} = \dfrac{a}{b}(1 - \dfrac{\delta a}{a})(1+\dfrac{\delta b}{b})^{-1} ```mrend です。
 同じく近似公式を用いて
-```mr \dfrac{a}{b}\left(1 - \dfrac{\delta a}{a}\right)\left(1+\dfrac{\delta b}{b}\right)^{-1} \approx \dfrac{a}{b}\left(1-\dfrac{\delta a}{a}\right)\left(1-\dfrac{\delta b}{b}\right) = \dfrac{a}{b}\left(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}\right) ```mrend と表せます。
-またしても同様 ```mr \left( \dfrac{\delta a}{a} \right)^{2}, \left( \dfrac{\delta b}{b} \right)^{2}, \dfrac{\delta a}{a}\dfrac{\delta b}{b} \ll 1 ```mrend という近似が成立するという仮定をしくと
-```mr \dfrac{a}{b}\left(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}\right) \approx ab\left{1-\left(\dfrac{\delta a}{a}+\dfrac{\delta b}{b}\right)\right} ```mrend がなりたちます。<br>
-この式と、量 ```mr Z ```mrend を小さく見積もった場合の値 ```mr z - \delta z_{min} = c \left(1-\dfrac{\delta z_{min}}{z}\right) ```mrend と比べると ```mr \dfrac{\delta z_{min}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であることがいえます。
+```mr \dfrac{a}{b}(1 - \dfrac{\delta a}{a})(1+\dfrac{\delta b}{b})^{-1} \approx \dfrac{a}{b}(1-\dfrac{\delta a}{a})(1-\dfrac{\delta b}{b}) = \dfrac{a}{b}(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}) ```mrend と表せます。
+またしても同様 ```mr ( \dfrac{\delta a}{a} )^{2}, ( \dfrac{\delta b}{b} )^{2}, \dfrac{\delta a}{a}\dfrac{\delta b}{b} \ll 1 ```mrend という近似が成立するという仮定をしくと
+```mr \dfrac{a}{b}(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}) \approx ab{1-(\dfrac{\delta a}{a}+\dfrac{\delta b}{b})} ```mrend がなりたちます。<br>
+この式と、量 ```mr Z ```mrend を小さく見積もった場合の値 ```mr z - \delta z_{min} = c (1-\dfrac{\delta z_{min}}{z}) ```mrend と比べると ```mr \dfrac{\delta z_{min}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であることがいえます。
 これらは、誤差を持つ値同士の除算による結果値が、元の値の Relative error が大体加わった値であることを示します。
 
 
@@ -740,5 +740,30 @@ for (int i = 0; i < 10000; ++i) {
 #endif
 ```
 
-## 16.8.9 倍精度浮動小数点数、拡張倍精度浮動小数点数
+## 16.8.9 半精度浮動小数点数、倍精度浮動小数点数、四倍精度浮動小数点数
 
+これまで説明してきた IEEE 754 binary32 単浮動小数点数に対して、全体の長さが半分となっている浮動小数点数があります。
+これを半精度浮動小数点数といい、IEEE 754 binary16 として標準化されています。<br>
+
+```mr \overbrace{ \overbrace{\underbrace{1}_{({\bf s}ign)}}^{1 bit} \overbrace{\underbrace{10011}_{({\bf e}xponent)}}^{ 5bit} \overbrace{\underbrace{1001101000}_{({\bf f}raction)}}^{10 bit}}^{16 bit} ```mrend <br>
+binary32 と比較して binary16 はデータ容量が少ないことからスループットの向上、またメモリ容量、ディスク容量が節約できることが見込め、
+人間の眼の輝度ダイナミックレンジの大半の部分を 16 ビット浮動小数点で抑えることができるため、ディープラーニングを利用した画像処理、画像認識などで利用が活発化しています。
+このような現状から、16 bit 浮動小数点数演算に対する、ハードウェアによる最適化などが進んでいます[^1]。
+[^1]: ([1TFLOPSのNVIDIAモバイルSoC「Tegra X1」](https://pc.watch.impress.co.jp/docs/column/kaigai/683434.html#contents-section-3))
+しかしながら、[16 ビット浮動小数点数型の提案は過去にされているものの](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0303r0.pdf)、現状 C++17 には搭載されていないため、
+利用したい場合は現状外部ライブラリを利用するか自作する必要があります。<br>
+
+単精度浮動小数点数、半精度浮動小数点数に加えて、全体の長さが 64 ビットとなっている浮動小数点数があります。
+それを倍精度浮動小数点数といい、これは IEEE 754 binary64 として標準化されています。C++ 言語においては、`double`型に相当します。<br>
+
+```mr \overbrace{ \overbrace{\underbrace{1}_{({\bf s}ign)}}^{1 bit} \overbrace{\underbrace{10000000011}_{({\bf e}xponent)}}^{11 bit} \overbrace{\underbrace{1001101000000000000000000000000000000000000000000000}_{({\bf f}raction)}}^{52 bit}}^{64 bit} ```mrend
+<br>
+仮数部が 52 ビット(ケチ表現によって実質 53 ビット)もあるため、IEEE 754 binary32 と比べて高い精度を実現することができます。これまで`float`型に関する様々な情報を`std::numeric_limits`を利用して取得していましたが、`double`型についても同じようにして(`std::numeric_limits<double>`)取得できます。<br>
+
+さらに、全体の長さが 128 ビットとなっている四倍精度浮動小数点数があります。これは、IEEE 754 binary128 として標準化されていますが、C++ 言語には搭載されていません。<br>
+
+```mr \overbrace{ \overbrace{\underbrace{1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{100000000000011}_{({\bf e}xponent)}}^{15 bit} \overbrace{\underbrace{1001101000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000}_{({\bf f}raction)}}^{112 bit}}^{64 bit} ```mrend
+<br>
+また、倍精度浮動小数点数の全体のビット長と四倍精度浮動小数点数の全体のビット長の間の長さをもつような浮動小数点数を、拡張倍精度と呼びます。
+これについては IEEE 754 は特別具体的な形式を定義はしておらず、その間にあるビット長の浮動小数点数であればそれをこのように言います。
+具体例としては、x87 の 80 ビット浮動小数点数などがあります。これは、非正規化数出ないときの仮数部の最上位ビットを省略しないという特徴があり、少し表現が異なる点に注意が必要です。
