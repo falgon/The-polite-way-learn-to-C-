@@ -663,7 +663,7 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 ```mr a ( 1 + \dfrac{\delta a}{a} ) \cdot b (1 + \dfrac{\delta b}{b} ) = ab (1 + \dfrac{\delta a}{a} + \dfrac{\delta b}{b} + \dfrac{\delta a}{a} \cdot \dfrac{\delta b}{b} ) \approx ab { 1 + ( \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ) } ```mrend といえることになります。この式と、量 ```mr Z ```mrend を大きく見積もった場合の値 ```mr z + \delta z_{max} = z ( 1 + \dfrac{\delta z_{max}}{z} ) ```mrend を比べると ```mr \dfrac{\delta z_{max}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であるといえます。
 同様に、```mr A \cdot B ```mrend を小さく見積もった場合、
 ```mr a (1 - \dfrac{\delta a}{a}) \cdot b (1-\dfrac{\delta b}{b}) = ab(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b})\approx ab{1-(\dfrac{\delta a}{a}+\dfrac{\delta b}{b})} ```mrend といえます[^1]。
-この式と、量 ```mr Z ```mrend を小さく見積もった場合の値 ```mr z + \delta z_{min} = z(1-\dfrac{\delta c_{min}}{c}) ```mrend を比べると、```mr \dfrac{\delta c_{min}}{c} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であるといえます。
+この式と、量 ```mr Z ```mrend を小さく見積もった場合の値 ```mr z + \delta z_{min} = z(1-\dfrac{\delta z_{min}}{z}) ```mrend を比べると、```mr \dfrac{\delta z_{min}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であるといえます。
 これは、誤差を持つ値同士の乗算による結果値が、元の値の Relative error が大体加わった値であることを示します。
 
 [^1]: ```mr \approx ```mrend と ```mr \fallingdotseq ```mrend は同じ意味として使われますが、数学記号としては ```mr \approx ```mrend の方が[標準的に使われます](https://ja.wikipedia.org/wiki/%E6%95%B0%E5%AD%A6%E8%A8%98%E5%8F%B7%E3%81%AE%E8%A1%A8#.E9.9B.86.E5.90.88.E8.AB.96.E3.81.AE.E8.A8.98.E5.8F.B7)。
@@ -693,7 +693,7 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 ```mr \dfrac{a}{b}(1 - \dfrac{\delta a}{a})(1+\dfrac{\delta b}{b})^{-1} \approx \dfrac{a}{b}(1-\dfrac{\delta a}{a})(1-\dfrac{\delta b}{b}) = \dfrac{a}{b}(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}) ```mrend と表せます。
 またしても同様 ```mr ( \dfrac{\delta a}{a} )^{2}, ( \dfrac{\delta b}{b} )^{2}, \dfrac{\delta a}{a}\dfrac{\delta b}{b} \ll 1 ```mrend という近似が成立するという仮定をしくと
 ```mr \dfrac{a}{b}(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}) \approx ab{1-(\dfrac{\delta a}{a}+\dfrac{\delta b}{b})} ```mrend がなりたちます。<br>
-この式と、量 ```mr Z ```mrend を小さく見積もった場合の値 ```mr z - \delta z_{min} = c (1-\dfrac{\delta z_{min}}{z}) ```mrend と比べると ```mr \dfrac{\delta z_{min}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であることがいえます。
+この式と、量 ```mr Z ```mrend を小さく見積もった場合の値 ```mr z - \delta z_{min} = z (1-\dfrac{\delta z_{min}}{z}) ```mrend と比べると ```mr \dfrac{\delta z_{min}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であることがいえます。
 これらは、誤差を持つ値同士の除算による結果値が、元の値の Relative error が大体加わった値であることを示します。
 <br>
 [^2]: この事実を[幾何学的に示した図](https://ja.wikipedia.org/wiki/%E7%AD%89%E6%AF%94%E6%95%B0%E5%88%97#/media/File:Geometric_progression_convergence_diagram.svg)はとても有名です。
