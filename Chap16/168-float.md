@@ -37,6 +37,7 @@
 これは、fractional part を ![](../assets/formula/168-float.md/13.png) ビット、Number part を ![](../assets/formula/168-float.md/14.png) ビットとした場合の例です(固定小数点と呼ばれるものが必ずこの形式であるという決まりはありません。)。<br>
 C++17 には、固定小数点を表現する型は標準では用意されていません(C++17 に標準で用意されているfractional part 分を扱える型として`float`と`double`がある事はもちろんご存知でしょう。この二つの型は本項のメインテーマである浮動小数点数を表す型であり、固定小数点と対比されることが多いです)。<br>
 しかしながら、Number part とfractional part の管理を行えれば、固定小数点型を自作することはもちろん可能です。以下は符号なし固定小数点型をシミュレートした簡単なクラスです。
+
 ```cpp
 #include <iostream>
 #include <type_traits>
@@ -661,10 +662,11 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 という近似が成立するという仮定をしきます(![](../assets/formula/168-float.md/345.png) は十分に小さいことを示します)。例えば ![](../assets/formula/168-float.md/346.png) とした場合、![](../assets/formula/168-float.md/347.png) が ![](../assets/formula/168-float.md/348.png) と比べて無視できることを意味します)。すると
 ![](../assets/formula/168-float.md/349.png) といえることになります。この式と、量 ![](../assets/formula/168-float.md/350.png) を大きく見積もった場合の値 ![](../assets/formula/168-float.md/351.png) を比べると ![](../assets/formula/168-float.md/352.png) であるといえます。
 同様に、![](../assets/formula/168-float.md/353.png) を小さく見積もった場合、
-![](../assets/formula/168-float.md/354.png) といえます
-(因みに ![](../assets/formula/168-float.md/355.png) と ![](../assets/formula/168-float.md/356.png) は同じ意味として使われますが、数学記号としては ![](../assets/formula/168-float.md/357.png) の方が[標準的に使われます](https://ja.wikipedia.org/wiki/%E6%95%B0%E5%AD%A6%E8%A8%98%E5%8F%B7%E3%81%AE%E8%A1%A8#.E9.9B.86.E5.90.88.E8.AB.96.E3.81.AE.E8.A8.98.E5.8F.B7))。<br>
-この式と、量 ![](../assets/formula/168-float.md/358.png) を小さく見積もった場合の値 ![](../assets/formula/168-float.md/359.png) を比べると、![](../assets/formula/168-float.md/360.png) であるといえます。
+![](../assets/formula/168-float.md/354.png) といえます[^1]。
+この式と、量 ![](../assets/formula/168-float.md/355.png) を小さく見積もった場合の値 ![](../assets/formula/168-float.md/356.png) を比べると、![](../assets/formula/168-float.md/357.png) であるといえます。
 これは、誤差を持つ値同士の乗算による結果値が、元の値の Relative error が大体加わった値であることを示します。
+
+[^1]: ![](../assets/formula/168-float.md/358.png) と ![](../assets/formula/168-float.md/359.png) は同じ意味として使われますが、数学記号としては ![](../assets/formula/168-float.md/360.png) の方が[標準的に使われます](https://ja.wikipedia.org/wiki/%E6%95%B0%E5%AD%A6%E8%A8%98%E5%8F%B7%E3%81%AE%E8%A1%A8#.E9.9B.86.E5.90.88.E8.AB.96.E3.81.AE.E8.A8.98.E5.8F.B7)。
 
 ### 除算
 ![](../assets/formula/168-float.md/361.png) について考えます。最小値は ![](../assets/formula/168-float.md/362.png) 、最大値は ![](../assets/formula/168-float.md/363.png) と見積もることができます。Relative error ![](../assets/formula/168-float.md/364.png) としたとき、それぞれ ![](../assets/formula/168-float.md/365.png) と ![](../assets/formula/168-float.md/366.png) となり結果値の Relative error は ![](../assets/formula/168-float.md/367.png) であることがわかります。除算も乗算と同じく Relative error が加わる特徴がありますが、加算、減算と比べて誤差の増加は少ないといえます。
@@ -672,8 +674,7 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 以下、数学的にこの事実を示します。<br>
 この事実の証明には ![](../assets/formula/168-float.md/368.png) という事実を利用して話を進めます。
 これは、高校数学で扱われる無限等比級数の収束公式を利用したもので、
-![](../assets/formula/168-float.md/369.png) のとき、無限等比級数 ![](../assets/formula/168-float.md/370.png) は収束し、その値は ![](../assets/formula/168-float.md/371.png) であるというものです
-[^1]。
+![](../assets/formula/168-float.md/369.png) のとき、無限等比級数 ![](../assets/formula/168-float.md/370.png) は収束し、その値は ![](../assets/formula/168-float.md/371.png) であるというものです[^2]。
 この証明は比較的簡単に行うことができますが、少し話が逸れ過ぎてしまうため本稿では取り上げません。もし気になるようでしたら[別ページにて証明しています](http://roki.hateblo.jp/entry/2018/03/27/Proof_of_infinite_geometric_series_)のでそちらをご覧ください。<br>
 さてこの事実に加えて、さらに ![](../assets/formula/168-float.md/372.png) であるとき、![](../assets/formula/168-float.md/373.png) がいえます。この関係を利用します。<br>
 
@@ -686,17 +687,16 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 という近似が成立するという仮定をしきます。すると
 ![](../assets/formula/168-float.md/381.png) がなりたちます。<br>
 この式と、量 ![](../assets/formula/168-float.md/382.png) を大きく見積もった場合の値 ![](../assets/formula/168-float.md/383.png) と比べると ![](../assets/formula/168-float.md/384.png) であることがいえます。<br>
-さらに、 ```mr A \cdot B^{-1} ``` を小さく見積もった場合の値は、 
-![](../assets/formula/168-float.md/385.png) です。
+さらに、 ![](../assets/formula/168-float.md/385.png) を小さく見積もった場合の値は、 
+![](../assets/formula/168-float.md/386.png) です。
 同じく近似公式を用いて
-![](../assets/formula/168-float.md/386.png) と表せます。
-またしても同様 ![](../assets/formula/168-float.md/387.png) という近似が成立するという仮定をしくと
-![](../assets/formula/168-float.md/388.png) がなりたちます。<br>
-この式と、量 ![](../assets/formula/168-float.md/389.png) を小さく見積もった場合の値 ![](../assets/formula/168-float.md/390.png) と比べると ![](../assets/formula/168-float.md/391.png) であることがいえます。
+![](../assets/formula/168-float.md/387.png) と表せます。
+またしても同様 ![](../assets/formula/168-float.md/388.png) という近似が成立するという仮定をしくと
+![](../assets/formula/168-float.md/389.png) がなりたちます。<br>
+この式と、量 ![](../assets/formula/168-float.md/390.png) を小さく見積もった場合の値 ![](../assets/formula/168-float.md/391.png) と比べると ![](../assets/formula/168-float.md/392.png) であることがいえます。
 これらは、誤差を持つ値同士の除算による結果値が、元の値の Relative error が大体加わった値であることを示します。
-
-[^1]: この事実を[幾何学的に示した図](https://ja.wikipedia.org/wiki/%E7%AD%89%E6%AF%94%E6%95%B0%E5%88%97#/media/File:Geometric_progression_convergence_diagram.svg)はとても有名です。
-
+<br>
+[^2]: この事実を[幾何学的に示した図](https://ja.wikipedia.org/wiki/%E7%AD%89%E6%AF%94%E6%95%B0%E5%88%97#/media/File:Geometric_progression_convergence_diagram.svg)はとても有名です。
 
 ## 16.8.8 対策
 
@@ -713,7 +713,7 @@ std::cout << std::fixed << std::setprecision(std::numeric_limits<float>::max_dig
 
 #endif
 ```
-ここまでの説明を理解していれば、このコードには問題があることがわかるはずです。実行内容を見るに、変数`f`は最終的に値 ![](../assets/formula/168-float.md/392.png) になるはずですが、そのようにはなりません。
+ここまでの説明を理解していれば、このコードには問題があることがわかるはずです。実行内容を見るに、変数`f`は最終的に値 ![](../assets/formula/168-float.md/393.png) になるはずですが、そのようにはなりません。
 なぜならば、加算を行う過程で Absolute error が増加していくためです。これを抑えるためには、Absolute error によって小さい値の加算が無視されてしまわないように、
 なるべく近い値同士で加算を行うようにするという手が考えられます。
 ```cpp
@@ -746,29 +746,29 @@ for (int i = 0; i < 10000; ++i) {
 ## 16.8.9 半精度浮動小数点数、倍精度浮動小数点数、四倍精度浮動小数点数
 
 これまで説明してきた IEEE 754 binary32 単浮動小数点数に対して、全体の長さが半分となっている浮動小数点数があります。
-これを**半精度浮動小数点数**といい、IEEE 754 binary16 として標準化されています。<br>
+これを半精度浮動小数点数といい、IEEE 754 binary16 として標準化されています。<br>
 
-![](../assets/formula/168-float.md/393.png) <br>
+![](../assets/formula/168-float.md/394.png) <br>
 binary32 と比較して binary16 はデータ容量が少ないことからスループットの向上、またメモリ容量、ディスク容量が節約できることが見込め、
 人間の眼の輝度ダイナミックレンジの大半の部分を 16 ビット浮動小数点で抑えることができるため、ディープラーニングを利用した画像処理、画像認識などで利用が活発化しています。
-このような現状から、16 bit 浮動小数点数演算に対する、ハードウェアによる最適化などが進んでいます[^2]。
+このような現状から、16 bit 浮動小数点数演算に対する、ハードウェアによる最適化などが進んでいます[^3]。
 しかしながら、[16 ビット浮動小数点数型の提案は過去にされているものの](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0303r0.pdf)、現状 C++17 には搭載されていないため、
 利用したい場合は現状外部ライブラリを利用するか自作する必要があります。<br>
 
 単精度浮動小数点数、半精度浮動小数点数に加えて、全体の長さが 64 ビットとなっている浮動小数点数があります。
-それを**倍精度浮動小数点数**といい、これは IEEE 754 binary64 として標準化されています。C++ 言語においては、`double`型に相当します。<br>
-
-![](../assets/formula/168-float.md/394.png)
-<br>
-仮数部が 52 ビット(ケチ表現によって実質 53 ビット)もあるため、IEEE 754 binary32 と比べて高い精度を実現することができます。これまで`float`型に関する様々な情報を`std::numeric_limits`を利用して取得していましたが、`double`型についても同じようにして(`std::numeric_limits<double>`)取得できます。<br>
-
-さらに、全体の長さが 128 ビットとなっている四倍精度浮動小数点数があります。これは、IEEE 754 binary128 として標準化されていますが、C++ 言語には搭載されていません。<br>
+それを倍精度浮動小数点数といい、これは IEEE 754 binary64 として標準化されています。C++ 言語においては、`double`型に相当します。<br>
 
 ![](../assets/formula/168-float.md/395.png)
 <br>
-また、倍精度浮動小数点数の全体のビット長と四倍精度浮動小数点数の全体のビット長の間の長さをもつような浮動小数点数を、**拡張倍精度浮動小数点数**と呼びます。
+仮数部が 52 ビット(ケチ表現によって実質 53 ビット)もあるため、IEEE 754 binary32 と比べて高い精度を実現することができます。これまで`float`型に関する様々な情報を`std::numeric_limits`を利用して取得していましたが、`double`型についても同じようにして(`std::numeric_limits<double>`を利用して)取得できます。<br>
+
+さらに、全体の長さが 128 ビットとなっている四倍精度浮動小数点数があります。これは、IEEE 754 binary128 として標準化されていますが、C++ 言語には搭載されていません。<br>
+
+![](../assets/formula/168-float.md/396.png)
+<br>
+また、倍精度浮動小数点数の全体のビット長と四倍精度浮動小数点数の全体のビット長の間の長さをもつような浮動小数点数を、拡張倍精度と呼びます。
 これについては IEEE 754 は特別具体的な形式を定義はしておらず、その間にあるビット長の浮動小数点数であればそれをこのように言います。
 具体例としては、x87 の 80 ビット浮動小数点数などがあります。これは、非正規化数出ないときの仮数部の最上位ビットを省略しないという特徴があり、少し表現が異なる点に注意が必要です。
 
-
-[^2]: [1TFLOPSのNVIDIAモバイルSoC「Tegra X1」](https://pc.watch.impress.co.jp/docs/column/kaigai/683434.html#contents-section-3)
+<br>
+[^3]: [1TFLOPSのNVIDIAモバイルSoC「Tegra X1」](https://pc.watch.impress.co.jp/docs/column/kaigai/683434.html#contents-section-3)
