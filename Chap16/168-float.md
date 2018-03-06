@@ -236,7 +236,7 @@ IEEE 754 では上図のように、32 ビットを 3 つに分割し、一番�
 ```mr \overbrace{ \overbrace{\underbrace{1}_{({\bf s}ign)}}^{1bit}\overbrace{\underbrace{10000010}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{01001000000000000000000}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend
 
 <br>
-というわけで、```mr -10.25 ```mrend を IEEE 754 準拠の浮動小数点数に変換する事ができました。なお、指数部に関しても一点例外があり、指数部の全てのビットが 1 である場合(255である場合)は、無限大(```mr \infty ```mrend)を表現します。<br>
+というわけで、```mr -10.25 ```mrend を IEEE 754 準拠の浮動小数点数に変換する事ができました。なお、指数部に関しても一点例外があり、指数部の全てのビットが 1 で、仮数部が ```mr 0 ```mrend である場合、無限大(```mr \infty ```mrend)を表現します。<br>
 
 ### まとめ
 冒頭で ```mr -10.25 ```mrend という数値を ```mr \overbrace{-}^{sign}\overbrace{1.025}^{fractional} \times 10^{\overbrace{{1}}^{exponent}} ```mrend と表現したように、IEEE 754 も 2 進数上でこのように仮数と指数を組み合わせて利用することで、値を表現します。
@@ -291,25 +291,81 @@ std::cout << std::bitset<sizeof(float) * CHAR_BIT>(*reinterpret_cast<unsigned lo
 これは`std::bitset`に限られた話ではなく、C++ の strict aliasing ルールに違反するコードであるため、未定義の動作を引き起こします。
 strict aliasing ルールに関しましては、 [16.1 strict alias rule](161-strict_alias_rule.md) にて説明しています。
 
-## 16.8.3 数値範囲
-指数部が全て ```mr 1 ```mrend であるときに、無限を表現すると前述しました。また、全てのビットが 0 だと```mr 0.0000\cdots ```mrend を表現するとも述べました。
-では、それらを除いた実際の数値として扱える範囲を、実際に確認してみましょう。
+## 16.8.3 IEEE 754 における特例/例外事項のまとめ
+
+* 指数部が全て ```mr 1 ```mrend であり、仮数部が ```mr 0 ```mrend であるとき、無限を表現する。
+* 全てのビットが 0 である場合 ```mr 0.0000\cdots ```mrend を表現する
+
+とこれまでの説明で述べました。さらに加えて、
+
+* 指数部が全て ```mr 1 ```mrend であり、仮数部が ```mr 0 ```mrend でないとき非数 (Not a Number/NaN) を表現する
+
+という決まりがあります。非数とは、例えばゼロ除算などを行うとこの値になります。NaN は quiet NaN と signaling NaN の二種類があり、
+C++ においてはそれぞれ`std::numeric_limits<float>::quiet_NaN()`とstd::numeric_limits<float>::signaling_NaN()`とすることで取得できます。両者の違いは、シグナルを発生しないか、するかの違いがあります。
+
+さてでは、これらを除いた実際の数値として扱える範囲を、実際に確認してみましょう。
 まずは正の数における最小値です。<br>
 
 ```mr \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000001}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{00000000000000000000000}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend
 
 まずはこの指数部に着目します。指数部は ```mr 1 ```mrend となっていますが、これはここまで説明してきた通り、バイアス値である ```mr 127 ```mrend を加えると ```mr 1 ```mrend になる値を意味します。
 よって、```mr -126 ```mrend です。
-また仮数部は、仮数部の説明で述べた通りケチ表現がされているため、つまり、```mr 1.\underbrace{\overbrace{00000000000000000000000}^{23bit}}_{{\bf f}raction)} ```mrend という表現であるため、値は ```mr 1 ```mrend です。
-よってその値は、```mr 1.0 \times 2^{-126} \fallingdotseq 1.17549 \times 10^{-38} ```mrend です。<br>
-次に、最大値を考えて見ましょう。<br>
+また仮数部は、仮数部の説明で述べた通りケチ表現がされているため、つまり、```mr 1.\underbrace{\overbrace{\cdots}^{23bit}}_{({\bf f}raction)} ```mrend という表現であるため、値は ```mr 1 ```mrend です。
+よってその値は、```mr 1.0 \times 2^{-126} \fallingdotseq 1.17549 \times 10^{-38} ```mrend となります。
+ところで、これよりも小さな値(`std::numeric_limits<float>::min()`よりも小さな値)、すなわち最小正規化数よりも絶対値が小さな値は問答無用で ```mr 0 ```mrend になってしまう(このようなことを一般に**アンダーフロー**といいます)のでしょうか。IEEE 754 は、これを突然 ```mr 0 ```mrend にアンダーフローをさせないために、最小正規化数よりも絶対値が小さな値に対しては例外的に、ここまでの説明とは少し異なった特別な解釈方法を用いてその値を表現する事としているのです(これは、gradual underflow、直訳して段階的なアンダーフローとも呼ばれます)。
+具体的には、指数部が ```mr 0 ```mrend 、仮数部が ```mr 0 ```mrend でないときを条件として、それが最小正規化数よりも下回った値であり、かつ正規化数とは異なる値の表現方法であることを示します。
+これを、**非正規化数 (Denormalized Number)**といいます。文字通り、これは正規化をしないで値を表現する方法です。最小正規化数を下回ったら、実際の指数部のビット列は ```mr 0 ```mrend ですが指数を ```mr -126 ```mrend (指数部における最小値。バイアス処理済みの値)として固定、解釈し、仮数部にそのまま固定小数点のように(ケチ表現などもせず)入れてしまうというようにします。すると、
 
-```mr \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{11111110}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{11111111111111111111111}_{{\bf f}raction)}}^{23bit}}^{32bit} ```mrend
+```mr \overbrace{ \overbrace{\underbrace{0 \lor 1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000000}_{({\bf e}xponent, means the minimum value of the exponent part )}}^{8bit} \overbrace{\underbrace{111\cdots 111}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend <br>
+```mr \overbrace{ \overbrace{\underbrace{0 \lor 1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000000}_{({\bf e}xponent, means the minimum value of the exponent part )}}^{8bit} \overbrace{\underbrace{111\cdots 110}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend <br>
+```mr \cdots ```mrend<br>
+```mr \overbrace{ \overbrace{\underbrace{0 \lor 1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000000}_{({\bf e}xponent, means the minimum value of the exponent part )}}^{8bit} \overbrace{\underbrace{100\cdots 000}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend <br>
+```mr \overbrace{ \overbrace{\underbrace{0 \lor 1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000000}_{({\bf e}xponent, means the minimum value of the exponent part )}}^{8bit} \overbrace{\underbrace{011\cdots 111}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend <br>
+```mr \cdots ```mrend<br>
+```mr \overbrace{ \overbrace{\underbrace{0 \lor 1}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{00000000}_{({\bf e}xponent, means the minimum value of the exponent part )}}^{8bit} \overbrace{\underbrace{000\cdots 001}_{{\bf f}raction)}}^{23bit}}^{32 bit} ```mrend <br>のような表現ができるようになります。このとき、本来 ```mr 24 ```mrend ビットあるべき仮数部の長さが減ってしまっており、精度が低下していることがいえます。なお、非正規化数の最小の値は C++ において`std::numeric_limits<float>::denorm_min()`で取得することができ、`std::numeric_limits<float>::has_denorm`によって、環境が非正規化数をサポートしているか判定することができます。
+```cpp
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#include <limits>
+
+constexpr std::float_denorm_style b = std::numeric_limits<float>::has_denorm;
+if constexpr (a == std::denorm_indeterminate) {
+    // ...
+} else if constexpr (a == std::denorm_absent) {
+    // ...
+} else if constexpr (a == std::denorm_present) {
+    // ...
+}
+
+#endif
+```
+各定数は次のように定義されています。
+
+| 値 | 非正規化数のサポート状況 |
+| -- | -- |
+| `std::denorm_indeterminate | 許可するか判定できない |
+| `std::denorm_absent` | 許可しない |
+| `std::denorm_present` | 許可する |
+
+さらに、精度の損失の原因が、非正規化数によるものであるかどうかを`std::numeric_limits<float>::has_denorm_loss`によって判定することができます。<br>
+さて非正規化数そのものは、エラー値というわけではないので、NaN などと比較すると計算を続行することができますが、正規化数がハードウェアによって処理されるのに対して、
+非正規化数は多くの場合ソフトウェアで実現しているという現状から、非正規化数を使った計算は正規化数による同じ計算よりも性能が悪くなる傾向にあります。
+ハードウェア実装によってはこのような事実から、演算結果に対して非正規化数を用いることとなる値が算出されたとしても、ゼロに丸めるといったような機能のあるものも存在します。<br><br>
+次に、最大値について考えて見ましょう。<br>
+```mr \overbrace{ \overbrace{\underbrace{0}_{({\bf s}ign)}}^{1bit} \overbrace{\underbrace{11111110}_{({\bf e}xponent)}}^{8bit} \overbrace{\underbrace{11111111111111111111111}_{({\bf f}raction)}}^{23bit}}^{32bit} ```mrend
 
 <br>
-同じく指数部に着目します。指数部は、バイアス値を加えて ```mr 11111110_{(2)} = 254 ```mrend となる値ですから、```mr 127 ```mrend です。また仮数部は先ほどと同様にして ```mr 1.\underbrace{\overbrace{11111111111111111111111}^{23bit}}_{{\bf f}raction)} ```mrendという意味になりますから、これはおおよそ ```mr 2 ```mrend です。よってその値は ```mr 2.0 \times 2^{127} \fallingdotseq 3.40282 \times 10^{38} ```mrend となります。<br>
+同じく指数部に着目します。指数部は、バイアス値を加えて ```mr 11111110_{(2)} = 254 ```mrend となる値ですから、```mr 127 ```mrend です。また仮数部は先ほどと同様にして ```mr 1.\underbrace{\overbrace{11111111111111111111111}^{23bit}}_{({\bf f}raction)} ```mrendという意味になりますから、これはおおよそ ```mr 2 ```mrend です。よってその値は ```mr 2.0 \times 2^{127} \fallingdotseq 3.40282 \times 10^{38} ```mrend となります。この値を超えるとき、無限を表現することとなり、これを一般に**オーバーフロー**といいます。
 
-非常に広い範囲の数値を表現できることがわかりました。
+最後に、これらについてまとめておきます。
+
+| 特例/例外事項 | 指数部の値 | 仮数部の値 |
+| -- | -- | -- |
+| ```mr \pm{0} ```mrend | ```mr 0 ```mrend | ```mr 0 ```mrend |
+| 非正規化数 | ```mr 0 ```mrend | ```mr 0 ```mrend 以外 |
+| 正規化数 | ```mr 1~126 ```mrend | 任意 |
+| 無限大 | ```mr 126 ```mrend | ```mr 0 ```mrend |
+| NaN | ```mr 126 ```mrend | ```mr 0 ```mrend 以外 |
 
 ## 16.8.4 精度と誤差
 IEEE 754 binary32 の表現方法は、非常に広い範囲の数値を表現できることがわかりましたが、この表現方法には欠点もあります。
@@ -347,7 +403,7 @@ binary32 の表現方法の必然として、大きな値を扱うためには�
 指数が 1 つあがれば値は爆発的に増加します。これまで述べてきた通り、仮数部は、その指数値間の値を表現しなければなりません。
 これらの事から、値を上げていくと、やがて 23 ビットのみでは(つまり 830 万通りでは)その指数値間の値を表現できるどこかで近似的に保持していくこととなり、最終的には整数単位ですら表現できなくなることがわかります。<br>
 
-次のグラフは、```mr 1.00 \cdots ```mrend から ```mr 2.00 \cdots ```mrend の間の精度を元に点でプロットしたものです。```mr 2.00 - 1.00 ```mrend より二つの値の差異は ```mr 1.00 \cdots ```mrend です。これを ```mr 2^{23} ```mrend で分割して表現しますから ```mr 1.00 \div 2^{23} = 1.19209e-07 ```mrend の精度でこの間を表現できることになります(IEEE 754 binary32 実装の`float`型の環境において、`std::numeric_limits<float>::epsilon()`(`epsilon`という名前の定義は、後述しています)とすることで、同様の値を取得できます)。この値を**誤差幅**(また後に説明する Absolute error )といいます。ここから考えられるように、またグラフからもわかるように、これは点でのプロットを行なったグラフですが、点があまりにも高密度であるためほぼ線のように見えています。
+次のグラフは、```mr 1.00 \cdots ```mrend から ```mr 2.00 \cdots ```mrend の間の精度を元に点でプロットしたものです。```mr 2.00 - 1.00 ```mrend より二つの値の差異は ```mr 1.00 \cdots ```mrend です。これを ```mr 2^{23} ```mrend で分割して表現しますから ```mr 1.00 \div 2^{23} = 1.19209e-07 ```mrend の精度でこの間を表現できることになります(IEEE 754 binary32 実装の`float`型の環境において、`std::numeric_limits<float>::epsilon()`(`epsilon`という名前の定義は、後述しています)とすることで、同様の値を取得できます)。この値を**誤差幅**(また後に説明する Absolute error)といいます。ここから考えられるように、またグラフからもわかるように、これは点でのプロットを行なったグラフですが、点があまりにも高密度であるためほぼ線のように見えています。
 
 ![](../assets/168/epsilon.png)
 
@@ -475,11 +531,26 @@ Theoretical valueの合計に、最近接偶数丸め方式の値の合計の方
 | -- | -- |
 | `round_toward_zero` | 0 に向かって丸めます |
 | `round_to_nearest` | 最近接偶数で丸めます |
-| `round_toward_infinity` | 正の無限表記に向かって丸めます |
-| `round_toward_neg_intinity` | 負の無限表記に向かって丸めます |
+| `round_toward_infinity` | 正の無限方向に向かって丸めます |
+| `round_toward_neg_intinity` | 負の無限方向に向かって丸めます |
 | `ronud_indeterminate` | 丸めスタイルが確定しません |
 
 `round_to_ward_infinity`は、`<cmath>`ヘッダに定義される`std::ceil`、また`round_toward_neg_intinity`は、同ヘッダに定義される`std::floor`関数と、動作が対応しています。
+また、これは実装依存ですが、異なる丸め方式がサポートされている処理系では、任意に丸め方式を設定することができます。
+```cpp
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#include <cfenv>
+#   pragma STDC FENV_ACCESS ON
+std::fesetround(FE_DOWNWARD); // 負の無限方向への丸めに設定する
+std::fesetround(FE_UPWARD); // 正の無限方向への丸めに設定する
+std::fesetround(FE_TOWARDZERO); // 0 方向への丸めに設定する
+std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
+
+#endif
+```
+`pragma`ディレクティブは、規定の丸め方式以外の丸め方式で浮動小数点数を利用するかもしれないことを、処理系に伝えます。
+これによって、最適化などによる設定を無視した浮動小数点数演算を回避します。
 
 ## 16.8.5 閉性
 整数同士の演算において、加算、積算、また減算(乗法)は、どのような数値同士でも必ず結果は整数です。しかしながら整数同士の除算は、整数の組み合わせによっては結果を整数で表せません。
@@ -513,7 +584,7 @@ Theoretical valueの合計に、最近接偶数丸め方式の値の合計の方
 これに対してこの隙間は、「指数部が大きくなるにつれて絶対的な距離は大きくなるが、相対的な距離はほぼ等しい特徴がある」と説明できます。
 この間隔を、**マシンイプシロン (machine epsilon)**と言います。この値は、前述した通り`std::numeric_limits<float>::epsilon()`によって取得することができ、これは`FLT_EPSILON`という定義済みマクロに対応しています。
 
-## 16.8.7 傾向と対策
+## 16.8.7 傾向
 浮動小数点数では、どのような演算を行っても必ず誤差がでるということが分かりました。また、これまでの説明から誤差幅の大きさは値が大きくなるほど大きくなっていくということが分かりました。
 さらに、誤差にはスケールの違いがあり、 Absolute error と Relative error というそれぞれの考え方で、それが何を示しているのかを明確に伝えることができるということが分かりました。
 
@@ -525,27 +596,29 @@ Theoretical valueの合計に、最近接偶数丸め方式の値の合計の方
 このとき、各 ```mr 1 ```mrend が ```mr \pm{e} ```mrend の Absolute error を持っている場合、演算結果から取得できる ```mr 2 ```mrend は ```mr \pm{2e} ```mrend の Absolute error を持っていることになります。<br>
 つまり、加算の結果のもつ Absolute error は、元の値の Absolute error の和となることが言えます。
 例えば、各 ```mr 1 ```mrend の Relative error ```mr e ```mrend が ```mr 0.1 ```mrend であるとき、各 ```mr 1 ```mrend は ```mr 0.9 ```mrend または ```mr 1.1 ```mrend となります(前述の公式にあてはめると、この通りになります)。
-よって結果は ```mr 1.8 ```mrend、```mr 2 ```mrend、```mr 2.2 ```mrend のうちのどれかとなるでしょう。
-この結果から、同じ Relative error をもつ数値同士の加算の結果における Relative error は同じになるということがいえます
+よって演算から求められた結果は ```mr 1.8 ```mrend、```mr 2 ```mrend、```mr 2.2 ```mrend のうちのどれかとなるでしょう。
+この事実から、同じ Relative error をもつ数値同士の加算の結果における Relative error は同じになるということがいえます
 (例えば、```mr 3 + 2 ```mrend という式があるとき、```mr 3 ```mrend が ```mr \pm{0.3} ```mrend の Absolute error を持つとした場合、 ```mr 3 ```mrend の Relative error は ```mr 0.1 ```mrend です。
 対して、```mr 2 ```mrend が ```mr \pm{0.2} ```mrend の Absolute error を持つとした場合、 Relative error は同じく ```mr 0.1 ```mrend です。
+さらに、この演算結果である ```mr 5 ```mrend は、後の説明で証明している通り ```mr 0.1 ```mrend の Relative error を持っています。
 このように同じ Relative error を持つ数値同士の加算の結果値の Relative error は、元の値と同じ Relative error となります。)。
-さらに異なる Relative error 、つまり異なるスケールを互いにもつ数値同士の加算においては、これを適用できないこともわかるはずです。
+これは異なる Relative error 、つまり異なるスケールを互いにもつ数値同士の加算においては、これを適用できないこともわかるはずです。
 
-明確にするため、これをより数学的に説明します。<br>
-量 ```mr A, B, C, \cdots ```mrend の実験値として ```mr a, b, c \cdots ```mrend 各実験値の Absolute error  ```mr \delta a, \delta b, \delta c, \cdots (\gt 0) ```mrend(数学、物理学において ```mr \delta ```mrend は差を表すときに用いられることがあります)があるとき、これらの量から誤差付きの量 ```mr Z = z \pm{\delta z} ```mrend を算出し、各誤差 ```mr \delta a, \delta b, \delta c \cdots (\gt 0) ```mrend が ```mr Z ```mrend(```mr \delta z ```mrend)に影響を与えるとき、誤差が**伝播する**といいます。
-前述したとおり Absolute error は、```mr Z = A + B + C + \cdots ```mrend という加法によって、```mr z ```mrend の Absolute error  ```mr \delta z ```mrend に対し次のように伝播します。<br>
-```mr \delta z \leq \delta a + \delta b + \delta c + \cdots ```mrend<br>
-このとき、量 ```mr Z ```mrend を大きく見積もった場合、すなわち ```mr A + B + C + \cdots ```mrend を大きく見積もった場合、
+この法則性を明確にするため、以下数学的に説明します。<br>
+量 ```mr A, B, C, \cdots ```mrend の実験値として ```mr a, b, c \cdots ```mrend 各実験値の Absolute error  ```mr \delta a, \delta b, \delta c, \cdots (\gt 0) ```mrend(数学、物理学において ```mr \delta ```mrend は差を表すときに用いられることがあります)があるとき、これらの量から誤差付きの量 ```mr Z = z \pm{\delta z} ```mrend を算出し、各誤差 ```mr \delta a, \delta b, \delta c \cdots (\gt 0) ```mrend が ```mr Z ```mrend(```mr \delta z ```mrend)に影響を与えるとき、これを誤差が**伝播する**といいます。
+前述したとおり Absolute error は、```mr Z = A + B + C + \cdots ```mrend という加法によって、```mr z ```mrend の Absolute error  ```mr \delta z ```mrend に対し
+```mr \delta z \leq \delta a + \delta b + \delta c + \cdots ```mrend というように伝播します。
+このとき、量 ```mr Z ```mrend 、すなわち ```mr A + B + C + \cdots ```mrend を大きく見積もった場合、
 ```mr (a + \delta a) + (b + \delta b) + (c + \delta c) + \cdots = (a + b + c + \cdots) + (\delta a + \delta b + \delta c + \cdots) ```mrend と表せ、量 ```mr Z ```mrend を最も大きく見積もった場合の値を ```mr z + \delta z_{max} ```mrend としたとき、```mr \delta z_{max} = \delta a + \delta b + \delta c + \cdots ```mrend と見積もることができます。
 また、量 ```mr Z ```mrend を小さく見積もった場合、すなわち ```mr A + B + C + \cdots ```mrend を小さく見積もった場合、
 ```mr (a - \delta a) + (b - \delta b) + (c - \delta c) + \cdots = (a + b + c + \cdots) - (\delta a + \delta b + \delta c + \cdots) ```mrend と表せ、量 ```mr Z ```mrend を最も小さく見積もった場合の値を ```mr z - \delta z_{min} ```mrend としたとき、```mr \delta z_{min} = \delta a + \delta b + \delta c + \cdots ```mrend と見積もることができます。
 
-さらに ```mr \underbrace{\dfrac{\delta a}{a} = \dfrac{\delta b}{b} = \dfrac{\delta c}{c} = \cdots}_{n} ```mrend であるとき、
-```mr \delta z = \underbrace{a \dfrac{\delta a}{a} + b \dfrac{\delta a}{a} + c \dfrac{\delta a}{a} + \cdots}_{n} = \dfrac{\delta a}{a}(\underbrace{a + b + c + \cdots}_{n}) ```mrend がなりたち、
-部分式 ```mr (\underbrace{a + b + c + \cdots}_{n}) ```mrend は Theoretical value の集合値であることは明らかですから 
-```mr (\underbrace{a + b + c + \cdots}_{n}) = z ```mrend 、 ```mr \delta z = \dfrac{\delta a}{a} \times z ```mrend と表せます。よって、
-```mr \dfrac{\delta z}{z} = \dfrac{\delta a}{a} ```mrend がなりたちます(全ての元の値が同じ Relative error を持つ場合、その加算結果の Relative error は元の値の Relative error と同じである)。
+さらに ```mr \dfrac{\delta a}{a} = \dfrac{\delta b}{b} = \dfrac{\delta c}{c} = \cdots ```mrend であるとき、
+```mr \delta z = a \dfrac{\delta a}{a} + b \dfrac{\delta a}{a} + c \dfrac{\delta a}{a} + \cdots = \dfrac{\delta a}{a}(a + b + c + \cdots) ```mrend がなりたち、
+部分式 ```mr (a + b + c + \cdots) ```mrend が Theoretical value の集合値であることは明らかですから、 
+```mr (a + b + c + \cdots) = z ```mrend 、 ```mr \delta z = \dfrac{\delta a}{a} \times z ```mrend と表せます。よって、
+```mr \dfrac{\delta z}{z} = \dfrac{\delta a}{a} ```mrend がなりたちます。
+これは、全ての元の値が同じ Relative error を持つ場合、その加算結果の Relative error は元の値の Relative error と同じであることを示しています。
 
 ### 減算
 ```mr 2 - 1 ```mrend について考えます。
@@ -577,8 +650,95 @@ Theoretical valueの合計に、最近接偶数丸め方式の値の合計の方
 このときの Relative error ```mr e ```mrend を $$ 0.001 $$ としたとき、式にそのまま値を代入して結果は大体 ```mr 998 ```mrend から ```mr 1002 ```mrend くらいまでで、その幅は ```mr 4 ```mrend 、Theoretical value から考えると ```mr \pm{2} ```mrend の幅があることが分かります。
 このとき、元の値(```mr 100 ```mrend と ```mr 10 ```mrend)それぞれの Relative error と結果の Relative error が異なっていることに気づきます。<br>
 結果の Theoretical value はもちろん ```mr 1000 ```mrend ですが、Relative error が もし ```mr 0.001 ```mrend であるならば、最小で ```mr 999 ```mrend 最大で ```mr 1001 ```mrend の間になるはずです。
-これはつまり**乗算では Relative error が加わる**ということを示しています。<br>
+これはつまり**乗算では Relative error が大体加わる(勿論マイナス符号のついた値を含む)**ということを示しています。<br>
+
+以下、数学的にこの事実を示します。<br>
+量 ```mr Z = A \times B = A \cdot B ```mrend とします。量 ```mr A \cdot B ```mrend を大きく見積もった場合、
+```mr (a + \delta a) \cdot (b + \delta b) ```mrend を計算することとなります。それぞれを Relative error の形に変形すると 
+```mr (a + \delta a) \cdot (b + \delta b) = a \left( 1 + \dfrac{\delta a}{a} \right) \cdot b \left( 1 + \dfrac{\delta b}{b} \right) ```mrend となります。
+このときの Absolute error ```mr \delta a, \delta b ```mrend は Theoretical value ```mr a, b ```mrend に対しては小さな値であるという仮定をし、それを基に
+```mr \left( \dfrac{\delta a}{a} \right)^{2}, \left( \dfrac{\delta b}{b} \right)^{2}, \dfrac{\delta a}{a}\dfrac{\delta b}{b} \ll 1 ```mrend 
+という近似が成立するという仮定をしきます(```mr \ll ```mrend は十分に小さいことを示します。例えば ```mr |x| \\ll 1 ```mrend とした場合、```mr x^{2} ```mrend が ```mr 1^{2} ```mrend と比べて無視できることを意味します)。すると
+```mr a \left( 1 + \dfrac{\delta a}{a} \right) \cdot b \left(1 + \dfrac{\delta b}{b} \right) = ab \left(1 + \dfrac{\delta a}{a} + \dfrac{\delta b}{b} + \dfrac{\delta a}{a} \cdot \dfrac{\delta b}{b} \right) \approx ab \left{ 1 + \left( \dfrac{\delta a}{a} + \dfrac{\delta b}{b} \right) \right} ```mrend といえることになります。この式と、量 ```mr Z ```mrend を大きく見積もった場合の値 ```mr z + \delta z_{max} = z \left( 1 + \dfrac{\delta c_{max}}{c} \right) ```mrend を比べると ```mr \dfrac{\delta z_{max}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であるといえます。
+同様に、```mr A \cdot B ```mrend を小さく見積もった場合、
+```mr a \left(1 - \dfrac{\delta a}{a}\right) \cdot b \left(1-\dfrac{\delta b}{b}\right) = ab\left(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}\right)\approx ab\left{1-\left(\dfrac{\delta a}{a}+\dfrac{\delta b}{b}\right)\right} ```mrend といえます
+(因みに ```mr \approx ```mrend と ```mr \fallingdotseq ```mrend は同じ意味として使われますが、数学記号としては ```mr \approx ```mrend の方が[標準的に使われます](https://ja.wikipedia.org/wiki/%E6%95%B0%E5%AD%A6%E8%A8%98%E5%8F%B7%E3%81%AE%E8%A1%A8#.E9.9B.86.E5.90.88.E8.AB.96.E3.81.AE.E8.A8.98.E5.8F.B7))。<br>
+この式と、量 ```mr Z ```mrend を小さく見積もった場合の値 ```mr z + \delta z_{min} = z\left(1-\dfrac{\delta c_{min}}{c}\right) ```mrend を比べると、```mr \dfrac{\delta c_{min}}{c} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であるといえます。
+これは、誤差を持つ値同士の乗算による結果値が、元の値の Relative error が大体加わった値であることを示します。
 
 ### 除算
-```mr 100 \div 10 ```mrend について考えます。最小値は ```mr (100 - 100e) \div (10 + 10e) = 10 \dfrac{1-e}{1+e} ```mrend 、最大値は ```mr (100 + 100e) \div (10 - 10e) = 10 \dfrac{1+e}{1-e} ```mrend と見積もることができます。Relative error ```mr e = 0.001 ```mrend としたとき、それぞれ ```mr 9.98 ```mrend と ```mr 10.02 ```mrend となり結果値の Relative error は ```mr \pm{2e} ```mrend であることがわかります。除算も乗算と同じく Relative error が加わる特徴がありますが、加算、減算と比べて誤差の増加は少なといえます。
+```mr 100 \div 10 ```mrend について考えます。最小値は ```mr (100 - 100e) \div (10 + 10e) = 10 \dfrac{1-e}{1+e} ```mrend 、最大値は ```mr (100 + 100e) \div (10 - 10e) = 10 \dfrac{1+e}{1-e} ```mrend と見積もることができます。Relative error ```mr e = 0.001 ```mrend としたとき、それぞれ ```mr 9.98 ```mrend と ```mr 10.02 ```mrend となり結果値の Relative error は ```mr \pm{2e} ```mrend であることがわかります。除算も乗算と同じく Relative error が加わる特徴がありますが、加算、減算と比べて誤差の増加は少ないといえます。
+
+以下、数学的にこの事実を示します。<br>
+この事実の証明には ```mr \dfrac{1}{1-x} = 1 + x + x^{2} + \cdots \ (x \ll 1) ```mrend という事実を利用して話を進めます。
+これは、高校数学で扱われる無限等比級数の収束公式を利用したもので、
+```mr -1 \lt x \lt 1 ```mrend のとき、無限等比級数 ```mr a + ax + ax^{2} + \cdots ```mrend は収束し、その値は ```mr \dfrac{a}{1 - x} ```mrend であるというものです
+(この事実を[幾何学的に示した図](https://ja.wikipedia.org/wiki/%E7%AD%89%E6%AF%94%E6%95%B0%E5%88%97#/media/File:Geometric_progression_convergence_diagram.svg)はとても有名です)。この証明は比較的簡単に行うことができますが、少し話が逸れ過ぎてしまうため本稿では取り上げません。もし気になるようでしたら[別ページにて証明しています](http://roki.hateblo.jp/entry/2018/03/27/Proof_of_infinite_geometric_series_)のでそちらをご覧ください。<br>
+さてこの事実に加えて、さらに ```mr x \ll 1 ```mrend であるとき、```mr \dfrac{1}{1-x} \approx 1 + x, \dfrac{1}{1+x} \approx 1 - x ```mrend がいえます。この関係を利用します。<br>
+
+```mr Z = A \div B = A \cdot B^{-1} ```mrend とします。```mr A \cdot B^{-1} ```mrend を大きく見積もった場合の値は 
+```mr \dfrac{a\left(1 + \dfrac{\delta a}{a}\right)}{b\left(1-\dfrac{\delta b}{b}\right)} = \dfrac{a}{b}\left(1 + \dfrac{\delta a}{a}\right)\left(1-\dfrac{\delta b}{b}\right)^{-1} ```mrend です。
+これに先ほどの近似公式を用いて 
+```mr \dfrac{a}{b}\left(1 + \dfrac{\delta a}{a}\right)\left(1-\dfrac{\delta b}{b}\right)^{-1} \approx \dfrac{a}{b}\left(1+\dfrac{\delta a}{a}\right)\left(1+\dfrac{\delta b}{b}\right) = \dfrac{a}{b}\left(1+\dfrac{\delta a}{a}+\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}\right) ```mrend と表せます。
+このとき、乗算のときと同様 Absolute error ```mr \delta a, \delta b ```mrend は Theoretical value ```mr a, b ```mrend に対しては小さな値であるという仮定をし、それを基に
+```mr \left( \dfrac{\delta a}{a} \right)^{2}, \left( \dfrac{\delta b}{b} \right)^{2}, \dfrac{\delta a}{a}\dfrac{\delta b}{b} \ll 1 ```mrend
+という近似が成立するという仮定をしきます。すると
+```mr \dfrac{a}{b}\left(1+\dfrac{\delta a}{a}+\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}\right) \approx ab\left{1+\left(\dfrac{\delta a}{a}+\dfrac{\delta b}{b}\right)\right} ```mrend がなりたちます。<br>
+この式と、量 ```mr Z ```mrend を大きく見積もった場合の値 ```mr z + \delta z_{max} = z \left(1+\dfrac{\delta z_{max}}{z}\right) ```mrend と比べると ```mr \dfrac{\delta z_{max}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であることがいえます。<br>
+さらに、 ```mr A \cdot B^{-1} ``` を小さく見積もった場合の値は、 
+```mr \dfrac{a\left(1 - \dfrac{\delta a}{a}\right)}{b\left(1+\dfrac{\delta b}{b}\right)} = \dfrac{a}{b}\left(1 - \dfrac{\delta a}{a}\right)\left(1+\dfrac{\delta b}{b}\right)^{-1} ```mrend です。
+同じく近似公式を用いて
+```mr \dfrac{a}{b}\left(1 - \dfrac{\delta a}{a}\right)\left(1+\dfrac{\delta b}{b}\right)^{-1} \approx \dfrac{a}{b}\left(1-\dfrac{\delta a}{a}\right)\left(1-\dfrac{\delta b}{b}\right) = \dfrac{a}{b}\left(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}\right) ```mrend と表せます。
+またしても同様 ```mr \left( \dfrac{\delta a}{a} \right)^{2}, \left( \dfrac{\delta b}{b} \right)^{2}, \dfrac{\delta a}{a}\dfrac{\delta b}{b} \ll 1 ```mrend という近似が成立するという仮定をしくと
+```mr \dfrac{a}{b}\left(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}\right) \approx ab\left{1-\left(\dfrac{\delta a}{a}+\dfrac{\delta b}{b}\right)\right} ```mrend がなりたちます。<br>
+この式と、量 ```mr Z ```mrend を小さく見積もった場合の値 ```mr z - \delta z_{min} = c \left(1-\dfrac{\delta z_{min}}{z}\right) ```mrend と比べると ```mr \dfrac{\delta z_{min}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であることがいえます。
+これらは、誤差を持つ値同士の除算による結果値が、元の値の Relative error が大体加わった値であることを示します。
+
+
+## 16.8.8 対策
+
+この項では、浮動小数点数の利用で必ずつきまとう誤差をどのようにして軽減することができるかについて考えていきます。<br>
+
+まずは、次のコードを見てください。
+```cpp
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+float f = 0.f;
+for (int i = 0; i < 10000; ++i) f += 0.01f;
+
+std::cout << std::fixed << std::setprecision(std::numeric_limits<float>::max_digits10) << f << std::endl;
+
+#endif
+```
+ここまでの説明を理解していれば、このコードには問題があることがわかるはずです。実行内容を見るに、変数`f`は最終的に値 ```mr 100 ```mrend になるはずですが、そのようにはなりません。
+なぜならば、加算を行う過程で Absolute error が増加していくためです。これを抑えるためには、Absolute error によって小さい値の加算が無視されてしまわないように、
+なるべく近い値同士で加算を行うようにするという手が考えられます。
+```cpp
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+float f = 0.f;
+for (int i = 0; i < 100; ++i) {
+    float g = 0.f;
+    for (int j = 0; j < 100; ++j) g += 0.01f;
+    f += g;
+}
+
+#endif
+```
+これだけでも誤差はなにも工夫しなかった場合と比べてかなり抑えられる結果となりますが、この計算は次のように行うと結果値から完全に誤差をなくすことができます。
+```cpp
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+float f = 0.f, r = 0.f, t;
+for (int i = 0; i < 10000; ++i) {
+    r += 0.01f; // (1) (3) で加えられることができなかった値と、次に加える値の和を取る。
+    t = f;      // (2) 現在値を適用前にとっておく。
+    f += r;     // (3) (1) の値を加える。このとき、r が誤差幅よりも小さい値であると加えることができず、無視される。
+    r -= f - t; // (4) r から (3) で加えることができた分を取り除く。
+}
+
+#endif
+```
+
+## 16.8.9 倍精度浮動小数点数、拡張倍精度浮動小数点数
 
