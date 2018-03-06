@@ -37,6 +37,7 @@
 これは、fractional part を ```mr 8 ```mrend ビット、Number part を ```mr 24 ```mrend ビットとした場合の例です(固定小数点と呼ばれるものが必ずこの形式であるという決まりはありません。)。<br>
 C++17 には、固定小数点を表現する型は標準では用意されていません(C++17 に標準で用意されているfractional part 分を扱える型として`float`と`double`がある事はもちろんご存知でしょう。この二つの型は本項のメインテーマである浮動小数点数を表す型であり、固定小数点と対比されることが多いです)。<br>
 しかしながら、Number part とfractional part の管理を行えれば、固定小数点型を自作することはもちろん可能です。以下は符号なし固定小数点型をシミュレートした簡単なクラスです。
+
 ```cpp
 #include <iostream>
 #include <type_traits>
@@ -661,10 +662,11 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 という近似が成立するという仮定をしきます(```mr \ll ```mrend は十分に小さいことを示します)。例えば ```mr |x| \ll 1 ```mrend とした場合、```mr x^{2} ```mrend が ```mr 1^{2} ```mrend と比べて無視できることを意味します)。すると
 ```mr a ( 1 + \dfrac{\delta a}{a} ) \cdot b (1 + \dfrac{\delta b}{b} ) = ab (1 + \dfrac{\delta a}{a} + \dfrac{\delta b}{b} + \dfrac{\delta a}{a} \cdot \dfrac{\delta b}{b} ) \approx ab { 1 + ( \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ) } ```mrend といえることになります。この式と、量 ```mr Z ```mrend を大きく見積もった場合の値 ```mr z + \delta z_{max} = z ( 1 + \dfrac{\delta z_{max}}{z} ) ```mrend を比べると ```mr \dfrac{\delta z_{max}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であるといえます。
 同様に、```mr A \cdot B ```mrend を小さく見積もった場合、
-```mr a (1 - \dfrac{\delta a}{a}) \cdot b (1-\dfrac{\delta b}{b}) = ab(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b})\approx ab{1-(\dfrac{\delta a}{a}+\dfrac{\delta b}{b})} ```mrend といえます
-(因みに ```mr \approx ```mrend と ```mr \fallingdotseq ```mrend は同じ意味として使われますが、数学記号としては ```mr \approx ```mrend の方が[標準的に使われます](https://ja.wikipedia.org/wiki/%E6%95%B0%E5%AD%A6%E8%A8%98%E5%8F%B7%E3%81%AE%E8%A1%A8#.E9.9B.86.E5.90.88.E8.AB.96.E3.81.AE.E8.A8.98.E5.8F.B7))。<br>
+```mr a (1 - \dfrac{\delta a}{a}) \cdot b (1-\dfrac{\delta b}{b}) = ab(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b})\approx ab{1-(\dfrac{\delta a}{a}+\dfrac{\delta b}{b})} ```mrend といえます[^1]。
 この式と、量 ```mr Z ```mrend を小さく見積もった場合の値 ```mr z + \delta z_{min} = z(1-\dfrac{\delta c_{min}}{c}) ```mrend を比べると、```mr \dfrac{\delta c_{min}}{c} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であるといえます。
 これは、誤差を持つ値同士の乗算による結果値が、元の値の Relative error が大体加わった値であることを示します。
+
+[^1]: ```mr \approx ```mrend と ```mr \fallingdotseq ```mrend は同じ意味として使われますが、数学記号としては ```mr \approx ```mrend の方が[標準的に使われます](https://ja.wikipedia.org/wiki/%E6%95%B0%E5%AD%A6%E8%A8%98%E5%8F%B7%E3%81%AE%E8%A1%A8#.E9.9B.86.E5.90.88.E8.AB.96.E3.81.AE.E8.A8.98.E5.8F.B7)。
 
 ### 除算
 ```mr 100 \div 10 ```mrend について考えます。最小値は ```mr (100 - 100e) \div (10 + 10e) = 10 \dfrac{1-e}{1+e} ```mrend 、最大値は ```mr (100 + 100e) \div (10 - 10e) = 10 \dfrac{1+e}{1-e} ```mrend と見積もることができます。Relative error ```mr e = 0.001 ```mrend としたとき、それぞれ ```mr 9.98 ```mrend と ```mr 10.02 ```mrend となり結果値の Relative error は ```mr \pm{2e} ```mrend であることがわかります。除算も乗算と同じく Relative error が加わる特徴がありますが、加算、減算と比べて誤差の増加は少ないといえます。
@@ -672,8 +674,8 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 以下、数学的にこの事実を示します。<br>
 この事実の証明には ```mr \dfrac{1}{1-x} = 1 + x + x^{2} + \cdots \ (x \ll 1) ```mrend という事実を利用して話を進めます。
 これは、高校数学で扱われる無限等比級数の収束公式を利用したもので、
-```mr -1 \lt x \lt 1 ```mrend のとき、無限等比級数 ```mr a + ax + ax^{2} + \cdots ```mrend は収束し、その値は ```mr \dfrac{a}{1 - x} ```mrend であるというものです
-(この事実を[幾何学的に示した図](https://ja.wikipedia.org/wiki/%E7%AD%89%E6%AF%94%E6%95%B0%E5%88%97#/media/File:Geometric_progression_convergence_diagram.svg)はとても有名です)。この証明は比較的簡単に行うことができますが、少し話が逸れ過ぎてしまうため本稿では取り上げません。もし気になるようでしたら[別ページにて証明しています](http://roki.hateblo.jp/entry/2018/03/27/Proof_of_infinite_geometric_series_)のでそちらをご覧ください。<br>
+```mr -1 \lt x \lt 1 ```mrend のとき、無限等比級数 ```mr a + ax + ax^{2} + \cdots ```mrend は収束し、その値は ```mr \dfrac{a}{1 - x} ```mrend であるというものです[^2]。
+この証明は比較的簡単に行うことができますが、少し話が逸れ過ぎてしまうため本稿では取り上げません。もし気になるようでしたら[別ページにて証明しています](http://roki.hateblo.jp/entry/2018/03/27/Proof_of_infinite_geometric_series_)のでそちらをご覧ください。<br>
 さてこの事実に加えて、さらに ```mr x \ll 1 ```mrend であるとき、```mr \dfrac{1}{1-x} \approx 1 + x, \dfrac{1}{1+x} \approx 1 - x ```mrend がいえます。この関係を利用します。<br>
 
 ```mr Z = A \div B = A \cdot B^{-1} ```mrend とします。```mr A \cdot B^{-1} ```mrend を大きく見積もった場合の値は 
@@ -685,7 +687,7 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 という近似が成立するという仮定をしきます。すると
 ```mr \dfrac{a}{b}(1+\dfrac{\delta a}{a}+\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}) \approx ab{1+(\dfrac{\delta a}{a}+\dfrac{\delta b}{b})} ```mrend がなりたちます。<br>
 この式と、量 ```mr Z ```mrend を大きく見積もった場合の値 ```mr z + \delta z_{max} = z (1+\dfrac{\delta z_{max}}{z}) ```mrend と比べると ```mr \dfrac{\delta z_{max}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であることがいえます。<br>
-さらに、 ```mr A \cdot B^{-1} ``` を小さく見積もった場合の値は、 
+さらに、 ```mr A \cdot B^{-1} ```mrend を小さく見積もった場合の値は、 
 ```mr \dfrac{a(1 - \dfrac{\delta a}{a})}{b(1+\dfrac{\delta b}{b})} = \dfrac{a}{b}(1 - \dfrac{\delta a}{a})(1+\dfrac{\delta b}{b})^{-1} ```mrend です。
 同じく近似公式を用いて
 ```mr \dfrac{a}{b}(1 - \dfrac{\delta a}{a})(1+\dfrac{\delta b}{b})^{-1} \approx \dfrac{a}{b}(1-\dfrac{\delta a}{a})(1-\dfrac{\delta b}{b}) = \dfrac{a}{b}(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}) ```mrend と表せます。
@@ -693,7 +695,8 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 ```mr \dfrac{a}{b}(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}) \approx ab{1-(\dfrac{\delta a}{a}+\dfrac{\delta b}{b})} ```mrend がなりたちます。<br>
 この式と、量 ```mr Z ```mrend を小さく見積もった場合の値 ```mr z - \delta z_{min} = c (1-\dfrac{\delta z_{min}}{z}) ```mrend と比べると ```mr \dfrac{\delta z_{min}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であることがいえます。
 これらは、誤差を持つ値同士の除算による結果値が、元の値の Relative error が大体加わった値であることを示します。
-
+<br>
+[^2]: この事実を[幾何学的に示した図](https://ja.wikipedia.org/wiki/%E7%AD%89%E6%AF%94%E6%95%B0%E5%88%97#/media/File:Geometric_progression_convergence_diagram.svg)はとても有名です。
 
 ## 16.8.8 対策
 
@@ -748,8 +751,7 @@ for (int i = 0; i < 10000; ++i) {
 ```mr \overbrace{ \overbrace{\underbrace{1}_{({\bf s}ign)}}^{1 bit} \overbrace{\underbrace{10011}_{({\bf e}xponent)}}^{ 5bit} \overbrace{\underbrace{1001101000}_{({\bf f}raction)}}^{10 bit}}^{16 bit} ```mrend <br>
 binary32 と比較して binary16 はデータ容量が少ないことからスループットの向上、またメモリ容量、ディスク容量が節約できることが見込め、
 人間の眼の輝度ダイナミックレンジの大半の部分を 16 ビット浮動小数点で抑えることができるため、ディープラーニングを利用した画像処理、画像認識などで利用が活発化しています。
-このような現状から、16 bit 浮動小数点数演算に対する、ハードウェアによる最適化などが進んでいます[^1]。
-[^1]: ([1TFLOPSのNVIDIAモバイルSoC「Tegra X1」](https://pc.watch.impress.co.jp/docs/column/kaigai/683434.html#contents-section-3))
+このような現状から、16 bit 浮動小数点数演算に対する、ハードウェアによる最適化などが進んでいます[^3]。
 しかしながら、[16 ビット浮動小数点数型の提案は過去にされているものの](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0303r0.pdf)、現状 C++17 には搭載されていないため、
 利用したい場合は現状外部ライブラリを利用するか自作する必要があります。<br>
 
@@ -758,7 +760,7 @@ binary32 と比較して binary16 はデータ容量が少ないことからス�
 
 ```mr \overbrace{ \overbrace{\underbrace{1}_{({\bf s}ign)}}^{1 bit} \overbrace{\underbrace{10000000011}_{({\bf e}xponent)}}^{11 bit} \overbrace{\underbrace{1001101000000000000000000000000000000000000000000000}_{({\bf f}raction)}}^{52 bit}}^{64 bit} ```mrend
 <br>
-仮数部が 52 ビット(ケチ表現によって実質 53 ビット)もあるため、IEEE 754 binary32 と比べて高い精度を実現することができます。これまで`float`型に関する様々な情報を`std::numeric_limits`を利用して取得していましたが、`double`型についても同じようにして(`std::numeric_limits<double>`)取得できます。<br>
+仮数部が 52 ビット(ケチ表現によって実質 53 ビット)もあるため、IEEE 754 binary32 と比べて高い精度を実現することができます。これまで`float`型に関する様々な情報を`std::numeric_limits`を利用して取得していましたが、`double`型についても同じようにして(`std::numeric_limits<double>`を利用して)取得できます。<br>
 
 さらに、全体の長さが 128 ビットとなっている四倍精度浮動小数点数があります。これは、IEEE 754 binary128 として標準化されていますが、C++ 言語には搭載されていません。<br>
 
@@ -767,3 +769,6 @@ binary32 と比較して binary16 はデータ容量が少ないことからス�
 また、倍精度浮動小数点数の全体のビット長と四倍精度浮動小数点数の全体のビット長の間の長さをもつような浮動小数点数を、拡張倍精度と呼びます。
 これについては IEEE 754 は特別具体的な形式を定義はしておらず、その間にあるビット長の浮動小数点数であればそれをこのように言います。
 具体例としては、x87 の 80 ビット浮動小数点数などがあります。これは、非正規化数出ないときの仮数部の最上位ビットを省略しないという特徴があり、少し表現が異なる点に注意が必要です。
+
+<br>
+[^3]: [1TFLOPSのNVIDIAモバイルSoC「Tegra X1」](https://pc.watch.impress.co.jp/docs/column/kaigai/683434.html#contents-section-3)
