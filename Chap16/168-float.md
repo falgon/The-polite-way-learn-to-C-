@@ -660,9 +660,9 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 このときの Absolute error ```mr \delta a, \delta b ```mrend は Theoretical value ```mr a, b ```mrend に対しては小さな値であるという仮定をし、それを基に
 ```mr ( \dfrac{\delta a}{a} )^{2}, ( \dfrac{\delta b}{b} )^{2}, \dfrac{\delta a}{a}\dfrac{\delta b}{b} \ll 1 ```mrend 
 という近似が成立するという仮定をしきます(```mr \ll ```mrend は十分に小さいことを示します)。例えば ```mr |x| \ll 1 ```mrend とした場合、```mr x^{2} ```mrend が ```mr 1^{2} ```mrend と比べて無視できることを意味します)。すると
-```mr a ( 1 + \dfrac{\delta a}{a} ) \cdot b (1 + \dfrac{\delta b}{b} ) = ab (1 + \dfrac{\delta a}{a} + \dfrac{\delta b}{b} + \dfrac{\delta a}{a} \cdot \dfrac{\delta b}{b} ) \approx ab { 1 + ( \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ) } ```mrend といえることになります。この式と、量 ```mr Z ```mrend を大きく見積もった場合の値 ```mr z + \delta z_{max} = z ( 1 + \dfrac{\delta z_{max}}{z} ) ```mrend を比べると ```mr \dfrac{\delta z_{max}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であるといえます。
+```mr a ( 1 + \dfrac{\delta a}{a} ) \cdot b (1 + \dfrac{\delta b}{b} ) = ab (1 + \dfrac{\delta a}{a} + \dfrac{\delta b}{b} + \dfrac{\delta a}{a} \cdot \dfrac{\delta b}{b} ) \approx ab \{ 1 + ( \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ) \} ```mrend といえることになります。この式と、量 ```mr Z ```mrend を大きく見積もった場合の値 ```mr z + \delta z_{max} = z ( 1 + \dfrac{\delta z_{max}}{z} ) ```mrend を比べると ```mr \dfrac{\delta z_{max}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であるといえます。
 同様に、```mr A \cdot B ```mrend を小さく見積もった場合、
-```mr a (1 - \dfrac{\delta a}{a}) \cdot b (1-\dfrac{\delta b}{b}) = ab(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b})\approx ab{1-(\dfrac{\delta a}{a}+\dfrac{\delta b}{b})} ```mrend といえます[^1]。
+```mr a (1 - \dfrac{\delta a}{a}) \cdot b (1-\dfrac{\delta b}{b}) = ab(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b})\approx ab\{1-(\dfrac{\delta a}{a}+\dfrac{\delta b}{b})\} ```mrend といえます[^1]。
 この式と、量 ```mr Z ```mrend を小さく見積もった場合の値 ```mr z + \delta z_{min} = z(1-\dfrac{\delta z_{min}}{z}) ```mrend を比べると、```mr \dfrac{\delta z_{min}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であるといえます。
 これは、誤差を持つ値同士の乗算による結果値が、元の値の Relative error が大体加わった値であることを示します。
 
@@ -692,7 +692,7 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 同じく近似公式を用いて
 ```mr \dfrac{a}{b}(1 - \dfrac{\delta a}{a})(1+\dfrac{\delta b}{b})^{-1} \approx \dfrac{a}{b}(1-\dfrac{\delta a}{a})(1-\dfrac{\delta b}{b}) = \dfrac{a}{b}(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}) ```mrend と表せます。
 またしても同様 ```mr ( \dfrac{\delta a}{a} )^{2}, ( \dfrac{\delta b}{b} )^{2}, \dfrac{\delta a}{a}\dfrac{\delta b}{b} \ll 1 ```mrend という近似が成立するという仮定をしくと
-```mr \dfrac{a}{b}(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}) \approx ab{1-(\dfrac{\delta a}{a}+\dfrac{\delta b}{b})} ```mrend がなりたちます。<br>
+```mr \dfrac{a}{b}(1-\dfrac{\delta a}{a}-\dfrac{\delta b}{b}+\dfrac{\delta a}{a}\cdot\dfrac{\delta b}{b}) \approx ab\{1-(\dfrac{\delta a}{a}+\dfrac{\delta b}{b})\} ```mrend がなりたちます。<br>
 この式と、量 ```mr Z ```mrend を小さく見積もった場合の値 ```mr z - \delta z_{min} = z (1-\dfrac{\delta z_{min}}{z}) ```mrend と比べると ```mr \dfrac{\delta z_{min}}{z} = \dfrac{\delta a}{a} + \dfrac{\delta b}{b} ```mrend であることがいえます。
 これらは、誤差を持つ値同士の除算による結果値が、元の値の Relative error が大体加わった値であることを示します。
 <br>
