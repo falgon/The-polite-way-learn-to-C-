@@ -1,5 +1,5 @@
 /**
-* @defgroup 167	16.7	第16章/16.7	アルゴリズムと計算複雑性理論
+* @addtogroup 167	16.7	第16章/16.7	アルゴリズムと計算複雑性理論
 * @brief 16.7.1	で利用されたサンプルコードです
 */
 /*@{*/
@@ -27,7 +27,7 @@ unsigned int sum(unsigned int n)
     return k;
 }
 
-} // namespace space v1
+} // namespace v1
 } // namespace chap16_7_1
 } // namespace TPLCXX17
 namespace TPLCXX17 {
@@ -291,7 +291,7 @@ struct search_insert {
 template <class BidirectionalIterator, class Compare, class SearchInserter>
 void insertion_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp, SearchInserter search_inserter)
 {
-    for (ForwardIterator i = std::next(first, 1); i != last; ++i) {
+    for (BidirectionalIterator i = std::next(first, 1); i != last; ++i) {
         if (!comp(*std::next(i, -1), *i)) { // (1)
             search_inserter(first, i, comp);
         }

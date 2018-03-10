@@ -361,7 +361,7 @@ struct search_insert {
 template <class BidirectionalIterator, class Compare, class SearchInserter>
 void insertion_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp, SearchInserter search_inserter)
 {
-    for (ForwardIterator i = std::next(first, 1); i != last; ++i) {
+    for (BidirectionalIterator i = std::next(first, 1); i != last; ++i) {
         if (!comp(*std::next(i, -1), *i)) { // (1)
             search_inserter(first, i, comp);
         }
