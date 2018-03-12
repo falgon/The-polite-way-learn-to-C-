@@ -150,7 +150,7 @@ namespace v1 {
  * void selection_sort_sample()
  * {
  *      std::vector<int> v(10);
- *      std::iota(std::begin(v), std::end(v), mt);
+ *      std::iota(std::begin(v), std::end(v), 0);
  *      std::random_device seed;
  *      std::mt19937 mt(seed());
  *      std::shuffle(std::begin(v), std::end(v), mt);
@@ -203,7 +203,7 @@ void iter_swap_if(ForwardIterator x, ForwardIterator y, Compare comp)
  * void bubble_sort_sample()
  * {
  *      std::vector<int> v(10);
- *      std::iota(std::begin(v), std::end(v), mt);
+ *      std::iota(std::begin(v), std::end(v), 0);
  *      std::random_device seed;
  *      std::mt19937 mt(seed());
  *      std::shuffle(std::begin(v), std::end(v), mt);
@@ -278,7 +278,7 @@ struct search_insert {
  * void insertion_sort_sample()
  * {
  *      std::vector<int> v(10);
- *      std::iota(std::begin(v), std::end(v), mt);
+ *      std::iota(std::begin(v), std::end(v), 0);
  *      std::random_device seed;
  *      std::mt19937 mt(seed());
  *      std::shuffle(std::begin(v), std::end(v), mt);
@@ -331,7 +331,7 @@ namespace v1 {
  * void merge_sort_sample()
  * {
  *      std::vector<int> v(10);
- *      std::iota(std::begin(v), std::end(v), mt);
+ *      std::iota(std::begin(v), std::end(v), 0);
  *      std::random_device seed;
  *      std::mt19937 mt(seed());
  *      std::shuffle(std::begin(v), std::end(v), mt);
@@ -379,7 +379,7 @@ namespace v1 {
  * void quick_sort_sample()
  * {
  *      std::vector<int> v(10);
- *      std::iota(std::begin(v), std::end(v), mt);
+ *      std::iota(std::begin(v), std::end(v), 0);
  *      std::random_device seed;
  *      std::mt19937 mt(seed());
  *      std::shuffle(std::begin(v), std::end(v), mt);
@@ -474,7 +474,7 @@ const T& med3(const T& x, const T& y, const T& z) // median-of-three を得る
  * void quick_sort_sample()
  * {
  *      std::vector<int> v(10);
- *      std::iota(std::begin(v), std::end(v), mt);
+ *      std::iota(std::begin(v), std::end(v), 0);
  *      std::random_device seed;
  *      std::mt19937 mt(seed());
  *      std::shuffle(std::begin(v), std::end(v), mt);
@@ -625,7 +625,7 @@ namespace v2 {
  * void insertion_sort_sample()
  * {
  *      std::vector<int> v(10);
- *      std::iota(std::begin(v), std::end(v), mt);
+ *      std::iota(std::begin(v), std::end(v), 0);
  *      std::random_device seed;
  *      std::mt19937 mt(seed());
  *      std::shuffle(std::begin(v), std::end(v), mt);
