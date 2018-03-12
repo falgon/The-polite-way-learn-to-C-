@@ -494,8 +494,8 @@ void quick_sort(BidirectionalIterator first, BidirectionalIterator last, Compare
     if (first == last) return;
     
     BidirectionalIterator l = first, r = std::next(last, -1);
-    while (comp(l, r)) {
-        for (; comp(*l, *first) && comp(l, r); ++l);
+    while (l < r) {
+        for (; comp(*l, *first) && l < r; ++l);
         for (; comp(*first, *r); --r);
         std::iter_swap(l, r);
     }
