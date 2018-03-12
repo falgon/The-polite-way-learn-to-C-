@@ -4,7 +4,7 @@
 The Japanese C++17 documents for beginners.
 
 ## Build
-* GitBook: https://roki.gitbooks.io/thepolitewaylearntocpp17/content/v/draft/
+* GitBook: https://roki.gitbooks.io/thepolitewaylearntocpp17/content/
 * Doxygen: https://falgon.github.io/ThePoliteWayLearnToCpp17/
 
 ## Lisence
