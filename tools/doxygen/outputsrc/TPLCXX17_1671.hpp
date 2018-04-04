@@ -113,19 +113,24 @@ namespace v2 {
 template <class OutputIterator>
 OutputIterator primes(unsigned int n, OutputIterator oiter)
 {
-    std::vector<bool> prime(n, 1);
-    prime[0].flip();
+    std::vecotr<bool> is_prime(n, 1);
+    is_prime[0].flip();
+    is_prime[1].flip();
 
-    for (unsigned int i = 0, end = std::sqrt(n), k = 0; i < end; ++i) {
-        if (prime[i]) {
-            k = i + 1;
-            for (unsigned int j = k * 2 - 1; j < n; j += k) prime[j] = 0;
+    for (std::size_t i = 2; i < std::sqrt(n); ++i) { // n の平方根よりも小さい値しかチェックしない
+        if (is_prime[i]) {
+            for (std::size_t j = i * 2; j < n; j += i) { // i の倍数で進行
+                is_prime[j] = 0;
+            }
         }
     }
 
-    for (unsigned int i = 0; i < n; ++i) {
-        if (prime[i]) *oiter++ = i + 1;
+    unsigned int r = 0;
+    for (auto&& v : is_prime) {
+        if (v) *oiter++ = r;
+        ++r;
     }
+
     return oiter;
 }
 
