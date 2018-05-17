@@ -589,6 +589,7 @@ const T& med3(const T& x, const T& y, const T& z) // median-of-three を得る
     return std::max(std::min(x, y), std::min(std::max(x, y), z)); 
 }
 #else
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 template <class Iter>
 constexpr Iter min_iter(Iter i1, Iter i2) // Compare 関数オブジェクトを受け入れる実装の方が汎用性が高いが, 本項目の内容とは無関係であるため省略
 {
@@ -600,6 +601,7 @@ constexpr Iter max_iter(Iter i1, Iter i2) // Compare 関数オブジェクトを
 {
     return *i1 < *i2 ? i2 : i1;
 }
+#endif
 
 /**
  * @brief median-of-three のイテレータを得ます
