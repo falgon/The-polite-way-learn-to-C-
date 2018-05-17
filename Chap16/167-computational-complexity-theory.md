@@ -582,11 +582,45 @@ namespace v2 {
  * }
  * @endcode
  */
+#ifdef TPLCXX17_USE_STANDARD_LIB
 template <class T>
 const T& med3(const T& x, const T& y, const T& z) // median-of-three を得る
 {
     return std::max(std::min(x, y), std::min(std::max(x, y), z)); 
 }
+#else
+template <class Iter>
+constexpr Iter min_iter(Iter i1, Iter i2) // Compare 関数オブジェクトを受け入れる実装の方が汎用性が高いが, 本項目の内容とは無関係であるため省略
+{
+    return *i1 < *i2 ? i1 : i2;
+}
+
+template <class Iter>
+constexpr Iter max_iter(Iter i1, Iter i2) // Compare 関数オブジェクトを受け入れる実装の方が汎用性が高いが, 本項目の内容とは無関係であるため省略
+{
+    return *i1 < *i2 ? i2 : i1;
+}
+
+/**
+ * @brief median-of-three のイテレータを得ます
+ * @param x @a typename std::iterator_traits<decltype(x)>::value_type が operator< によって比較可能なイテレータ
+ * @param y @a typename std::iterator_traits<decltype(x)>::value_type が operator< によって比較可能なイテレータ
+ * @param z @a typename std::iterator_traits<decltype(x)>::value_type が operator< によって比較可能なイテレータ
+ * @return median-of-three のイテレータを返します
+ * @code
+ * void med3_iter_sample()
+ * {
+ *      std::array<int, 3> ar { 4, 2, 3 };
+ *      [[maybe_unused]] auto r = med3_iter(std::begin(ar), std::next(std::begin(ar), 1), std::next(std::end(ar), -1)); // std::next(std::begin(ar), -1)
+ * }
+ * @endcode
+ */
+template <class Iter>
+constexpr Iter med3_iter(Iter x, Iter y, Iter z) // median-of-three のイテレータを得る
+{
+    return max_iter(min_iter(x, y), min_iter(max_iter(x, y), z));
+}
+#endif
 
 /**
  * @brief median-of-three によってピボットを選択し、クイックソートを行います
@@ -611,6 +645,27 @@ const T& med3(const T& x, const T& y, const T& z) // median-of-three を得る
  * }
  * @endcode
  */
+#ifndef TPLCXX17_USE_STANDARD_LIB
+template <class BidirectionalIterator, class Compare>
+void quick_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp)
+{
+    if (first == last) return;
+    std::iter_swap(first, med3(first, std::next(first, std::distance(first, last) / 2), std::next(last, -1))); // med3 の値を first の値とスワップします.
+
+    Iter l = first, r = std::next(last, -1);
+    while (l < r) {
+        for (; comp(*l, *first) && l < r; ++l);
+        for (; comp(*first, *r); --r);
+        std::iter_swap(l, r);
+    }
+    std::iter_swap(first, l);
+    quick_sort(first, l, comp);
+    quick_sort(++l, last, comp);
+}
+
+// ... v1::quick_sort と同じ comp なしのバージョンのオーバーロード(略)
+#else
+ // 標準ライブラリを積極的に利用したバージョン
 template <class BidirectionalIterator, class Compare>
 void quick_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp)
 {
@@ -625,6 +680,7 @@ void quick_sort(BidirectionalIterator first, BidirectionalIterator last, Compare
     quick_sort(first, upper, comp);
     quick_sort(lower, last, comp);
 }
+#endif
 
 // ... v1::quick_sort と同じ comp なしのバージョンのオーバーロード(略)
 
