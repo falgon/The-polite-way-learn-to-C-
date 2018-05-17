@@ -420,7 +420,8 @@ void quick_sort(BidirectionalIterator first, BidirectionalIterator last)
 } // namespace v1
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-namespace v2 {
+#ifdef TPLCXX17_USE_STANDARD_LIB
+namespace v1 {
 
 // std::partition による実装
 template <class BidirectionalIterator, class Compare>
@@ -440,7 +441,8 @@ void quick_sort(BidirectionalIterator first, BidirectionalIterator last)
     quick_sort(first, last, std::less<>());
 }
 
-} //namespace v2
+} //namespace v1
+#endif
 #endif
 } // namespace chap16_7_1
 } // namespace TPLCXX17
