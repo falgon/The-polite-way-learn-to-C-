@@ -569,6 +569,7 @@ void quick_sort(BidirectionalIterator first, BidirectionalIterator last)
 namespace TPLCXX17 {
 namespace chap16_7_1 {
 namespace v2 {
+#ifdef TPLCXX17_USE_STANDARD_LIB
 /**
  * @brief median-of-three を得ます
  * @param x @a operator< によって比較可能な値
@@ -582,7 +583,6 @@ namespace v2 {
  * }
  * @endcode
  */
-#ifdef TPLCXX17_USE_STANDARD_LIB
 template <class T>
 const T& med3(const T& x, const T& y, const T& z) // median-of-three を得る
 {
@@ -613,7 +613,7 @@ constexpr Iter max_iter(Iter i1, Iter i2) // Compare 関数オブジェクトを
  * void med3_iter_sample()
  * {
  *      std::array<int, 3> ar { 4, 2, 3 };
- *      [[maybe_unused]] auto r = med3_iter(std::begin(ar), std::next(std::begin(ar), 1), std::next(std::end(ar), -1)); // std::next(std::begin(ar), -1)
+ *      [[maybe_unused]] auto r = med3_iter(std::begin(ar), std::next(std::begin(ar), 1), std::next(std::end(ar), -1)); // it will return std::next(std::end(ar), -1)
  * }
  * @endcode
  */
@@ -624,6 +624,7 @@ constexpr Iter med3_iter(Iter x, Iter y, Iter z) // median-of-three のイテレ
 }
 #endif
 
+#ifndef TPLCXX17_USE_STANDARD_LIB
 /**
  * @brief median-of-three によってピボットを選択し、クイックソートを行います
  * @param first 範囲の最初のイテレータ
@@ -647,7 +648,6 @@ constexpr Iter med3_iter(Iter x, Iter y, Iter z) // median-of-three のイテレ
  * }
  * @endcode
  */
-#ifndef TPLCXX17_USE_STANDARD_LIB
 template <class BidirectionalIterator, class Compare>
 void quick_sort(BidirectionalIterator first, BidirectionalIterator last, Compare comp)
 {
@@ -682,10 +682,8 @@ void quick_sort(BidirectionalIterator first, BidirectionalIterator last, Compare
     quick_sort(first, upper, comp);
     quick_sort(lower, last, comp);
 }
-#endif
-
 // ... v1::quick_sort と同じ comp なしのバージョンのオーバーロード(略)
-
+#endif
 } // namespace v2
 } // namespace chap16_7_1
 } // namespace TPLCXX17
