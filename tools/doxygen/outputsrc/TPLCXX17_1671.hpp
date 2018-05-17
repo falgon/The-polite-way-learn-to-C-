@@ -486,8 +486,8 @@ constexpr Iter max_iter(Iter i1, Iter i2) // Compare 関数オブジェクトを
 /**
  * @brief median-of-three のイテレータを得ます
  * @param x @a typename std::iterator_traits<decltype(x)>::value_type が operator< によって比較可能なイテレータ
- * @param y @a typename std::iterator_traits<decltype(x)>::value_type が operator< によって比較可能なイテレータ
- * @param z @a typename std::iterator_traits<decltype(x)>::value_type が operator< によって比較可能なイテレータ
+ * @param y @a typename std::iterator_traits<decltype(y)>::value_type が operator< によって比較可能なイテレータ
+ * @param z @a typename std::iterator_traits<decltype(z)>::value_type が operator< によって比較可能なイテレータ
  * @return median-of-three のイテレータを返します
  * @code
  * void med3_iter_sample()
