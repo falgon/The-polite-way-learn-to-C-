@@ -92,17 +92,9 @@ $(function() {
 <tr class="memitem:a17e41e8dce5ea14323c16293d0d7c6d5"><td class="memTemplItemLeft" align="right" valign="top">OutputIterator&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_t_p_l_c_x_x17_1_1chap16__7__1_1_1v2.html#a17e41e8dce5ea14323c16293d0d7c6d5">primes</a> (unsigned int n, OutputIterator oiter)</td></tr>
 <tr class="memdesc:a17e41e8dce5ea14323c16293d0d7c6d5"><td class="mdescLeft">&#160;</td><td class="mdescRight"><em>n</em> より小さい素数値をエラトステネスの篩によって <em>oiter</em> に全て出力します  <a href="#a17e41e8dce5ea14323c16293d0d7c6d5">[詳解]</a><br /></td></tr>
 <tr class="separator:a17e41e8dce5ea14323c16293d0d7c6d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f65a0a64e41655c3b6fb0cf3b91b9c6"><td class="memTemplParams" colspan="2">template&lt;class Iter &gt; </td></tr>
-<tr class="memitem:a5f65a0a64e41655c3b6fb0cf3b91b9c6"><td class="memTemplItemLeft" align="right" valign="top">constexpr Iter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_t_p_l_c_x_x17_1_1chap16__7__1_1_1v2.html#a5f65a0a64e41655c3b6fb0cf3b91b9c6">min_iter</a> (Iter i1, Iter i2)</td></tr>
-<tr class="memdesc:a5f65a0a64e41655c3b6fb0cf3b91b9c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">median-of-three を得ます  <a href="#a5f65a0a64e41655c3b6fb0cf3b91b9c6">[詳解]</a><br /></td></tr>
-<tr class="separator:a5f65a0a64e41655c3b6fb0cf3b91b9c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7bb37cb0c4d1bef755d633e412b0e7de"><td class="memTemplParams" colspan="2"><a id="a7bb37cb0c4d1bef755d633e412b0e7de"></a>
-template&lt;class Iter &gt; </td></tr>
-<tr class="memitem:a7bb37cb0c4d1bef755d633e412b0e7de"><td class="memTemplItemLeft" align="right" valign="top">constexpr Iter&#160;</td><td class="memTemplItemRight" valign="bottom"><b>max_iter</b> (Iter i1, Iter i2)</td></tr>
-<tr class="separator:a7bb37cb0c4d1bef755d633e412b0e7de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a654ee4886651b66803c090963762f7b8"><td class="memTemplParams" colspan="2">template&lt;class Iter &gt; </td></tr>
 <tr class="memitem:a654ee4886651b66803c090963762f7b8"><td class="memTemplItemLeft" align="right" valign="top">constexpr Iter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_t_p_l_c_x_x17_1_1chap16__7__1_1_1v2.html#a654ee4886651b66803c090963762f7b8">med3_iter</a> (Iter x, Iter y, Iter z)</td></tr>
-<tr class="memdesc:a654ee4886651b66803c090963762f7b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">median-of-three のイテレータを得ます  <a href="#a654ee4886651b66803c090963762f7b8">[詳解]</a><br /></td></tr>
+<tr class="memdesc:a654ee4886651b66803c090963762f7b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">median-of-three を得ます  <a href="#a654ee4886651b66803c090963762f7b8">[詳解]</a><br /></td></tr>
 <tr class="separator:a654ee4886651b66803c090963762f7b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb67d4fa108c08db0623cfc06c33dd3b"><td class="memTemplParams" colspan="2">template&lt;class BidirectionalIterator , class Compare &gt; </td></tr>
 <tr class="memitem:afb67d4fa108c08db0623cfc06c33dd3b"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespace_t_p_l_c_x_x17_1_1chap16__7__1_1_1v2.html#afb67d4fa108c08db0623cfc06c33dd3b">quick_sort</a> (BidirectionalIterator first, BidirectionalIterator last, Compare comp)</td></tr>
@@ -146,47 +138,6 @@ template&lt;class Iter &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>median-of-three のイテレータを得ます </p>
-<dl class="params"><dt>引数</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">x</td><td><em>typename</em> std::iterator_traits&lt;decltype(x)&gt;::value_type が operator&lt; によって比較可能なイテレータ </td></tr>
-    <tr><td class="paramname">y</td><td><em>typename</em> std::iterator_traits&lt;decltype(x)&gt;::value_type が operator&lt; によって比較可能なイテレータ </td></tr>
-    <tr><td class="paramname">z</td><td><em>typename</em> std::iterator_traits&lt;decltype(x)&gt;::value_type が operator&lt; によって比較可能なイテレータ </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>戻り値</dt><dd>median-of-three のイテレータを返します <div class="fragment"><div class="line"><span class="keywordtype">void</span> med3_iter_sample()</div><div class="line">{</div><div class="line">     std::array&lt;int, 3&gt; ar { 4, 2, 3 };</div><div class="line">     [[maybe_unused]] <span class="keyword">auto</span> r = <a class="code" href="namespace_t_p_l_c_x_x17_1_1chap16__7__1_1_1v2.html#a654ee4886651b66803c090963762f7b8">med3_iter</a>(std::begin(ar), std::next(std::begin(ar), 1), std::next(std::end(ar), -1)); <span class="comment">// std::next(std::begin(ar), -1)</span></div><div class="line">}</div></div><!-- fragment --> </dd></dl>
-
-</div>
-</div>
-<a id="a5f65a0a64e41655c3b6fb0cf3b91b9c6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5f65a0a64e41655c3b6fb0cf3b91b9c6">&#9670;&nbsp;</a></span>min_iter()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class Iter &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr Iter TPLCXX17::chap16_7_1::v2::min_iter </td>
-          <td>(</td>
-          <td class="paramtype">Iter&#160;</td>
-          <td class="paramname"><em>i1</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Iter&#160;</td>
-          <td class="paramname"><em>i2</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
 <p>median-of-three を得ます </p>
 <dl class="params"><dt>引数</dt><dd>
   <table class="params">
@@ -196,7 +147,16 @@ template&lt;class Iter &gt; </div>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>戻り値</dt><dd>median-of-three を返します <div class="fragment"><div class="line"><span class="keywordtype">void</span> med3_sample()</div><div class="line">{</div><div class="line">     [[maybe_unused]] <span class="keyword">auto</span> r = TPLCXX17::chap16_7_1::v2::med3(4, 2, 3); <span class="comment">// 3</span></div><div class="line">}</div></div><!-- fragment --> </dd></dl>
+<dl class="section return"><dt>戻り値</dt><dd>median-of-three を返します <div class="fragment"><div class="line"><span class="keywordtype">void</span> med3_sample()</div><div class="line">{</div><div class="line">     [[maybe_unused]] <span class="keyword">auto</span> r = TPLCXX17::chap16_7_1::v2::med3(4, 2, 3); <span class="comment">// 3</span></div><div class="line">}</div></div><!-- fragment --> median-of-three のイテレータを得ます </dd></dl>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">x</td><td><em>typename</em> std::iterator_traits&lt;decltype(x)&gt;::value_type が operator&lt; によって比較可能なイテレータ </td></tr>
+    <tr><td class="paramname">y</td><td><em>typename</em> std::iterator_traits&lt;decltype(x)&gt;::value_type が operator&lt; によって比較可能なイテレータ </td></tr>
+    <tr><td class="paramname">z</td><td><em>typename</em> std::iterator_traits&lt;decltype(x)&gt;::value_type が operator&lt; によって比較可能なイテレータ </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>median-of-three のイテレータを返します <div class="fragment"><div class="line"><span class="keywordtype">void</span> med3_iter_sample()</div><div class="line">{</div><div class="line">     std::array&lt;int, 3&gt; ar { 4, 2, 3 };</div><div class="line">     [[maybe_unused]] <span class="keyword">auto</span> r = <a class="code" href="namespace_t_p_l_c_x_x17_1_1chap16__7__1_1_1v2.html#a654ee4886651b66803c090963762f7b8">med3_iter</a>(std::begin(ar), std::next(std::begin(ar), 1), std::next(std::end(ar), -1)); <span class="comment">// std::next(std::begin(ar), -1)</span></div><div class="line">}</div></div><!-- fragment --> </dd></dl>
 
 </div>
 </div>
