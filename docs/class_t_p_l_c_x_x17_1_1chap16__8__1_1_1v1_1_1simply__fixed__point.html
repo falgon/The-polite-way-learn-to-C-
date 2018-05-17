@@ -98,7 +98,7 @@ constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href=
 <tr class="separator:a45d4fa4c998f3ac559ac1b53a5bac9bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe10f6498b64caf80c7015b479c496cc"><td class="memTemplParams" colspan="2">template&lt;class T , std::enable_if_t&lt; is_integral&lt; T &gt;::value, std::nullptr_t &gt;  = nullptr&gt; </td></tr>
 <tr class="memitem:abe10f6498b64caf80c7015b479c496cc"><td class="memTemplItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#abe10f6498b64caf80c7015b479c496cc">simply_fixed_point</a> (T x)</td></tr>
-<tr class="memdesc:abe10f6498b64caf80c7015b479c496cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">整数部コンストラクタ  <a href="#abe10f6498b64caf80c7015b479c496cc">[詳解]</a><br /></td></tr>
+<tr class="memdesc:abe10f6498b64caf80c7015b479c496cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number part コンストラクタ  <a href="#abe10f6498b64caf80c7015b479c496cc">[詳解]</a><br /></td></tr>
 <tr class="separator:abe10f6498b64caf80c7015b479c496cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe10f6498b64caf80c7015b479c496cc"><td class="memTemplParams" colspan="2">template&lt;class T , std::enable_if_t&lt; std::negation&lt; is_integral&lt; T &gt;&gt;::value, std::nullptr_t &gt;  = nullptr&gt; </td></tr>
 <tr class="memitem:abe10f6498b64caf80c7015b479c496cc"><td class="memTemplItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#abe10f6498b64caf80c7015b479c496cc">simply_fixed_point</a> (T x)</td></tr>
@@ -106,7 +106,7 @@ constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href=
 <tr class="separator:abe10f6498b64caf80c7015b479c496cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a718c2c4ccf8ed1f98324d0904fcbe44b"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
 <tr class="memitem:a718c2c4ccf8ed1f98324d0904fcbe44b"><td class="memTemplItemLeft" align="right" valign="top">constexpr std::enable_if_t&lt; is_integral&lt; T &gt;::value, <a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html">simply_fixed_point</a> &amp; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a718c2c4ccf8ed1f98324d0904fcbe44b">operator=</a> (T x)</td></tr>
-<tr class="memdesc:a718c2c4ccf8ed1f98324d0904fcbe44b"><td class="mdescLeft">&#160;</td><td class="mdescRight">整数部代入演算子  <a href="#a718c2c4ccf8ed1f98324d0904fcbe44b">[詳解]</a><br /></td></tr>
+<tr class="memdesc:a718c2c4ccf8ed1f98324d0904fcbe44b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number part 代入演算子  <a href="#a718c2c4ccf8ed1f98324d0904fcbe44b">[詳解]</a><br /></td></tr>
 <tr class="separator:a718c2c4ccf8ed1f98324d0904fcbe44b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1a0a2d3eec7b778761cf2e8d67b2189a"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
 <tr class="memitem:a1a0a2d3eec7b778761cf2e8d67b2189a"><td class="memTemplItemLeft" align="right" valign="top">constexpr std::enable_if_t&lt; std::negation&lt; is_integral&lt; T &gt; &gt;::value, <a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html">simply_fixed_point</a> &amp; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_t_p_l_c_x_x17_1_1chap16__8__1_1_1v1_1_1simply__fixed__point.html#a1a0a2d3eec7b778761cf2e8d67b2189a">operator=</a> (T x)</td></tr>
@@ -155,7 +155,7 @@ template&lt;class T , std::enable_if_t&lt; is_integral&lt; T &gt;::value, std::n
 </table>
 </div><div class="memdoc">
 
-<p>整数部コンストラクタ </p>
+<p>Number part コンストラクタ </p>
 <dl class="params"><dt>引数</dt><dd>
   <table class="params">
     <tr><td class="paramname">x</td><td>is_integral に沿うデータ型 T。SFINAE で失敗しなかった場合、それが問答無用で 24 ビット以下の整数値であるとみなします。 </td></tr>
@@ -265,7 +265,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>整数部代入演算子 </p>
+<p>Number part 代入演算子 </p>
 <dl class="params"><dt>引数</dt><dd>
   <table class="params">
     <tr><td class="paramname">x</td><td>is_integral に沿うデータ型 T。SFINAE で失敗しなかった場合、それが問答無用で 24 ビット以下の整数値であるとみなします。 </td></tr>

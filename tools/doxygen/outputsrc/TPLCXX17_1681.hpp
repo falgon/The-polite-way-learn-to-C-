@@ -37,7 +37,7 @@ public:
     //! 32 ビット符号なし領域を用います
     typedef std::uint32_t value_type;
 private:  
-    //! 小数部のビットサイズを表します。
+    //! fractional part のビットサイズを表します。
     inline static constexpr value_type fractional_size = 8;
     
     /**
@@ -54,7 +54,7 @@ public:
     constexpr explicit simply_fixed_point() = default;
 
     /**
-     * @brief 整数部コンストラクタ
+     * @brief Number part コンストラクタ
      * @param x is_integral に沿うデータ型 T。SFINAE で失敗しなかった場合、それが問答無用で 24 ビット以下の整数値であるとみなします。
      */
     template <class T, std::enable_if_t<is_integral<T>::value, std::nullptr_t> = nullptr>
@@ -71,7 +71,7 @@ public:
      constexpr explicit simply_fixed_point(T x) : data_(std::move(x)) {}
 
      /**
-      * @brief 整数部代入演算子
+      * @brief Number part 代入演算子
       * @param x is_integral に沿うデータ型 T。SFINAE で失敗しなかった場合、それが問答無用で 24 ビット以下の整数値であるとみなします。
       */
      template <class T>
@@ -119,7 +119,7 @@ private:
          return os << this_.data_ / std::pow(2, fractional_size);
      }
 
-     //! 整数部と小数部にわけた固定小数点の領域として使います
+     //! Number part とfractional part にわけた固定小数点の領域として使います
      value_type data_ = 0;
 };
 
@@ -148,6 +148,20 @@ int main()
 
 float a = 25.625f;
 std::cout << std::bitset<sizeof(float) * CHAR_BIT>(*reinterpret_cast<unsigned long*>(&a)) << std::endl; // strict aliasing ルール違反
+
+#endif
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#include <limits>
+
+constexpr std::float_denorm_style b = std::numeric_limits<float>::has_denorm;
+if constexpr (a == std::denorm_indeterminate) {
+    // ...
+} else if constexpr (a == std::denorm_absent) {
+    // ...
+} else if constexpr (a == std::denorm_present) {
+    // ...
+}
 
 #endif
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -204,5 +218,44 @@ int main()
     // 丸め方式によって実際の値は変わり得るものの正常には足されない
     std::cout << print_bit(f2 + 1) << std::endl; // 01001011100000000000000000000000
 }
+#endif
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#include <cfenv>
+#   pragma STDC FENV_ACCESS ON
+std::fesetround(FE_DOWNWARD); // 負の無限方向への丸めに設定する
+std::fesetround(FE_UPWARD); // 正の無限方向への丸めに設定する
+std::fesetround(FE_TOWARDZERO); // 0 方向への丸めに設定する
+std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
+
+#endif
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+float f = 0.f;
+for (int i = 0; i < 10000; ++i) f += 0.01f;
+
+std::cout << std::fixed << std::setprecision(std::numeric_limits<float>::max_digits10) << f << std::endl;
+
+#endif
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+float f = 0.f;
+for (int i = 0; i < 100; ++i) {
+    float g = 0.f;
+    for (int j = 0; j < 100; ++j) g += 0.01f;
+    f += g;
+}
+
+#endif
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+float f = 0.f, r = 0.f, t;
+for (int i = 0; i < 10000; ++i) {
+    r += 0.01f; // (1) (3) で加えられることができなかった値と、次に加える値の和を取る。
+    t = f;      // (2) 現在値を適用前にとっておく。
+    f += r;     // (3) (1) の値を加える。このとき、r が誤差幅よりも小さい値であると加えることができず、無視される。
+    r -= f - t; // (4) r から (3) で加えることができた分を取り除く。
+}
+
 #endif
 /*@}*/
