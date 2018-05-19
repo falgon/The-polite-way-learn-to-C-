@@ -90,6 +90,7 @@ x & (-x)
 ## 16.6.4 自分で四則演算子を作ってみよう
 
 補数に関する話をしましたので、これを利用して C++ 言語に用意されている`+`, `-`, `*`, `/`等を使わずに、ビット演算のみで同様の計算処理を行う関数を簡単に作ってみましょう[^1]。
+以下、下付き文字 \\(\_{\(2\)}\\) が付与されている数字は 2 進値、そうでない数字は 10 進値として話を進めます。
 
 ### 加算
 まずは加算から作っていきます。1 ビットの足し算をどのように論理演算で実現できるか考えます。
@@ -111,6 +112,8 @@ x & (-x)
 ```cpp
 #include <type_traits>
 
+namespace TPLCXX17 {
+
 #if 1
 template <class Integral, std::enable_if_t<std::is_integral<Integral>::value, std::nullptr_t> = nullptr>
 constexpr Integral add(Integral lhs, Integral rhs) noexcept
@@ -128,6 +131,8 @@ constexpr Integral add(const Integral lhs, const Integral rhs) noexcept
     return rhs ? add(lhs ^ rhs, (lhs & rhs) << 1) : lhs;
 }
 #endif
+
+} // namespace TPLCXX17
 ```
 まず`rhs`が \\(0\\) である場合、何もする必要はないですね。
 `carry`には前述した通り、左辺と右辺の論理積によって次の桁の値、つまり繰り上がりの値を予め入れておきます。
@@ -144,11 +149,15 @@ constexpr Integral add(const Integral lhs, const Integral rhs) noexcept
 #include <type_traits>
 #include <utility>
 
+namespace TPLCXX17 {
+
 template <class Integral, std::enable_if_t<std::is_integral<Integral>::value, std::nullptr_t> = nullptr>
 constexpr Integral sub(Integral lhs, Integral rhs) noexcept
 {
-    return add(std::move(lhs), add(~rhs, 1));
+    return add(std::move(lhs), add(~rhs, Integral(1)));
 }
+
+} // namespace TPLCXX17
 ```
 
 ### 積算
@@ -158,6 +167,9 @@ constexpr Integral sub(Integral lhs, Integral rhs) noexcept
 #include <cstdint>
 #include <type_traits>
 #include <utility>
+
+namespace TPLCXX17 {
+namespace detail {
 
 #if 1
 template <class Integral, std::enable_if_t<std::is_integral<Integral>::value, std::nullptr_t> = nullptr>
@@ -179,21 +191,34 @@ constexpr Integral mul_impl(Integral lhs, Integral rhs, Integral carry = 0) noex
 }
 #endif
 
-template <std::size_t> 
-struct mul_traits;
+template <std::size_t>
+struct msb_mask;
 template <>
-struct mul_traits<1> : std::integral_constant<std::uint8_t, 0xf0> {};
+struct msb_mask<1> : std::integral_constant<std::uint8_t, 0x80> {};
 template <>
-struct mul_traits<2> : std::integral_constant<std::uint16_t, 0xf000> {};
+struct msb_mask<2> : std::integral_constant<std::uint16_t, 0x8000> {};
 template <>
-struct mul_traits<4> : std::integral_constant<std::uint32_t, 0xf0000000> {};
+struct msb_mask<4> : std::integral_constant<std::uint32_t, 0x80000000> {};
 template <>
-struct mul_traits<8> : std::integral_constant<std::uint64_t, 0xf000000000000000> {};
+struct msb_mask<8> : std::integral_constant<std::uint64_t, 0x8000000000000000> {};
+
+template <class TraitsType, class T, class Fn>
+constexpr T transigned_invoke(T&& lhs, T&& rhs, Fn&& fn) noexcept
+{
+    typedef typename TraitsType::type type;
+    constexpr type one = type(1);
+
+    if (lhs & rhs & TraitsType::value) return std::invoke(std::forward<Fn>(fn), add(~lhs, one), add(~rhs, one));
+    else if (lhs & TraitsType::value) return add(~std::invoke(std::forward<Fn>(fn), add(~lhs, one), rhs), one);
+    else return std::invoke(std::forward<Fn>(fn), std::forward<T>(lhs), std::forward<T>(rhs));
+}
+
+} // namespace detail
 
 template <class Integral, std::enable_if_t<std::conjunction_v<std::is_integral<Integral>, std::is_unsigned<Integral>>, std::nullptr_t> = nullptr>
 constexpr Integral mul(Integral lhs, Integral rhs) noexcept
 {
-    return lhs && rhs ? mul_impl(std::move(lhs), std::move(rhs)) : 0;
+    return lhs && rhs ? detail::mul_impl(std::move(lhs), std::move(rhs)) : 0;
 }
 
 template <class Integral, std::enable_if_t<std::conjunction_v<std::is_integral<Integral>, std::is_signed<Integral>>, std::nullptr_t> = nullptr>
@@ -201,26 +226,168 @@ constexpr Integral mul(Integral lhs, Integral rhs) noexcept
 {
     if (!(lhs && rhs)) return 0;
 
-    typedef mul_traits<sizeof(Integral)> traits_type;
-    constexpr Integral one = Integral(1);
-    if (lhs & rhs & traits_type::value) return mul_impl(add(~lhs, one), add(~rhs, one));
-    else if (lhs & traits_type::value) return add(~mul_impl(add(~lhs, one), rhs), one);
-    else if (rhs & traits_type::value) return add(~mul_impl(lhs, add(~rhs, one)), one);
-    else return mul_impl(std::move(lhs), std::move(rhs));
+    typedef detail::msb_mask<sizeof(Integral)> traits_type;
+    
+    return 
+        detail::template transigned_invoke<traits_type>(std::move(lhs), std::move(rhs), [](auto&& inlhs, auto&& inrhs) { 
+            return detail::mul_impl(std::forward<decltype(inlhs)>(inlhs), std::forward<decltype(inrhs)>(inrhs)); 
+        });
 }
+
+} // namespace TPLCXX17
 ```
 `mul_impl`が主な積算の実装で、1 桁ずつ加算していることがわかります。`mul`では引数が負数であった場合と、引数のどちらか一方、または両方が \\(0\\) である場合の処理を行なっています。
 特に`mul_impl`に対して負数を渡すと、算術シフトがアーキテクチャ上で実装されている場合に無限ループとなってしまいますから、`std::is_signed_v<Integral> == true`であるとき、`mul`の中で引数のうちに負数を含む場合、その値を正数にして一度計算し、その後に符号を付与して返すようにしています。
 負数かどうかのチェックは比較演算子を利用しても良いですが、今回はビット演算のみを利用することとしていますので、MSB と論理積をとって判定します。
-その際対象となる型のサイズによってビットマスクを変えなければなりませんので、簡易的ですが`mul_traits`としてその差分を吸収しています。
+その際対象となる型のサイズによってビットマスクを変えなければなりませんので、簡易的ですが`msb_mask`としてその差分を吸収しています。
 
 ### 除算
-除算は有名なものでは引き放し法というものがあります。引き放し法は、引き戻し法から"戻し"をその計算過程の性質から見抜いて排除した除算の方法です。
-まず引き戻し法というのは、小学校で習う除算の筆算と全く同じです。私たちは例えば \\(1729 \div 13\\) を筆算で計算しようとしたときに、被除数の \\(7\\) の位置に \\(1\\) を立てて \\(17-13\\) を計算し、\\(4\\) を得てから \\(2\\) を降ろして \\(42\\) という余りを得ます。この次に被除数の \\(2\\) の位置に立てるべき数は \\(3\\) ですが、多く見積もりすぎて \\(4\\) を立ててしまったとしましょう。
-すると \\(13 \times 4 = 52\\) となり \\(42 - 52 = -10\\) という余りを得ることになります。従って、このときの除数を元に戻して \\(3\\) に修正してやり直すことになります。
-いまは値を 10 進値として計算していましたから、仮定する商の値は \\(0 ~ 9\\) の値を取りうることになります。
-これを 2 進法で計算すると考えると、仮定する商の値は \\(0\\) か \\(1\\) となりますから、まずは \\(1\\) を仮定して減算を行い、結果が負であればそれを元に戻して商を \\(0\\) にすれば良いということが言えます。これが引き戻し法です。
+除算は有名なものでは非回復型除算(引き放し法)というものがあります。非回復型除算は、回復型除算(引き戻し法)から"回復"をその計算過程の性質から見抜いて排除した除算の方法です。
+まず回復型除算について説明します。私たちは例えば \\(1729 \div 13\\) を筆算で計算しようとしたときに、被除数の \\(7\\) の位置に \\(1\\) を立てて \\(17-13\\) を計算し、部分剰余 \\(4\\) を得てから \\(2\\) を降ろして \\(42\\) という値を得ます。この次に被除数の \\(2\\) の位置に立てるべき数は \\(3\\) ですが、多く見積もりすぎて \\(4\\) を立ててしまったとしましょう。
+すると \\(13 \times 4 = 52\\) となり \\(42 - 52 = -10\\) という部分剰余を得ることになります。従って、このときの除数を元に戻して \\(3\\) に修正してやり直すことになります。
+いまは値を 10 進値として計算していましたから、仮定する商の値は \\(0\\) から \\(9\\) の値を取りうることになります。
+これを 2 進法で計算すると考えると、仮定する商の値は \\(0\\) か \\(1\\) となりますからまず \\(1\\) を仮定して減算を行い、部分剰余が負数であれば商を \\(0\\) に、
+そうでなければ \\(1\\) にすれば良いということが考えられます。そして次のサイクルで部分剰余が負数であった場合、部分剰余に除数を加えて元に戻すことで計算を続行します。これが回復型除算です。
+この動作による除算は、除数、被除数ともに \\(N\\) ビットとした場合、減算の結果が一度も負数とならなければ \\(N\\) サイクルで計算が終了しますが、反対に常に減算の結果が負数となり、次のサイクルで元に戻すという操作が必要になると \\(2N\\) サイクルを必要とすることになります。
 
-対して引き放し法は〜
+次に非回復型除算について説明します。\\(N=4\\), 除数を \\(7=0111\_{\(2\)}\\), 被除数を \\(3=0011\_{\(2\)}\\) とします。
+除数の MSB と被除数の LSB のビット位置を合わせるために、除数を \\(0000111\_{\(2\)} = 7\\), 被除数を 3 ビットシフト(\\(=\times 2^3\\))して \\(0011000\_{\(2\)} = 24\\) とします。
+\\(7 - 24 = -17\\) であり計算結果が負数ですから、商の MSB は \\(0\_{\(2\)}\\) となります。ここまでは、回復型除算と変わりません。
+回復型除算はこの後に回復を行い、\\(7 - 12 = 0000111\_{\(2\)} - 0001100\_{\(2\)} = 7 - 3 \times 2^2\\) を計算することになりますが、
+\\(3\times 2^2 = 3\times 2^3 \div 2\\) なので、\\(7 - 3 \times 2^{3} + 3 \times 2^{2} = 7 - 3 \times 2^{2}\\) がいえます。
+つまり剰余 \\(-17\\) に \\(3\times 2^2\\) を加えたものと同じであることが言えます(\\(-17 + 3 \times 2^2 = -17 + 12 = -5\\))。
+よってそのビットの商が \\(0\\) であるとき、次のビットの計算は減算ではなく、加算をすれば良いことが言えます。これが非回復法です。
+
+ここでの結果は \\(-5\\) だったため、商の MSB から一つ右のビットも \\(0\_{\(2\)}\\) となります。
+先の説明の通り、剰余が負数である場合、次の計算で加算を行いますから \\(-5+3\times 2^1 = -5+6=1\\) となり剰余が正数であるため、商の 3 ビット目は \\(1\_{\(2\)}\\) になります。
+先の計算結果が正数であったため、次は減算を行います。\\(1-3=-2\\) となり、剰余が負数となるため LSB は \\(0\_{\(2\)}\\) となります。以上から、結果として \\(0010\_{\(2\)}\\) が得られました。
+
+あとはこれをコードに落とし込んでいくだけですが、フローがあったほうが流れが分かりやすいかと思いますので、まず以下に示します。
+
+(フロー画像)
+
+次にコードを示します。
+
+```cpp
+#include <bitset>
+#include <string>
+#include <srook/bit/algorithm/nlz.hpp>
+
+namespace TPLCXX17 {
+namespace detail {
+
+template <std::size_t x, std::size_t y>
+struct msbit_impl {
+    template <class T>
+    static constexpr T apply(T i) noexcept { return msbit_impl<(x << 1), y>::apply(i | (i >> x)); }
+};
+
+template <std::size_t x>
+struct msbit_impl<x, x> {
+    template <class T>
+    static constexpr T apply(T i) noexcept { return i |= (i >> x), i - (i >> 1); }
+};
+
+template <class T>
+constexpr T msbit(T x) noexcept 
+{ 
+    return msbit_impl<1, (mul(sizeof(T), std::size_t(CHAR_BIT)) >> 1)>::apply(std::move(x)); // MSB から最初のビットだけ残す
+} 
+
+template <class Integral>
+struct integrals_shifted {
+    constexpr integrals_shifted(Integral md) 
+        : maxdigit(std::move(md)), mask(init_mask(srook::bit::algorithm::nlz(maxdigit)))
+    {
+        std::cout << "digit bit: " << std::bitset<mul(sizeof(Integral), std::size_t(CHAR_BIT))>(maxdigit) << std::endl;
+        std::cout << "mask bit: " << std::bitset<mul(sizeof(Integral), std::size_t(CHAR_BIT))>(mask) << std::endl;
+    }
+
+    constexpr std::pair<Integral, Integral> shift(const Integral x, const Integral y) const noexcept
+    {
+        std::cout << "a= " << std::bitset<sizeof(Integral) * CHAR_BIT>(~mask & ((x << 1) | bool(y & maxdigit))) << ", ";
+        std::cout << "q= " << std::bitset<sizeof(Integral) * CHAR_BIT>(~mask & ((y & ~maxdigit) << 1)) << std::endl;
+        return { ~mask & ((x << 1) | bool(y & maxdigit)), ~mask & ((y & ~maxdigit) << 1) };
+    }
+
+    const Integral maxdigit;
+    Integral mask;
+private:
+    constexpr Integral init_mask(std::size_t nl, Integral m = 0) const noexcept // 計算に不要なビットを排除するためのマスクを生成する
+    {
+        return nl ? init_mask(sub(nl, std::size_t(1)), (mask | maxdigit) << 1) : m;
+    }
+};
+
+} // namespace detail
+
+template <class Integral, std::enable_if_t<std::conjunction_v<std::is_integral<Integral>, std::is_unsigned<Integral>>, std::nullptr_t> = nullptr>
+constexpr std::pair<Integral, Integral> div(Integral dividend, Integral divisor)
+{
+    if (!divisor) throw std::overflow_error(__func__ + std::string("Divide by zero")); 
+    else if (dividend == divisor) return { 1, 0 };
+    else if (divisor == 1) return { dividend, 0 };
+
+    constexpr std::size_t bitsize = mul(sizeof(Integral), std::size_t(CHAR_BIT));
+    typedef std::bitset<bitsize> bitset_t;
+
+    Integral a = Integral(0), q = dividend, m = divisor;
+    std::cout << "a: " << bitset_t(a) << ", q: " << bitset_t(q) << std::endl;
+    detail::integrals_shifted<Integral> shifted(detail::msbit(std::max(dividend, divisor)));
+    
+    for (std::size_t i = sub(static_cast<Integral>(bitsize), srook::bit::algorithm::nlz(std::max(dividend, divisor))); i; i = sub(static_cast<Integral>(i), Integral(1))) {
+        if (a & shifted.maxdigit) {
+            std::tie(a, q) = shifted.shift(a, q);
+            a = ~shifted.mask & add(a, m);
+            std::cout << "add a + m: a = " << bitset_t(a) << std::endl; 
+        } else {
+            std::tie(a, q) = shifted.shift(a, q);
+            a = add(a, add(Integral(~shifted.mask & Integral(~m)), Integral(1)));
+            std::cout << "add a - m: a = " << bitset_t(a) << std::endl;
+        }
+
+        if (a & shifted.maxdigit) {
+            std::cout << "q0 to 0: q = " << bitset_t(q & ~1) << std::endl;
+            q &= ~1;
+        } else {
+            std::cout << "q0 to 1: q = " << bitset_t(q | 1) << std::endl;
+            q |= 1;
+        }
+        std::cout << std::endl;
+    }
+    if (a & shifted.maxdigit) {
+        a = ~shifted.mask & add(a, m);
+    }
+    return { q, a };
+}
+
+template <class Integral, std::enable_if_t<std::conjunction_v<std::is_integral<Integral>, std::is_signed<Integral>>, std::nullptr_t> = nullptr>
+constexpr std::pair<Integral, Integral> div(Integral dividend, Integral divisor)
+{
+    typedef detail::msb_mask<sizeof(Integral)> mask_type;
+    typedef std::make_unsigned_t<Integral> unsigned_type;
+
+    constexpr Integral one = Integral(1);
+    constexpr unsigned_type uone = unsigned_type(1);
+    
+    if (dividend & divisor & mask_type::value) {
+        return div(unsigned_type(add(~dividend, one)), unsigned_type(add(~divisor, one)));
+    } else if (dividend & mask_type::value) {
+        auto [q, a] = div(unsigned_type(add(~dividend, one)), unsigned_type(divisor));
+        return { add(~q, uone), a };
+    } else if (divisor & mask_type::value) {
+        auto [q, a] = div(unsigned_type(dividend), unsigned_type(add(~divisor, one)));
+        return { add(~q, uone), a };
+    } else {
+        return div(unsigned_type(dividend), unsigned_type(divisor));
+    }
+}
+
+} // namespace TPLCXX17
+```
+まず冒頭で[`<srook/bit/algorithm/nlz.hpp>`](https://github.com/falgon/SrookCppLibraries/blob/6eb60b57b81f7673ff1c32253c3044824b8b13b9/srook/bit/algorithm/nlz.hpp)というものをインクルードしていますが、これは著者が実装した`nlz`というビットカウントの関数を利用するために行なっています。
+`nlz`とは MSB 側から見て何ビット \\(0\_{\(2\)}\\) が並んでいるか数えるものです。この実装に関する説明は本項の内容の範囲外となりますので省きますが、もし興味があれば[実装](https://github.com/falgon/SrookCppLibraries/blob/6eb60b57b81f7673ff1c32253c3044824b8b13b9/srook/bit/algorithm/nlz.hpp)を見てみてください。
+
+説明〜〜
 
 [^1]: ここでは補数を実際に利用してみることを主軸としているため、各サンプル実装においてはオーバーフロー等の演算エラーに関して特に配慮していません。
