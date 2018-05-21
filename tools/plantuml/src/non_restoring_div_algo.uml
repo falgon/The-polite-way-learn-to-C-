@@ -1,0 +1,53 @@
+@startuml{non_restoring_div_algo.png}
+title <size:18>C++ による非回復型除算の実装例, アクティビティ図</size>
+start
+
+partition "初期化" {
+    if (除数が 0 か) then (はい)
+        :例外送出;
+        note left
+            //std::overflow_error//
+        end note
+        end
+    else (いいえ)
+        if (被除数と除数が等しいか) then (はい)
+            :商 1, 剰余 0;
+            stop
+        else (いいえ)
+            if (除数は 1 であるか) then (はい)
+                :商 被除数, 剰余 0;
+                stop
+            else (いいえ)
+                ://A// = 0\n//M// = Divisor\n//Q// = Dividend\n//Count// = N;
+            endif
+        endif
+    endif
+}
+
+partition "本処理" {
+    partition "ループ" {
+        repeat
+            if (A < 0) then (はい)
+                :左シフト //A//, //Q//;
+                ://A// <- //A// + //M//;
+            else (いいえ)
+                :左シフト //A//, //Q//;
+                ://A// <- //A// - //M//;
+            endif
+            if (//A// < 0) then (はい)
+                ://Q_0// <- 0;
+                floating note right: //Q_0// means LSB of //Q//
+            else (いいえ)
+                ://Q_0// <- 1;
+            endif
+            ://Count// <- //Count// - 1;
+        repeat while (Count != 0)
+    }
+    if (A < 0) then (はい)
+        ://A// <- //A// + //M//;
+    endif
+    :商 //Q//, 剰余 //A//;
+}
+
+stop
+@enduml
