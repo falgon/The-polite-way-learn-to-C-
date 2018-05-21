@@ -24,6 +24,7 @@
 * データ競合の定義は N4660 [intro.memory] を参照
 
 ## 第16章
+
 ### 16.5 
 #### [16.5.1 評価の順序/言語バージョンごとの解釈](Chap16/165-order_of_eval.md)
 
@@ -45,8 +46,6 @@
 * "すべての簡単な代入式`E1 = E2`とすべての複合代入式`E1 @ = E2`(`@`は任意の複合代入演算子の意)では、E1のすべての vc と seの前に、E2のすべての vc と se が順序付けられます。"
 → **N4660 [expr.ass]/1**
 
-### 参照
-* N3936
-* P0145R3
-* http://d.hatena.ne.jp/yohhoy/20170104/p1
-* http://d.hatena.ne.jp/Cryolite/20101228
+### 16.6
+#### [16.6.4 自分で四則演算子を作ってみよう](Chap16/166-complement.md)
+参考文献: [A Non-restoring Division Algorithm](http://www.iosrjournals.org/iosr-jce/papers/Vol16-issue4/Version-7/E016472730.pdf)
