@@ -4,7 +4,7 @@ node_js:
     - lts/*
 python:
     - '2.7'
-sudo: false
+sudo: required
 cache:
   apt: true
   homebrew: true
@@ -13,13 +13,11 @@ cache:
 addons:
   apt:
     packages:
-        - doxygen
         - graphviz
         - default-jre
         - xvfb
   homebrew:
     packages:
-        - doxygen
         - graphviz
         - plantuml
     update: true
@@ -32,8 +30,12 @@ branches:
 os:
     - linux
     - osx
+env:
+    - DOXYGEN_VERSION=1.8.14
 
 before_install:
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CPU_NUM=`grep -c ^processor /proc/cpuinfo`; fi
+    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export CPU_NUM=`sysctl -n hw.logicalcpu_max`; fi
     - openssl aes-256-cbc -K $encrypted_0de92ec5cff5_key -iv $encrypted_0de92ec5cff5_iv -in travis_key.enc -out ~/.ssh/id_rsa -d
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
@@ -43,6 +45,12 @@ before_install:
     - pip install --user -U pip
 
 install:
+    - travis_retry wget http://ftp.stack.nl/pub/users/dimitri/doxygen-$DOXYGEN_VERSION.src.tar.gz
+    - gunzip doxygen-$DOXYGEN_VERSION.src.tar.gz
+    - tar xf doxygen-$DOXYGEN_VERSION.src.tar 
+    - cd doxygen-$DOXYGEN_VERSION
+    - mkdir build && cd build
+    - cmake -G "Unix Makefiles" .. && make -j$CPU_NUM && ./configure && sudo make install
     - cd $TRAVIS_BUILD_DIR
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download; fi
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then chmod 755 plantuml.jar; fi

@@ -25,7 +25,8 @@ test:
 clean:
 	rm -rf ./assets/formula ./backups
 
-book: fig 
+book: 
+	make fig 
 	make doxygen
 	make math_formula
 	@mkdir -p $(OUTPUTDIR)
