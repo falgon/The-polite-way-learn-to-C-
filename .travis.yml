@@ -11,7 +11,7 @@ addons:
         packages:
             - doxygen
             - graphviz
-            - plantuml
+            - default-jre
 branches:
     only:
         - original_state
@@ -21,6 +21,11 @@ os:
     - osx
 
 install:
+    - cd $TRAVIS_BUILD_DIR
+    - curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download
+    - echo -e "#!/bin/sh\njava -jar $(pwd)/plantuml.jar" >> plantuml
+    - chmod +x plantuml
+    - alias plantuml=$(pwd)/plantuml
     - cd tools/math_formula
     - npm i
     - chmod +x ../doxygen/extract.sh
