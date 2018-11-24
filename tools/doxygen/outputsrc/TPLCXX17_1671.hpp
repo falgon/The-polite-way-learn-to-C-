@@ -1,4 +1,4 @@
--e /**
+/**
 * @addtogroup 167	16.7	第16章/16.7	アルゴリズムと計算複雑性理論
 * @brief 16.7.1	で利用されたサンプルコードです
 */
@@ -715,4 +715,4 @@ struct search_insert {
 } // namespace v2
 } // namespace chap16_7_1
 } // namespace TPLCXX17
--e /*@}*/
+/*@}*/

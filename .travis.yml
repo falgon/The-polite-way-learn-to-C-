@@ -4,6 +4,7 @@ node_js:
 sudo: false
 cache:
     apt: true
+    homebrew: true
     directories:
         - "$TRAVIS_BUILD_DIR/tools/math_formula/node_modules"
 
@@ -19,7 +20,6 @@ addons:
             - doxygen
             - graphviz
             - plantuml
-            - xvfb
         update: true
 
 branches:
