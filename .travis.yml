@@ -28,16 +28,13 @@ install:
     - export PATH="$PATH:$(pwd)"
     - cd tools/math_formula
     - npm i
-    - chmod +x ../doxygen/extract.sh ../plantuml/gen.sh
+    - chmod +x ../plantuml/gen.sh
     - cd $TRAVIS_BUILD_DIR
 
 script:
-    - cd tools/math_formula
-    - npm run build
-    - cd ../plantuml
-    - bash -n ./gen.sh
-    - cd ../doxygen
-    - make
+    - cd tools/math_formula && npm run build
+    - cd ../plantuml && bash -n ./gen.sh
+    - cd ../doxygen && bash -n ./extract.sh && make
 
 notifications:
     email: false
