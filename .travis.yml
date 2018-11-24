@@ -25,20 +25,19 @@ install:
     - curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download
     - echo -e "#!/bin/sh\njava -jar $(pwd)/plantuml.jar" >> plantuml
     - chmod +x plantuml
-    - alias plantuml=$(pwd)/plantuml
+    - export PATH="$PATH:$(pwd)"
     - cd tools/math_formula
     - npm i
-    - chmod +x ../doxygen/extract.sh
-    - chmod +x ../plantuml/gen.sh
+    - chmod +x ../doxygen/extract.sh ../plantuml/gen.sh
     - cd $TRAVIS_BUILD_DIR
 
 script:
-    - cd tools/math_formula
+    - cd ../math_formula
     - npm run build
+    - cd ../plantuml
+    - bash -n ./gen.sh
     - cd ../doxygen
     - make
-    - cd ../plantuml
-    - ./gen.sh
 
 notifications:
     email: false
