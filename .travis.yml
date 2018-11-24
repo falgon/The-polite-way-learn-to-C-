@@ -23,8 +23,11 @@ install:
     - cd tools/math_formula
     - npm i
 
-script:
-    - npm build
-
+jobs:
+    include:
+        - stage: Build math formula
+          script:
+              - cd tools/math_formula
+              - npm run build
 notifications:
     email: false
