@@ -39,6 +39,7 @@ before_install:
     - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
     - git config --global user.email "falgon53@yahoo.co.jp"
     - git config --global user.name "falgon"
+    - git config --global core.autocrlf "input"
     - pip install --user -U pip
 
 install:

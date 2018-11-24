@@ -31,7 +31,7 @@ book: fig
 	@mkdir -p $(OUTPUTDIR)
 	@cp -r *.md Chap* docs assets book.json prh.yml $(OUTPUTDIR)
 	ghp-import -m "$(COMMIT_MESSAGE)" -b $(BOOK_BRANCH) $(OUTPUTDIR)
-	git push --quiet --force origin $(BOOK_BRANCH)
+	git push --quiet --force git@github.com:falgon/ThePoliteWayLearnToCpp17.git $(BOOK_BRANCH)
 	@cd tools; ./swap_mr.sh
 	@rm -rf $(OUTPUTDIR)
 
