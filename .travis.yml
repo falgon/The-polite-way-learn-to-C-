@@ -48,13 +48,13 @@ install:
     - npm i
     - chmod +x ../plantuml/gen.sh
     - cd $TRAVIS_BUILD_DIR
+    - make setup_env
 
 jobs:
     include:
         - stage: Running task
           script:
             - if [ "$TRAVIS_BRANCH" = "original_state" ]; then $TRAVIS_BUILD_DIR/travis/original_state.sh; fi
-            - if [ "$TRAVIS_BRANCH" = "draft" ] || [ "$TRAVIS_BRANCH" = "master" ]; then make setup_env; fi
             - if [ "$TRAVIS_BRANCH" = "draft" ]; then make BOOK_BRANCH=book_draft; fi
             - if [ "$TRAVIS_BRANCH" = "master" ]; then make book; fi
 
