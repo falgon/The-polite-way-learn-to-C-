@@ -1,6 +1,7 @@
 shell = bash
 BOOK_BRANCH = book
 OUTPUTDIR = output
+COMMIT_MESSAGE = "Auto upload by ghp-import"
 
 setup_env:
 	@pip install --user -r requirements.txt
@@ -29,8 +30,8 @@ book: fig
 	make math_formula
 	@mkdir -p $(OUTPUTDIR)
 	@cp -r *.md Chap* docs assets book.json prh.yml $(OUTPUTDIR)
-	ghp-import -m "Auto upload by ghp-import" -b $(BOOK_BRANCH) $(OUTPUTDIR)
-	git push origin $(BOOK_BRANCH)
+	ghp-import -m "$(COMMIT_MESSAGE)" -b $(BOOK_BRANCH) $(OUTPUTDIR)
+	git push --quiet origin $(BOOK_BRANCH) >/dev/null 2>&1
 	@cd tools; ./swap_mr.sh
 	@rm -rf $(OUTPUTDIR)
 
