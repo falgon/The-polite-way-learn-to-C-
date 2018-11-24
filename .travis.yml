@@ -30,11 +30,11 @@ os:
 
 install:
     - cd $TRAVIS_BUILD_DIR
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then; curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download; fi
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then; chmod 755 plantuml.jar; fi
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then; echo -e "#!/bin/bash\nxvfb-run java -splash:no -jar $(pwd)/plantuml.jar \"\$@\"" >> plantuml; fi
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then; chmod +x plantuml; fi
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then; export PATH="$PATH:$(pwd)"; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then chmod 755 plantuml.jar; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then echo -e "#!/bin/bash\nxvfb-run java -splash:no -jar $(pwd)/plantuml.jar \"\$@\"" >> plantuml; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then chmod +x plantuml; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export PATH="$PATH:$(pwd)"; fi
     - cd tools/math_formula
     - npm i
     - chmod +x ../plantuml/gen.sh
