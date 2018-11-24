@@ -29,5 +29,6 @@ jobs:
           script:
               - cd tools/math_formula
               - npm run build
+
 notifications:
     email: false
