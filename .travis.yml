@@ -3,8 +3,9 @@ node_js:
         - "stable"
 sudo: false
 cache:
-    - "node_modules"
-    - apt
+    apt: true
+    directories:
+        - "$TRAVIS_BUILD_DIR/tools/math_formula/node_modules"
 
 addons:
     apt:
