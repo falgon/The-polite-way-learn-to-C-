@@ -33,7 +33,7 @@ install:
 
 script:
     - cd tools/math_formula && npm run build
-    - cd ../plantuml && bash -n ./gen.sh
+    - cd ../plantuml && bash -n ./gen.sh && ./gen.sh
     - cd ../doxygen && bash -n ./extract.sh && make
 
 notifications:
