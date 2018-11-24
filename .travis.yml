@@ -1,6 +1,7 @@
 language: node_js
 node_js:
         - "stable"
+        - 'lts/*'
 sudo: false
 cache:
     apt: true
@@ -15,11 +16,13 @@ addons:
             - graphviz
             - default-jre
             - xvfb
+            - pip
     homebrew:
         packages:
             - doxygen
             - graphviz
             - plantuml
+            - pip
         update: true
 
 branches:
