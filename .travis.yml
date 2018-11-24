@@ -11,6 +11,7 @@ addons:
         packages:
             - doxygen
             - graphviz
+            - plantuml
 branches:
     only:
         - original_state
@@ -22,13 +23,17 @@ os:
 install:
     - cd tools/math_formula
     - npm i
+    - chmod +x ../doxygen/extract.sh
+    - chmod +x ../plantuml/gen.sh
+    - cd $TRAVIS_BUILD_DIR
 
-jobs:
-    include:
-        - stage: Build math formula
-          script:
-              - cd tools/math_formula
-              - npm run build
+script:
+    - cd tools/math_formula
+    - npm run build
+    - cd ../doxygen
+    - make
+    - cd ../plantuml
+    - ./gen.sh
 
 notifications:
     email: false

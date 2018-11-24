@@ -1,5 +1,6 @@
 # ![](/assets/cooltext217357454332119.png)
 
+[![Build Status](https://travis-ci.org/falgon/ThePoliteWayLearnToCpp17.svg?branch=master)](https://travis-ci.org/falgon/ThePoliteWayLearnToCpp17)
 [![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 
 プルリクください 🙌
