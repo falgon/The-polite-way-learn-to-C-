@@ -37,7 +37,7 @@ os:
     - osx
 
 before_install:
-        pip install --user -U pip
+    - pip install --user -U pip
 
 install:
     - cd $TRAVIS_BUILD_DIR
@@ -55,9 +55,8 @@ install:
 
 jobs:
     include:
-        - stage: Running task
+        - stage: Deploy
           script:
-            - if [ "$TRAVIS_BRANCH" = "original_state" ]; then $TRAVIS_BUILD_DIR/travis/original_state.sh; fi
             - if [ "$TRAVIS_BRANCH" = "draft" ]; then make BOOK_BRANCH=book_draft; fi
             - if [ "$TRAVIS_BRANCH" = "master" ]; then make book; fi
 
