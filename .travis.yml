@@ -1,0 +1,31 @@
+language: node_js
+node_js:
+        - "stable"
+sudo: false
+cache:
+    - "node_modules"
+    - apt
+
+addons:
+    apt:
+        packages:
+            - doxygen
+            - graphviz
+branches:
+    only:
+        - master
+        - develop
+        - /^greenkeeper/.*$/
+os:
+    - linux
+    - osx
+
+install:
+	- cd tools/math_formula
+    - npm i
+
+script:
+    - npm build
+
+notifications:
+    email: false
