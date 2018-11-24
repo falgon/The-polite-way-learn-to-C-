@@ -41,7 +41,6 @@ before_install:
 
 install:
     - cd $TRAVIS_BUILD_DIR
-    - chmod +x  $TRAVIS_BUILD_DIR/travis/*.sh
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download; fi
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then chmod 755 plantuml.jar; fi
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then echo -e "#!/bin/bash\nxvfb-run java -splash:no -jar $(pwd)/plantuml.jar \"\$@\"" >> plantuml; fi
