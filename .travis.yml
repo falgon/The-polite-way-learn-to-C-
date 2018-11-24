@@ -1,42 +1,44 @@
 language: node_js
 node_js:
-        - "stable"
-        - 'lts/*'
+    - stable
+    - lts/*
 python:
-        - "2.7"
-
+    - '2.7'
 sudo: false
 cache:
-    apt: true
-    homebrew: true
-    directories:
-        - "$TRAVIS_BUILD_DIR/tools/math_formula/node_modules"
-
+  apt: true
+  homebrew: true
+  directories:
+    - "$TRAVIS_BUILD_DIR/tools/math_formula/node_modules"
 addons:
-    apt:
-        packages:
-            - doxygen
-            - graphviz
-            - default-jre
-            - xvfb
-    homebrew:
-        packages:
-            - doxygen
-            - graphviz
-            - plantuml
-        update: true
-
+  apt:
+    packages:
+        - doxygen
+        - graphviz
+        - default-jre
+        - xvfb
+  homebrew:
+    packages:
+        - doxygen
+        - graphviz
+        - plantuml
+    update: true
 branches:
-    only:
-        - original_state
-        - draft
-        - master
-        - /^greenkeeper/.*$/
+  only:
+    - original_state
+    - draft
+    - master
+    - "/^greenkeeper/.*$/"
 os:
     - linux
     - osx
 
 before_install:
+    - openssl aes-256-cbc -K $encrypted_0de92ec5cff5_key -iv $encrypted_0de92ec5cff5_iv -in travis_key.enc -out ~/.ssh/id_rsa -d
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+    - git config --global user.email "falgon53@yahoo.co.jp"
+    - git config --global user.name "falgon"
     - pip install --user -U pip
 
 install:
@@ -53,11 +55,11 @@ install:
     - make setup_env
 
 jobs:
-    include:
-        - stage: Deploy
-          script:
-            - if [ "$TRAVIS_BRANCH" = "draft" ]; then make BOOK_BRANCH=book_draft; fi
-            - if [ "$TRAVIS_BRANCH" = "master" ]; then make book; fi
+  include:
+    - stage: Deploy
+      script:
+        - if [ "$TRAVIS_BRANCH" = "draft" ]; then make BOOK_BRANCH=book_draft COMMIT_MESSAGE="by Travis CI (JOB $TRAVIS_JOB_NUMBER)" book; fi
+        - if [ "$TRAVIS_BRANCH" = "master" ]; then make COMMIT_MESSAGE="by Travis CI (JOB $TRAVIS_JOB_NUMBER)" book; fi
 
 notifications:
-    email: false
+  email: false
