@@ -23,7 +23,7 @@ os:
 install:
     - cd $TRAVIS_BUILD_DIR
     - curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download
-    - echo -e "#!/bin/sh\njava -jar $(pwd)/plantuml.jar" >> plantuml
+    - echo -e "#!/bin/sh\njava -Djava.awt.headless=true -jar $(pwd)/plantuml.jar" >> plantuml
     - chmod +x plantuml
     - export PATH="$PATH:$(pwd)"
     - cd tools/math_formula
