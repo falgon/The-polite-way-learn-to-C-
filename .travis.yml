@@ -21,6 +21,7 @@ os:
     - osx
 
 install:
+    - export DISPLAY=:0.0
     - cd $TRAVIS_BUILD_DIR
     - curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download
     - echo -e "#!/bin/sh\njava -jar $(pwd)/plantuml.jar" >> plantuml
