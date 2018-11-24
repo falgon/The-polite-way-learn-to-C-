@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
 cwd=`dirname "${0}"`
 
-function extract (){
-    echo "/**\n* @addtogroup $2\n* @brief $3\n*/\n/*@{*/" > "$cwd/outputsrc/$1"
+extract (){
+    echo -e "/**\n* @addtogroup $2\n* @brief $3\n*/\n/*@{*/" > "$cwd/outputsrc/$1"
     sed -n '/^```cpp/,/^```/ p' < $4 | sed '/^```/ d' >> "$cwd/outputsrc/$1"
-    echo "/*@}*/" >> "$cwd/outputsrc/$1"
+    echo -e "/*@}*/" >> "$cwd/outputsrc/$1"
 }
 
 ### main
