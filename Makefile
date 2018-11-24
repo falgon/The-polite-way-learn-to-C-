@@ -31,7 +31,7 @@ book: fig
 	@mkdir -p $(OUTPUTDIR)
 	@cp -r *.md Chap* docs assets book.json prh.yml $(OUTPUTDIR)
 	ghp-import -m "$(COMMIT_MESSAGE)" -b $(BOOK_BRANCH) $(OUTPUTDIR)
-	git push --quiet origin $(BOOK_BRANCH) >/dev/null 2>&1
+	git push --quiet --force origin $(BOOK_BRANCH)
 	@cd tools; ./swap_mr.sh
 	@rm -rf $(OUTPUTDIR)
 
