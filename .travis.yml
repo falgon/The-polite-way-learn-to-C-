@@ -2,6 +2,9 @@ language: node_js
 node_js:
         - "stable"
         - 'lts/*'
+python:
+        - "2.7"
+
 sudo: false
 cache:
     apt: true
@@ -16,13 +19,11 @@ addons:
             - graphviz
             - default-jre
             - xvfb
-            - python-pip
     homebrew:
         packages:
             - doxygen
             - graphviz
             - plantuml
-            - python
         update: true
 
 branches:
@@ -36,7 +37,6 @@ os:
     - osx
 
 install:
-    - pip install --upgrade pip
     - cd $TRAVIS_BUILD_DIR
     - chmod +x  $TRAVIS_BUILD_DIR/travis/*.sh
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download; fi
