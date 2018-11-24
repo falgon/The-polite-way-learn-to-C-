@@ -22,10 +22,13 @@ os:
     - linux
     - osx
 
+before_install:
+
 install:
     - cd $TRAVIS_BUILD_DIR
     - curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download
-    - echo -e "#!/bin/sh\nxvfb-run java -splash:no -jar $(pwd)/plantuml.jar" >> plantuml
+    - chmod 755 plantuml.jar
+    - echo -e "#!/bin/bash\nxvfb-run java -verbose -splash:no -jar $(pwd)/plantuml.jar \"\$@\"" >> plantuml
     - chmod +x plantuml
     - export PATH="$PATH:$(pwd)"
     - cd tools/math_formula
