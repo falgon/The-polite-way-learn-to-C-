@@ -4,7 +4,7 @@ OUTPUTDIR = output
 
 setup_env:
 	@pip install -r requirements.txt
-	@cd tools/math_formula; npm i; npm audit fix
+	@cd tools/math_formula; npm i; npm audit fix; npm run build
 
 fig:
 	@./tools/plantuml/gen.sh
