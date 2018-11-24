@@ -3,7 +3,7 @@ BOOK_BRANCH = book
 OUTPUTDIR = output
 
 setup_env:
-	@pip install -r requirements.txt
+	@pip install -r --user requirements.txt
 	@cd tools/math_formula; npm i; npm audit fix; npm run build
 
 fig:
