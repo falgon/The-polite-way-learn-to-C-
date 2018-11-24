@@ -22,13 +22,11 @@ os:
     - linux
     - osx
 
-before_install:
-
 install:
     - cd $TRAVIS_BUILD_DIR
     - curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download
     - chmod 755 plantuml.jar
-    - echo -e "#!/bin/bash\nxvfb-run java -verbose -splash:no -jar $(pwd)/plantuml.jar \"\$@\"" >> plantuml
+    - echo -e "#!/bin/bash\nxvfb-run java -splash:no -jar $(pwd)/plantuml.jar \"\$@\"" >> plantuml
     - chmod +x plantuml
     - export PATH="$PATH:$(pwd)"
     - cd tools/math_formula
@@ -40,6 +38,14 @@ script:
     - cd tools/math_formula && npm run build
     - cd ../plantuml && bash -n ./gen.sh && ./gen.sh
     - cd ../doxygen && bash -n ./extract.sh && make
+
+jobs:
+    include:
+        - stage: Generate math formula
+          script:
+              - cd $TRAVIS_BUILD_DIR/math_formula
+              - npm run run
+
 
 notifications:
     email: false
