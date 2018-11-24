@@ -14,12 +14,14 @@ addons:
             - graphviz
             - default-jre
             - xvfb
-    brew:
+    homebrew:
         packages:
             - doxygen
             - graphviz
             - plantuml
             - xvfb
+        update: true
+
 branches:
     only:
         - original_state
