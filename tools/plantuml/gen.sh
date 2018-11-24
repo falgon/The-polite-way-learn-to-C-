@@ -13,7 +13,6 @@ if [ $# -eq 1 ]; then
 else
     if type "plantuml" > /dev/null 2>&1; then
         mkdir -p $cwd/dist
-        unset DISPLAY
         ${PLANTUML} `ls $cwd/${UMLPATH}/*.uml`
         mv $cwd/${UMLPATH}/*.png $cwd/dist
     else
