@@ -1,0 +1,64 @@
+language: node_js
+node_js:
+        - "stable"
+        - 'lts/*'
+python:
+        - "2.7"
+
+sudo: false
+cache:
+    apt: true
+    homebrew: true
+    directories:
+        - "$TRAVIS_BUILD_DIR/tools/math_formula/node_modules"
+
+addons:
+    apt:
+        packages:
+            - doxygen
+            - graphviz
+            - default-jre
+            - xvfb
+    homebrew:
+        packages:
+            - doxygen
+            - graphviz
+            - plantuml
+        update: true
+
+branches:
+    only:
+        - original_state
+        - draft
+        - master
+        - /^greenkeeper/.*$/
+os:
+    - linux
+    - osx
+
+before_install:
+    - pip install --user -U pip
+
+install:
+    - cd $TRAVIS_BUILD_DIR
+    - chmod +x  $TRAVIS_BUILD_DIR/travis/*.sh
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then chmod 755 plantuml.jar; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then echo -e "#!/bin/bash\nxvfb-run java -splash:no -jar $(pwd)/plantuml.jar \"\$@\"" >> plantuml; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then chmod +x plantuml; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export PATH="$PATH:$(pwd)"; fi
+    - cd tools/math_formula
+    - npm i
+    - chmod +x ../plantuml/gen.sh
+    - cd $TRAVIS_BUILD_DIR
+    - make setup_env
+
+jobs:
+    include:
+        - stage: Deploy
+          script:
+            - if [ "$TRAVIS_BRANCH" = "draft" ]; then make BOOK_BRANCH=book_draft; fi
+            - if [ "$TRAVIS_BRANCH" = "master" ]; then make book; fi
+
+notifications:
+    email: false

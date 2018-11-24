@@ -165,6 +165,20 @@ if constexpr (a == std::denorm_indeterminate) {
 
 #endif
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#include <limits>
+
+constexpr std::float_denorm_style b = std::numeric_limits<float>::has_denorm;
+if constexpr (a == std::denorm_indeterminate) {
+    // ...
+} else if constexpr (a == std::denorm_absent) {
+    // ...
+} else if constexpr (a == std::denorm_present) {
+    // ...
+}
+
+#endif
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include <iostream>
 #include <bitset>
 #include <limits>
@@ -230,6 +244,7 @@ std::fesetround(FE_TONEAREST); // 最近接偶数丸めに設定する
 
 #endif
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+<<<<<<< HEAD
 
 float f = 0.f;
 for (int i = 0; i < 10000; ++i) f += 0.01f;
@@ -249,6 +264,27 @@ for (int i = 0; i < 100; ++i) {
 #endif
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+=======
+
+float f = 0.f;
+for (int i = 0; i < 10000; ++i) f += 0.01f;
+
+std::cout << std::fixed << std::setprecision(std::numeric_limits<float>::max_digits10) << f << std::endl;
+
+#endif
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+float f = 0.f;
+for (int i = 0; i < 100; ++i) {
+    float g = 0.f;
+    for (int j = 0; j < 100; ++j) g += 0.01f;
+    f += g;
+}
+
+#endif
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+>>>>>>> original_state
 float f = 0.f, r = 0.f, t;
 for (int i = 0; i < 10000; ++i) {
     r += 0.01f; // (1) (3) で加えられることができなかった値と、次に加える値の和を取る。

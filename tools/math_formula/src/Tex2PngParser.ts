@@ -1,7 +1,7 @@
 import mathjax from './mathjax';
 import filelist from './filelist';
 import { isExist } from './filelist';
-import { readFile,  mkdirsSync } from 'fs-extra';
+import { copySync, readFile,  mkdirsSync } from 'fs-extra';
 
 type MatchTuple = [Array<string>, string, Array<[number, number]>];
 export type MatchInfo = [string, Array<[string, [number, number]]>] | undefined;
@@ -13,10 +13,12 @@ export default class Tex2PngParser {
 
         let i = 0;
         const mdlist: string[] = isExist(this.workdir + 'assets/formula', 'png').sort();
-        console.log(mdlist);
         if (mdlist.length > 0) {
+            console.log('Found images');
+            console.log(mdlist);
             i = parseInt(mdlist[mdlist.length - 1].match(/[^/]+$/i)[0], 10) + 1;
         }
+        mkdirsSync(this.workdir + 'backups');
         this.mj = new mathjax(i);
     }
 
@@ -40,9 +42,11 @@ export default class Tex2PngParser {
                         resolve(undefined);
                         return;
                     }
-
                     const filename: string = file.match(/[^/]+$/i)[0];
                     const dir: string = this.workdir + 'assets/formula/' + filename + '/';
+                    
+                    console.log('Working for: ' + file);
+                    copySync(file, this.workdir + 'backups/' + filename);
                     mkdirsSync(dir);
 
                     Promise.all(matches[0].map((s: string) => this.mj.out(s.replace(/ ```mrend/g, '').replace(/```mr /g, '').replace(/\n/g, ''), dir, matches[2])))
