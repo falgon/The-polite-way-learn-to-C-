@@ -14,6 +14,12 @@ addons:
             - graphviz
             - default-jre
             - xvfb
+    brew:
+        packages:
+            - doxygen
+            - graphviz
+            - plantuml
+            - xvfb
 branches:
     only:
         - original_state
@@ -24,28 +30,20 @@ os:
 
 install:
     - cd $TRAVIS_BUILD_DIR
-    - curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download
-    - chmod 755 plantuml.jar
-    - echo -e "#!/bin/bash\nxvfb-run java -splash:no -jar $(pwd)/plantuml.jar \"\$@\"" >> plantuml
-    - chmod +x plantuml
-    - export PATH="$PATH:$(pwd)"
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then; curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then; chmod 755 plantuml.jar; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then; echo -e "#!/bin/bash\nxvfb-run java -splash:no -jar $(pwd)/plantuml.jar \"\$@\"" >> plantuml; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then; chmod +x plantuml; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then; export PATH="$PATH:$(pwd)"; fi
     - cd tools/math_formula
     - npm i
     - chmod +x ../plantuml/gen.sh
     - cd $TRAVIS_BUILD_DIR
 
 script:
-    - cd tools/math_formula && npm run build
-    - cd ../plantuml && bash -n ./gen.sh && ./gen.sh
-    - cd ../doxygen && bash -n ./extract.sh && make
-
-jobs:
-    include:
-        - stage: Generate math formula
-          script:
-              - cd $TRAVIS_BUILD_DIR/math_formula
-              - npm run run
-
+    - cd $TRAVIS_BUILD_DIR/tools/plantuml && bash -n ./gen.sh && ./gen.sh
+    - cd $TRAVIS_BUILD_DIR/tools/doxygen && bash -n ./extract.sh && make
+    - cd $TRAVIS_BUILD_DIR/tools/math_formula && npm run build && npm run run
 
 notifications:
     email: false
