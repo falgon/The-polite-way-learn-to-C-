@@ -13,15 +13,14 @@ addons:
             - graphviz
 branches:
     only:
-        - master
-        - develop
+        - original_state
         - /^greenkeeper/.*$/
 os:
     - linux
     - osx
 
 install:
-	- cd tools/math_formula
+    - cd tools/math_formula
     - npm i
 
 script:
