@@ -32,7 +32,7 @@ install:
     - cd $TRAVIS_BUILD_DIR
 
 script:
-    - cd ../math_formula
+    - cd tools/math_formula
     - npm run build
     - cd ../plantuml
     - bash -n ./gen.sh
