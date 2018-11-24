@@ -25,6 +25,8 @@ addons:
 branches:
     only:
         - original_state
+        - draft
+        - master
         - /^greenkeeper/.*$/
 os:
     - linux
@@ -32,6 +34,7 @@ os:
 
 install:
     - cd $TRAVIS_BUILD_DIR
+    - chmod +x  $TRAVIS_BUILD_DIR/travis/*.sh
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download; fi
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then chmod 755 plantuml.jar; fi
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then echo -e "#!/bin/bash\nxvfb-run java -splash:no -jar $(pwd)/plantuml.jar \"\$@\"" >> plantuml; fi
@@ -43,9 +46,10 @@ install:
     - cd $TRAVIS_BUILD_DIR
 
 script:
-    - cd $TRAVIS_BUILD_DIR/tools/plantuml && bash -n ./gen.sh && ./gen.sh
-    - cd $TRAVIS_BUILD_DIR/tools/doxygen && bash -n ./extract.sh && make
-    - cd $TRAVIS_BUILD_DIR/tools/math_formula && npm run build && npm run run
+    - if [ "$TRAVIS_BRANCH" = "original_state" ]; then $TRAVIS_BUILD_DIR/travis/original_state.sh; fi
+    - if [ "$TRAVIS_BRANCH" = "draft" ] || [ "$TRAVIS_BRANCH" = "master" ]; then make setup_env; fi
+    - if [ "$TRAVIS_BRANCH" = "draft" ]; then make BOOK_BRANCH=book_draft; fi
+    - if [ "$TRAVIS_BRANCH" = "master" ]; then make book; fi
 
 notifications:
     email: false

@@ -23,7 +23,8 @@ swap_bk () {
         
         spec=`find $dir./$BKDIR -type f -name $(basename $md)`
         if [ -n "$spec" ]; then
-            cp $spec $md
+            cp $dir./$BKDIR/$(basename $md) $md
+ 			mv $dir./$BKDIR/$m $dir./$BKDIR/$(basename $md)
         else
             echo "Same name file not found"
         fi
