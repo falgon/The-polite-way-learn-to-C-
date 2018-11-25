@@ -1,7 +1,12 @@
 shell = bash
+
 BOOK_BRANCH = book
-OUTPUTDIR = output
-COMMIT_MESSAGE = "Auto upload by ghp-import"
+BOOK_COMMIT_MESSAGE = "Auto upload by ghp-import"
+BOOK_OUTPUT = book_output
+
+DOXY_BRANCH = gh-pages
+DOXY_COMMIT_MESSAGE = "Auto upload by ghp-import"
+DOXY_OUTPUT = docs
 
 setup_env:
 	@pip install --user -r requirements.txt
@@ -23,17 +28,23 @@ test:
 	@cd tools; ./swap_mr.sh
 
 clean:
-	rm -rf ./assets/formula ./backups
+	rm -rf ./assets/formula ./backups $(BOOK_OUTPUT) $(DOXY_OUTPUT)
+
+push_doxy:
+	make doxygen
+	@mkdir -p $(DOXY_OUTPUT)
+	ghp-import -m "$(DOXY_COMMIT_MESSAGE)" -b $(DOXY_BRANCH) $(DOXY_OUTPUT)
+	git push --quiet --force git@github.com:falgon/ThePoliteWayLearnToCpp17.git $(DOXY_BRANCH)
+	@rm -rf $(DOXY_OUTPUT)
 
 book: 
 	make fig 
-	make doxygen
 	make math_formula
-	@mkdir -p $(OUTPUTDIR)
-	@cp -r *.md Chap* docs assets book.json prh.yml $(OUTPUTDIR)
-	ghp-import -m "$(COMMIT_MESSAGE)" -b $(BOOK_BRANCH) $(OUTPUTDIR)
+	@mkdir -p $(BOOK_OUTPUT)
+	@cp -r *.md Chap* assets book.json prh.yml $(BOOK_OUTPUT)
+	ghp-import -m "$(BOOK_COMMIT_MESSAGE)" -b $(BOOK_BRANCH) $(BOOK_OUTPUT)
 	git push --quiet --force git@github.com:falgon/ThePoliteWayLearnToCpp17.git $(BOOK_BRANCH)
 	@cd tools; ./swap_mr.sh
-	@rm -rf $(OUTPUTDIR)
+	@rm -rf $(BOOK_OUTPUT)
 
-.PHONY: book setup_env test clean
+.PHONY: book push_doxy setup_env test clean

@@ -10,6 +10,7 @@ cache:
   homebrew: true
   directories:
     - "$TRAVIS_BUILD_DIR/tools/math_formula/node_modules"
+    - "/usr/local/bin/"
 addons:
   apt:
     packages:
@@ -37,11 +38,11 @@ before_install:
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CPU_NUM=`grep -c ^processor /proc/cpuinfo`; fi
     - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export CPU_NUM=`sysctl -n hw.logicalcpu_max`; fi
     - chmod +x $TRAVIS_BUILD_DIR/.travis/*.sh
-    - $TRAVIS_BUILD_DIR/.travis/setup_github.sh
+    - ./$TRAVIS_BUILD_DIR/.travis/setup_github.sh
     - pip install --user -U pip
 
 install:
-    - $TRAVIS_BUILD_DIR/.travis/setup_doxygen.sh $DOXYGEN_VERSION
+    - ./$TRAVIS_BUILD_DIR/.travis/setup_doxygen.sh $DOXYGEN_VERSION
     - cd $TRAVIS_BUILD_DIR
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download; fi
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then chmod 755 plantuml.jar; fi
@@ -56,10 +57,13 @@ install:
 
 jobs:
   include:
-    - stage: Deploy
+    - stage: Deploy book
       script:
-        - if [ "$TRAVIS_BRANCH" = "draft" ]; then make BOOK_BRANCH=book_draft COMMIT_MESSAGE="by Travis CI (JOB $TRAVIS_JOB_NUMBER)" book; fi
-        - if [ "$TRAVIS_BRANCH" = "master" ]; then make COMMIT_MESSAGE="by Travis CI (JOB $TRAVIS_JOB_NUMBER)" book; fi
+        - if [ "$TRAVIS_BRANCH" = "draft" ]; then make BOOK_BRANCH=book_draft BOOK_COMMIT_MESSAGE="by Travis CI (JOB $TRAVIS_JOB_NUMBER)" book; fi
+        - if [ "$TRAVIS_BRANCH" = "master" ]; then make BOOK_COMMIT_MESSAGE="by Travis CI (JOB $TRAVIS_JOB_NUMBER)" book; fi
+    - stage: Deploy gh-pages
+      script:
+        - if [ "$TRAVIS_BRANCH" = "master" ]; then make DOXY_COMMIT_MESSAGE="by Travis CI (JOB $TRAVIS_JOB_NUMBER)" push_doxy; fi
 
 notifications:
   email: false
