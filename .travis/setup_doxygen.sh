@@ -14,7 +14,7 @@ if [ ! -n "$CPU_NUM" ]; then
     fi
 fi
 
-travis_retry wget http://ftp.stack.nl/pub/users/dimitri/doxygen-$DG_VER.src.tar.gz
+wget -q http://ftp.stack.nl/pub/users/dimitri/doxygen-$DG_VER.src.tar.gz
 gunzip doxygen-$DG_VER.src.tar.gz && tar xf doxygen-$DG_VER.src.tar 
 cd doxygen-$DG_VER
 mkdir build && cd build

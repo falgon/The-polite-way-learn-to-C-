@@ -42,7 +42,7 @@ before_install:
     - pip install --user -U pip
 
 install:
-    - ./.travis/setup_doxygen.sh $DOXYGEN_VERSION
+    - travis_retry ./.travis/setup_doxygen.sh $DOXYGEN_VERSION
     - cd $TRAVIS_BUILD_DIR
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download; fi
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then chmod 755 plantuml.jar; fi
