@@ -12,13 +12,13 @@
   },
   "devDependencies": {
     "@types/fs-extra": "^5.0.0",
-    "@types/glob": "^5.0.35",
-    "@types/node": "^9.4.6",
-    "fs-extra": "^5.0.0",
+    "@types/glob": "^7.1.1",
+    "@types/node": "^10.12.10",
+    "fs-extra": "^7.0.1",
     "glob": "^7.1.2",
     "tsc": "^1.20150623.0",
     "tslint": "^5.9.1",
-    "typescript": "^2.7.2"
+    "typescript": "^3.1.6"
   },
   "scripts": {
     "test": "echo 'Skipping test...'",

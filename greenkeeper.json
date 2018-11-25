@@ -1,0 +1,9 @@
+{
+  "groups": {
+    "default": {
+      "packages": [
+        "tools/math_formula/package.json"
+      ]
+    }
+  }
+}
