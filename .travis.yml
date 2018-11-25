@@ -38,11 +38,11 @@ before_install:
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CPU_NUM=`grep -c ^processor /proc/cpuinfo`; fi
     - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export CPU_NUM=`sysctl -n hw.logicalcpu_max`; fi
     - chmod +x $TRAVIS_BUILD_DIR/.travis/*.sh
-    - ./$TRAVIS_BUILD_DIR/.travis/setup_github.sh
+    - ./.travis/setup_github.sh
     - pip install --user -U pip
 
 install:
-    - ./$TRAVIS_BUILD_DIR/.travis/setup_doxygen.sh $DOXYGEN_VERSION
+    - ./.travis/setup_doxygen.sh $DOXYGEN_VERSION
     - cd $TRAVIS_BUILD_DIR
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download; fi
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then chmod 755 plantuml.jar; fi
