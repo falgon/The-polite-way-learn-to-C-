@@ -11,7 +11,7 @@ fig:
 	@./tools/plantuml/gen.sh
 
 doxygen:
-	@make -f ./tools/doxygen/Makefile
+	@cd tools/doxygen; make
 
 math_formula:
 	@cd tools/math_formula; npm run run

@@ -1,4 +1,4 @@
-#!/bin/bash -xu
+#!/bin/bash
 
 PLANTUML=plantuml
 UMLPATH=src
