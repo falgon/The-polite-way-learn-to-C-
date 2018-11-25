@@ -1,0 +1,69 @@
+language: node_js
+node_js:
+    - stable
+    - lts/*
+python:
+    - '2.7'
+sudo: required
+cache:
+  apt: true
+  homebrew: true
+  directories:
+    - "$TRAVIS_BUILD_DIR/tools/math_formula/node_modules"
+    - "/usr/local/bin/"
+addons:
+  apt:
+    packages:
+        - graphviz
+        - default-jre
+        - xvfb
+  homebrew:
+    packages:
+        - graphviz
+        - plantuml
+    update: true
+branches:
+  only:
+    - original_state
+    - draft
+    - master
+    - "/^greenkeeper/.*$/"
+os:
+    - linux
+    - osx
+env:
+    - DOXYGEN_VERSION=1.8.14
+
+before_install:
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CPU_NUM=`grep -c ^processor /proc/cpuinfo`; fi
+    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export CPU_NUM=`sysctl -n hw.logicalcpu_max`; fi
+    - chmod +x $TRAVIS_BUILD_DIR/.travis/*.sh
+    - ./.travis/setup_github.sh
+    - pip install --user -U pip
+
+install:
+    - travis_retry ./.travis/setup_doxygen.sh $DOXYGEN_VERSION
+    - cd $TRAVIS_BUILD_DIR
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then curl -JLO http://sourceforge.net/projects/plantuml/files/plantuml.jar/download; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then chmod 755 plantuml.jar; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then echo -e "#!/bin/bash\nxvfb-run java -splash:no -jar $(pwd)/plantuml.jar \"\$@\"" >> plantuml; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then chmod +x plantuml; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export PATH="$PATH:$(pwd)"; fi
+    - cd tools/math_formula
+    - npm i
+    - chmod +x ../plantuml/gen.sh
+    - cd $TRAVIS_BUILD_DIR
+    - make setup_env
+
+jobs:
+  include:
+    - stage: Deploy book
+      script:
+        - if [ "$TRAVIS_BRANCH" = "draft" ]; then make BOOK_BRANCH=book_draft BOOK_COMMIT_MESSAGE="by Travis CI (JOB $TRAVIS_JOB_NUMBER)" book; fi
+        - if [ "$TRAVIS_BRANCH" = "master" ]; then make BOOK_COMMIT_MESSAGE="by Travis CI (JOB $TRAVIS_JOB_NUMBER)" book; fi
+    - stage: Deploy gh-pages
+      script:
+        - if [ "$TRAVIS_BRANCH" = "master" ]; then make DOXY_COMMIT_MESSAGE="by Travis CI (JOB $TRAVIS_JOB_NUMBER)" push_doxy; fi
+
+notifications:
+  email: false
