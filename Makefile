@@ -34,7 +34,7 @@ push_doxy:
 	make doxygen
 	@mkdir -p $(DOXY_OUTPUT)
 	ghp-import -m "$(DOXY_COMMIT_MESSAGE)" -b $(DOXY_BRANCH) $(DOXY_OUTPUT)
-	git push --quiet git@github.com:falgon/ThePoliteWayLearnToCpp17.git $(DOXY_BRANCH)
+	git push -f --quiet git@github.com:falgon/ThePoliteWayLearnToCpp17.git $(DOXY_BRANCH)
 	@rm -rf $(DOXY_OUTPUT)
 
 book: 
@@ -43,7 +43,7 @@ book:
 	@mkdir -p $(BOOK_OUTPUT)
 	@cp -r *.md Chap* assets book.json prh.yml $(BOOK_OUTPUT)
 	ghp-import -m "$(BOOK_COMMIT_MESSAGE)" -b $(BOOK_BRANCH) $(BOOK_OUTPUT)
-	git push --quiet git@github.com:falgon/ThePoliteWayLearnToCpp17.git $(BOOK_BRANCH)
+	git push -f --quiet git@github.com:falgon/ThePoliteWayLearnToCpp17.git $(BOOK_BRANCH)
 	@cd tools; ./swap_mr.sh
 	@rm -rf $(BOOK_OUTPUT)
 
