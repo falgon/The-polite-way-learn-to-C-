@@ -1,6 +1,7 @@
 # Tools
 
 The tools for generating manual websites of images and source code handled in books.
+They are not executed directly, they are executed based on the [Makefile](https://github.com/falgon/ThePoliteWayLearnToCpp17/blob/original_state/Makefile).
 
 ## doxygen
 

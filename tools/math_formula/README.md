@@ -6,8 +6,6 @@ The generating tool of the math formula (by mathjax).
 This is to convert the LaTex expression surrounded by a
 specific block to png and replace the corresponding part with the
 image path to prevent gitbook errors(For details, see related articles below).
-They are not executed directly, they are executed based on the
-[Makefile](https://github.com/falgon/ThePoliteWayLearnToCpp17/blob/original_state/Makefile).
 
 ## Appearance of operation
 
