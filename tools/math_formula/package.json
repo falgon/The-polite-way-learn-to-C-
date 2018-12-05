@@ -1,7 +1,7 @@
 {
-  "name": "thepolitewaylearntocpp17",
+  "name": "Formulagen",
   "version": "1.0.0",
-  "description": "The C++17 documentation for beginner",
+  "description": "The generating tool of the math formula (by mathjax).",
   "main": "build.js",
   "directories": {
     "doc": "docs"
