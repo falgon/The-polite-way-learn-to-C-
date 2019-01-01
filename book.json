@@ -1,0 +1,21 @@
+{
+    "author": "roki",
+    "title": "The polite way learn to C++17",
+    "description": "Japanese C++17 documents for beginner.",
+    "language": "ja",
+    "plugins": ["mathjax","-lunr", "-sharing", "-search", "hide-published-with"],
+    "pluginsCongig": {
+        "mathjax":{
+            "forceSVG": true
+        },
+        "search": {
+            "maxIndexSize": 10000
+        }
+    },
+    "link": {
+        "sidebar": {
+            "本書で利用されるサンプル実装のドキュメントはこちら": "https://falgon.github.io/ThePoliteWayLearnToCpp17/"
+        }
+    },
+    "gitbook": ">= 3.0.0"
+}
