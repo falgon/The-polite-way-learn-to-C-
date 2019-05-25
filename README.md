@@ -10,7 +10,7 @@ The Japanese C++17 documents for beginners.
 ## Builds
 
 * GitBook: https://legacy.gitbook.com/book/roki/thepolitewaylearntocpp17/
-* 本書で扱われるコードの説明: https://falgon.github.io/ThePoliteWayLearnToCpp17/
+* Explanation of the codes covered in this document: https://falgon.github.io/ThePoliteWayLearnToCpp17/
 
 To realize automation, various open source softwares and self-made softwares are used.
 This figure shows the state transition until the book is deployed.
