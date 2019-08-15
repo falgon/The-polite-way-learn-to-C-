@@ -14,7 +14,7 @@ if [ ! -n "$CPU_NUM" ]; then
     fi
 fi
 
-wget -q http://doxygen.nl/files/doxygen-$DG_VER.src.tar.gz
+wget -q https://sourceforge.net/projects/doxygen/files/rel-$DG_VER/doxygen-$DG_VER.src.tar.gz
 gunzip doxygen-$DG_VER.src.tar.gz && tar xf doxygen-$DG_VER.src.tar 
 cd doxygen-$DG_VER
 mkdir build && cd build
