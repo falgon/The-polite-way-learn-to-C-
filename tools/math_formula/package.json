@@ -8,7 +8,8 @@
   },
   "dependencies": {
     "mathjax-node": "^2.1.1",
-    "svgexport": "^0.4.0"
+    "svgexport": "^0.4.0",
+    "snyk": "^1.321.0"
   },
   "devDependencies": {
     "@types/fs-extra": "^9.0.0",
@@ -24,7 +25,9 @@
     "test": "echo 'Skipping test...'",
     "build": "./node_modules/typescript/bin/tsc --p ./tsconfig.json --outDir ./dist",
     "run": "node ./dist/main.js",
-    "clean": "rm -f ./dist/*.png ./dist/*.svg"
+    "clean": "rm -f ./dist/*.png ./dist/*.svg",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -40,5 +43,6 @@
   "bugs": {
     "url": "https://github.com/falgon/ThePoliteWayLearnToCpp17/issues"
   },
-  "homepage": "https://github.com/falgon/ThePoliteWayLearnToCpp17#readme"
+  "homepage": "https://github.com/falgon/ThePoliteWayLearnToCpp17#readme",
+  "snyk": true
 }
